@@ -24,17 +24,20 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 ## Vocabulary challenge mechanic
 
 - 8–10 challenge/"mystery" words embedded in the story (exact count/selection deprioritized until core loop works)
+- Mystery words are visually highlighted; the challenge opens as an **overlay/modal** over the story page. After grading/feedback, the overlay closes and the child returns to the **same** story page
 - **Challenge format:** "Explain what you understand by [word]" — open-ended; **not** multiple choice; **not** "use it in a sentence"
 - Correctness is graded by a **live API call** that evaluates whether the child's explanation semantically matches the word's real meaning
 - Grading must be calibrated for a 7–9 year old's language: accept simplified phrasing, synonyms, and partial-but-correct understanding; reject answers describing a different/wrong concept
 - Grading prompt must supply the model with the **target definition** and instruct it to return a **structured, parseable result** (not free-form prose) — likely a strict correct/incorrect signal plus a short kid-friendly reason
 - **Hints are pre-written, not AI-generated** — 2–3 tiers per word, triggered on a wrong answer (live-generated hints rejected to reduce live-AI surface area)
+- **Soft progression:** the child is not hard-blocked forever on a correct answer. After the retry limit, reveal the word's meaning in a kid-friendly way (pre-written, not live-AI), then unlock **Next Page**. Meaning reveal does **not** count as a correct answer for words-learned
 
 ## Feedback & progress
 
 - After grading, the child sees **why** an answer was right or wrong (feedback loop), not just correct/incorrect
+- Story progression (**Next Page**) stays gated until the challenge is **resolved** — either an accepted explanation, or meaning reveal after the retry limit — then the overlay closes and Next Page becomes available on the same story page
 - **Words learned** = count of challenge words answered correctly within the **current session** (session-scoped for the demo; not a multi-day / persisted progress metric)
-- Words-learned count increments **live on screen** as a direct result of correct answers, not revealed only at the end
+- Words-learned count increments **live on screen** as a direct result of correct answers only, not on meaning reveal, and not revealed only at the end
 - **Ending beat:** book-coloring animation + words-learned count, followed by a chapter-unlock reveal — this is the closing moment of the demo
 
 ## Loading / latency
