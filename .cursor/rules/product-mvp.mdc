@@ -33,9 +33,9 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 ## Feedback & progress
 
 - After grading, the child sees **why** an answer was right or wrong (feedback loop), not just correct/incorrect
-- **Streak counter** = number of challenge words answered correctly within the **current session** (explicitly **not** a multi-day streak — rejected because it can't be demonstrated in a single continuous demo recording)
-- Streak increments **live on screen** as a direct result of correct answers, not revealed only at the end
-- **Ending beat:** book-coloring animation + streak count, followed by a chapter-unlock reveal — this is the closing moment of the demo
+- **Words learned** = count of challenge words answered correctly within the **current session** (session-scoped for the demo; not a multi-day / persisted progress metric)
+- Words-learned count increments **live on screen** as a direct result of correct answers, not revealed only at the end
+- **Ending beat:** book-coloring animation + words-learned count, followed by a chapter-unlock reveal — this is the closing moment of the demo
 
 ## Loading / latency
 
@@ -45,11 +45,11 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 ## Tech stack
 
 - **Runtime:** Bun — officially supported Vercel Functions runtime; no shim/third-party runtime package
-- **Framework:** Next.js (App Router) — for API routes (Claude API key server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR
+- **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR. Grading API provider is **not decided** — do not assume any specific vendor
 - **State:** plain React state/Context — no TanStack Query (no caching/refetching problem); no Zustand for MVP (no cross-cutting client-state complexity yet); revisit only if the app grows post-MVP
 - **Styling:** Tailwind
 - **Components:** shadcn/ui — owned generated component source (not a black-box import). Radix comes in as a dependency of shadcn; not a separate install decision
-- **Animation:** Motion (Framer Motion) — for sequenced/orchestrated closing beat (streak count-up → unlock reveal); already chosen
+- **Animation:** Motion (Framer Motion) — for sequenced/orchestrated closing beat (words-learned count-up → unlock reveal); already chosen
 - **Deployment:** Vercel
 - **Testing:** Vitest
 
@@ -63,7 +63,6 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 
 - Playable chapter 2 content
 - Settings, auth, persistence
-- Multi-day streaks
 - Live-generated hints
 - Live-generated story text
 - TanStack Query, Zustand (unless post-MVP growth requires them)

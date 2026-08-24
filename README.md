@@ -8,7 +8,7 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 
 - Pre-written interactive story with an embedded vocabulary challenge mechanic
 - Challenge answers are graded live by AI (semantic match to the word’s meaning)
-- Session streak, feedback after each grade, and a closing unlock beat for the demo
+- Words learned (session count of correctly graded challenge words), feedback after each grade, and a closing unlock beat for the demo
 
 ## Demo / MVP constraints
 
