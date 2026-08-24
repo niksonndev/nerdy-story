@@ -7,9 +7,16 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-grandstander), var(--font-lexend), ui-sans-serif,
+    sans-serif;
+  --color-magic: var(--magic);
+  --color-magic-foreground: var(--magic-foreground);
+  --color-reward: var(--reward);
+  --color-reward-foreground: var(--reward-foreground);
+  --color-sky: var(--sky);
+  --color-sky-foreground: var(--sky-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,30 +56,37 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Adventure storybook palette (kid-friendly-ui-design skill) */
+  --background: #fff4d6;
+  --foreground: #243428;
+  --card: #fffaf0;
+  --card-foreground: #243428;
+  --popover: #fffaf0;
+  --popover-foreground: #243428;
+  --primary: #e24a3a;
+  --primary-foreground: #fff8ec;
+  --secondary: #4e8fbf;
+  --secondary-foreground: #f4faff;
+  --muted: #f4e8c4;
+  --muted-foreground: #6b6a4f;
+  --accent: #ffe9a8;
+  --accent-foreground: #243428;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --border: #e6cf94;
+  --input: #e6cf94;
+  --ring: #0f8a7a;
+  --magic: #0f8a7a;
+  --magic-foreground: #f0fbf8;
+  --reward: #d4920a;
+  --reward-foreground: #fff8ec;
+  --sky: #4e8fbf;
+  --sky-foreground: #f4faff;
+  --chart-1: #e24a3a;
+  --chart-2: #0f8a7a;
+  --chart-3: #d4920a;
+  --chart-4: #4e8fbf;
+  --chart-5: #243428;
+  --radius: 0.9rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
