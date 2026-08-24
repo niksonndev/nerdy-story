@@ -45,6 +45,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 ## Tech stack
 
 - **Runtime:** Bun — officially supported Vercel Functions runtime; no shim/third-party runtime package
+- **Language:** TypeScript
 - **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR. Grading API provider is **not decided** — do not assume any specific vendor
 - **State:** plain React state/Context — no TanStack Query (no caching/refetching problem); no Zustand for MVP (no cross-cutting client-state complexity yet); revisit only if the app grows post-MVP
 - **Styling:** Tailwind
