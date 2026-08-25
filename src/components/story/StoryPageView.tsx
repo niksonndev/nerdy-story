@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { type StoryPage } from "@/lib/story-data";
+import { cn } from "@/lib/utils";
 
 type StoryPageViewProps = {
   page: StoryPage;
@@ -25,57 +26,130 @@ export function StoryPageView({
   onNextPage,
 }: StoryPageViewProps) {
   return (
-    <div className="relative flex flex-1 flex-col items-center px-5 pb-10 pt-6 sm:pt-10">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden">
       <SceneAtmosphere />
 
-      <WordsLearned count={wordsLearned} />
+      <div className="relative z-10 hidden justify-center px-5 pt-4 sm:flex sm:pt-6">
+        <WordsLearned count={wordsLearned} />
+      </div>
 
       <motion.article
         key={page.id}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-10 mt-6 flex w-full max-w-2xl flex-1 flex-col"
+        className={cn(
+          "relative z-10 flex w-full flex-none flex-col",
+          // Tablet: centered story card (~600–700px)
+          "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
+          // Desktop: wider book card (~800–900px)
+          "lg:max-w-225",
+        )}
       >
-        <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
-          {page.title}
-        </h1>
-
-        <p className="mt-6 text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
-          {page.segments.map((segment, index) => {
-            if (segment.type === "mystery") {
-              const isResolved = resolvedWordIds.includes(segment.wordId);
-              return (
-                <MysteryWord
-                  key={index}
-                  label={segment.content}
-                  resolved={isResolved}
-                  onClick={() => onMysteryClick(segment.wordId)}
-                />
-              );
-            }
-            return <span key={index}>{segment.content}</span>;
-          })}
-        </p>
-
-        <div className="mt-auto flex justify-center pt-12">
-          {isLastPage ? (
-            <p className="font-heading text-lg font-semibold text-magic">
-              The End of this adventure!
-            </p>
-          ) : (
-            <Button
-              size="kid"
-              onClick={onNextPage}
-              disabled={!canAdvance}
-              aria-label="Next Page"
-            >
-              Next Page
-            </Button>
+        <div
+          className={cn(
+            "flex flex-col",
+            // Tablet: image | text side-by-side; items-start keeps image sized by aspect-ratio
+            "sm:flex-row sm:items-start",
+            // Desktop: stacked banner → text
+            "lg:flex-col",
           )}
+        >
+          <SceneImagePlaceholder />
+
+          <div
+            className={cn(
+              "flex min-w-0 flex-col px-5 pb-8 pt-6",
+              "sm:flex-1 sm:px-6 sm:pb-6 sm:pt-6",
+              "lg:flex-none lg:px-10 lg:pb-8 lg:pt-8",
+            )}
+          >
+            <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
+              {page.title}
+            </h1>
+
+            <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
+              {page.segments.map((segment, index) => {
+                if (segment.type === "mystery") {
+                  const isResolved = resolvedWordIds.includes(segment.wordId);
+                  return (
+                    <MysteryWord
+                      key={index}
+                      label={segment.content}
+                      resolved={isResolved}
+                      onClick={() => onMysteryClick(segment.wordId)}
+                    />
+                  );
+                }
+                return <span key={index}>{segment.content}</span>;
+              })}
+            </p>
+
+            <div className="relative z-10 mt-8 self-center sm:hidden">
+              <WordsLearned count={wordsLearned} />
+            </div>
+
+            <PageProgression
+              isLastPage={isLastPage}
+              canAdvance={canAdvance}
+              onNextPage={onNextPage}
+              className="relative z-10 mt-6 flex w-full sm:mt-auto sm:justify-end sm:pt-8"
+            />
+          </div>
         </div>
       </motion.article>
     </div>
+  );
+}
+
+function PageProgression({
+  isLastPage,
+  canAdvance,
+  onNextPage,
+  className,
+}: {
+  isLastPage: boolean;
+  canAdvance: boolean;
+  onNextPage: () => void;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      {isLastPage ? (
+        <p className="font-heading text-lg font-semibold text-magic">
+          The End of this adventure!
+        </p>
+      ) : (
+        <Button
+          size="kid"
+          className="w-full min-h-14 sm:w-auto"
+          onClick={onNextPage}
+          disabled={!canAdvance}
+          aria-label="Next Page"
+        >
+          Next Page
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/** Empty scene block — aspect-ratio per responsive-layout; real art later. */
+function SceneImagePlaceholder() {
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "w-full shrink-0 self-start bg-magic/10",
+        // Mobile only: 4/5, capped so title stays above the fold (max-sm avoids
+        // fighting sm:max-h-none specificity with the arbitrary max-h value)
+        "aspect-4/5 max-sm:max-h-[32vh]",
+        // Tablet: 1/1 left column — height from aspect-ratio, not stretched to text
+        "sm:aspect-square sm:h-auto sm:w-1/2 sm:self-start",
+        // Desktop: 3/1 banner strip at top of book card
+        "lg:aspect-3/1 lg:w-full",
+      )}
+    />
   );
 }
 
@@ -96,7 +170,7 @@ function MysteryWord({
       className={
         resolved
           ? "mx-0.5 inline rounded-md bg-reward/20 px-1 font-semibold text-reward decoration-reward/60 underline decoration-wavy underline-offset-4"
-          : "mx-0.5 inline rounded-md bg-magic/15 px-1 font-semibold text-magic underline decoration-magic decoration-wavy underline-offset-4 transition-colors hover:bg-magic/25"
+          : "mx-0.5 inline rounded-md bg-magic/15 px-1 font-semibold text-magic underline decoration-magic decoration-wavy underline-offset-4 transition-colors lg:hover:bg-magic/25"
       }
     >
       {label}
@@ -104,9 +178,20 @@ function MysteryWord({
   );
 }
 
-function WordsLearned({ count }: { count: number }) {
+function WordsLearned({
+  count,
+  className,
+}: {
+  count: number;
+  className?: string;
+}) {
   return (
-    <div className="relative z-10 flex items-center gap-2 rounded-full bg-magic/10 px-4 py-1.5 text-magic">
+    <div
+      className={cn(
+        "relative z-10 flex items-center gap-2 rounded-full bg-magic/10 px-4 py-1.5 text-magic",
+        className,
+      )}
+    >
       <span aria-hidden className="text-lg">
         {"\u2728"}
       </span>
