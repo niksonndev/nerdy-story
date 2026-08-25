@@ -11,7 +11,8 @@ import type { GradeResult } from "@/lib/grade";
 import {
   MAX_ATTEMPTS,
   mysteryWords,
-  storyPages,
+  STORY_START_ID,
+  storyPagesById,
   type StoryPage,
 } from "@/lib/story-data";
 
@@ -37,7 +38,7 @@ async function requestGrade(
 }
 
 export function StoryReader() {
-  const [pageIndex, setPageIndex] = useState(0);
+  const [pageId, setPageId] = useState(STORY_START_ID);
   const [wordsLearned, setWordsLearned] = useState(0);
   const [resolvedWordIds, setResolvedWordIds] = useState<string[]>([]);
 
@@ -48,8 +49,8 @@ export function StoryReader() {
   const [lastReason, setLastReason] = useState<string | null>(null);
   const [acceptedReason, setAcceptedReason] = useState<string | null>(null);
 
-  const page = storyPages[pageIndex];
-  const isLastPage = pageIndex === storyPages.length - 1;
+  const page = storyPagesById[pageId];
+  const isLastPage = !page.nextPageId && !page.choice;
   const pageWordIds = mysteryWordIdsFor(page);
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
 
@@ -116,9 +117,9 @@ export function StoryReader() {
     setAcceptedReason(null);
   }
 
-  function goToNextPage() {
-    if (!canAdvance || isLastPage) return;
-    setPageIndex((index) => Math.min(index + 1, storyPages.length - 1));
+  function goToPage(nextPageId: string) {
+    if (!canAdvance || !storyPagesById[nextPageId]) return;
+    setPageId(nextPageId);
   }
 
   return (
@@ -130,7 +131,7 @@ export function StoryReader() {
         canAdvance={canAdvance}
         isLastPage={isLastPage}
         onMysteryClick={openChallenge}
-        onNextPage={goToNextPage}
+        onChoosePath={goToPage}
       />
 
       <VocabChallengeOverlay

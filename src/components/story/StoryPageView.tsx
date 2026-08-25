@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
+import { BranchChoice } from "@/components/story/BranchChoice";
 import { Button } from "@/components/ui/button";
 import { type StoryPage } from "@/lib/story-data";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,7 @@ type StoryPageViewProps = {
   canAdvance: boolean;
   isLastPage: boolean;
   onMysteryClick: (wordId: string) => void;
-  onNextPage: () => void;
+  onChoosePath: (nextPageId: string) => void;
 };
 
 type PageTurnPhase = "idle" | "exit" | "enter";
@@ -28,11 +29,14 @@ export function StoryPageView({
   canAdvance,
   isLastPage,
   onMysteryClick,
-  onNextPage,
+  onChoosePath,
 }: StoryPageViewProps) {
   const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
+  const pendingPageId = useRef<string | null>(null);
   const advancePage = useEffectEvent(() => {
-    onNextPage();
+    const nextId = pendingPageId.current;
+    pendingPageId.current = null;
+    if (nextId) onChoosePath(nextId);
   });
 
   useEffect(() => {
@@ -52,10 +56,18 @@ export function StoryPageView({
     return () => cancelAnimationFrame(frame);
   }, [turnPhase]);
 
-  function handleNextPage() {
-    if (turnPhase !== "idle" || !canAdvance || isLastPage) return;
+  function requestAdvance(nextPageId: string) {
+    if (turnPhase !== "idle" || !canAdvance) return;
+    pendingPageId.current = nextPageId;
     setTurnPhase("exit");
   }
+
+  function handleNextPage() {
+    if (!page.nextPageId) return;
+    requestAdvance(page.nextPageId);
+  }
+
+  const progressionReady = canAdvance && turnPhase === "idle";
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden">
@@ -125,9 +137,11 @@ export function StoryPageView({
             </div>
 
             <PageProgression
+              page={page}
               isLastPage={isLastPage}
-              canAdvance={canAdvance && turnPhase === "idle"}
+              canAdvance={progressionReady}
               onNextPage={handleNextPage}
+              onChoosePath={requestAdvance}
               className="relative z-10 mt-6 flex w-full sm:mt-auto sm:justify-end sm:pt-8"
             />
           </div>
@@ -138,16 +152,31 @@ export function StoryPageView({
 }
 
 function PageProgression({
+  page,
   isLastPage,
   canAdvance,
   onNextPage,
+  onChoosePath,
   className,
 }: {
+  page: StoryPage;
   isLastPage: boolean;
   canAdvance: boolean;
   onNextPage: () => void;
+  onChoosePath: (nextPageId: string) => void;
   className?: string;
 }) {
+  if (page.choice) {
+    return (
+      <BranchChoice
+        choice={page.choice}
+        disabled={!canAdvance}
+        onChoose={onChoosePath}
+        className={className}
+      />
+    );
+  }
+
   return (
     <div className={className}>
       {isLastPage ? (
