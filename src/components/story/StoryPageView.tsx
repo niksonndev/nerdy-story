@@ -55,7 +55,7 @@ export function StoryPageView({
             "lg:flex-col",
           )}
         >
-          <SceneImagePlaceholder />
+          <SceneImage src={page.image} alt={page.title} />
 
           <div
             className={cn(
@@ -134,11 +134,10 @@ function PageProgression({
   );
 }
 
-/** Empty scene block — aspect-ratio per responsive-layout; real art later. */
-function SceneImagePlaceholder() {
+/** Scene block — aspect-ratio per responsive-layout; crops via object-cover. */
+function SceneImage({ src, alt }: { src?: string; alt: string }) {
   return (
     <div
-      aria-hidden
       className={cn(
         "w-full shrink-0 self-start bg-magic/10",
         // Mobile only: 4/5, capped so title stays above the fold (max-sm avoids
@@ -149,7 +148,11 @@ function SceneImagePlaceholder() {
         // Desktop: 3/1 banner strip at top of book card
         "lg:aspect-3/1 lg:w-full",
       )}
-    />
+    >
+      {src ? (
+        <img src={src} alt={alt} className="size-full object-cover" />
+      ) : null}
+    </div>
   );
 }
 

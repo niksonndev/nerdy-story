@@ -14,6 +14,7 @@ export type StorySegment =
 export type StoryPage = {
   id: string;
   title: string;
+  image?: string;
   segments: StorySegment[];
 };
 
@@ -49,6 +50,7 @@ export const storyPages: StoryPage[] = [
   {
     id: "page-1",
     title: "Pip and the Rainy Woods",
+    image: "/images/story/pip-and-the-rainy-woods/page-1.jpg",
     segments: [
       {
         type: "text",
