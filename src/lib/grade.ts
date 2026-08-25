@@ -37,12 +37,12 @@ export function mockGradeExplanation(request: GradeRequest): GradeResult {
   if (hasIdea) {
     return {
       correct: true,
-      reason: `Yes! A ${word.word} is a safe, covered place that keeps you protected. Great thinking!`,
+      reason: `Yes! ${word.targetDefinition} Great thinking!`,
     };
   }
 
   return {
     correct: false,
-    reason: `That's a good try! But a ${word.word} is more about a safe, covered place to stay. Let's think again.`,
+    reason: `That's a good try! Think a little more about what "${word.word}" means. Let's try again.`,
   };
 }
