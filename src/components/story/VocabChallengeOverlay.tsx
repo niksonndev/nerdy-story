@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,11 @@ export function VocabChallengeOverlay({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" />
+          <div
+            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+            onClick={onClose}
+            aria-hidden
+          />
 
           <motion.div
             role="dialog"
@@ -61,8 +66,17 @@ export function VocabChallengeOverlay({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 shadow-2xl sm:p-8"
+            className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
           >
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-3 top-3 flex size-11 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors hover:bg-muted/80 hover:text-foreground"
+            >
+              <X className="size-6" aria-hidden />
+            </button>
+
             {phase === "waiting" ? (
               <WaitingState />
             ) : phase === "accepted" ? (
