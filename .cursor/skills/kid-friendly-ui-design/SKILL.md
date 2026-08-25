@@ -9,7 +9,7 @@ description: >-
 
 # Kid-friendly UI design
 
-Looks and feel only. Interaction (Next Page, gating, controls, chrome copy) is [storybook-interaction-design](../storybook-interaction-design/SKILL.md). Motion is [motion-animation](../motion-animation/SKILL.md). Product scope lives in `.cursor/rules/product-mvp.mdc`.
+Looks and feel only. Interaction (Next Page, gating, controls, chrome copy) is [storybook-interaction-design](../storybook-interaction-design/SKILL.md). Layout/breakpoints: [responsive-layout](../responsive-layout/SKILL.md). Motion is [motion-animation](../motion-animation/SKILL.md). Product scope lives in `.cursor/rules/product-mvp.mdc`.
 
 nerdy-story is a playful interactive storybook for children aged 7–9. The UI should feel colorful, magical, friendly and game-like while remaining highly readable. Design for independent use by a child: obvious actions, large controls, minimal cognitive load, encouraging feedback, and strong visual hierarchy. Favor expressive illustrations, rounded shapes, warm backgrounds, playful accent colors and subtle motion. Avoid corporate SaaS aesthetics, dense dashboards, tiny controls, excessive gradients, excessive animation and babyish visual language. The child should feel that they are exploring a story rather than completing a lesson.
 
@@ -36,7 +36,7 @@ A painted storybook page with a light game HUD — not a classroom, not a toddle
 
 **Shape:** Generous rounding on interactive controls and the few containers that earn a panel. Not `rounded-full` pill clusters. Not hairline cards with drop shadows.
 
-**Imagery:** Expressive scene illustration as atmosphere (full-bleed or page-filling), not Lucide icon rows. Icons only as support on controls.
+**Imagery:** Expressive scene illustration as atmosphere, not Lucide icon rows. Icons only as support on controls. One asset per page; crop/aspect per breakpoint is owned by [responsive-layout](../responsive-layout/SKILL.md).
 
 ### Restyle starter defaults
 

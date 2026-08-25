@@ -1,6 +1,6 @@
 # Screen interactions (MVP loop)
 
-Behavior and chrome copy only. Visuals: [kid-friendly-ui-design](../kid-friendly-ui-design/screens.md). Motion: [motion-animation](../motion-animation/SKILL.md).
+Behavior and chrome copy only. Visuals: [kid-friendly-ui-design](../kid-friendly-ui-design/screens.md). Layout/breakpoints: [responsive-layout](../responsive-layout/SKILL.md). Motion: [motion-animation](../motion-animation/SKILL.md).
 
 ```
 StoryPage (read; mystery word highlighted)

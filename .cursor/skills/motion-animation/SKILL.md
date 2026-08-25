@@ -9,7 +9,7 @@ description: >-
 
 # Motion and animation
 
-How much and when to move. Look and feel: [kid-friendly-ui-design](../kid-friendly-ui-design/SKILL.md). Interaction: [storybook-interaction-design](../storybook-interaction-design/SKILL.md).
+How much and when to move. Look and feel: [kid-friendly-ui-design](../kid-friendly-ui-design/SKILL.md). Interaction: [storybook-interaction-design](../storybook-interaction-design/SKILL.md). Layout/breakpoints: [responsive-layout](../responsive-layout/SKILL.md).
 
 Subtle presence only. Implement with Motion (`motion/react`);
 
