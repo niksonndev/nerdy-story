@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useEffectEvent, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,10 @@ type StoryPageViewProps = {
   onNextPage: () => void;
 };
 
+type PageTurnPhase = "idle" | "exit" | "enter";
+
+const PAGE_TURN_MS = 350;
+
 export function StoryPageView({
   page,
   wordsLearned,
@@ -25,6 +30,33 @@ export function StoryPageView({
   onMysteryClick,
   onNextPage,
 }: StoryPageViewProps) {
+  const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
+  const advancePage = useEffectEvent(() => {
+    onNextPage();
+  });
+
+  useEffect(() => {
+    if (turnPhase !== "exit") return;
+    const timer = window.setTimeout(() => {
+      advancePage();
+      setTurnPhase("enter");
+    }, PAGE_TURN_MS);
+    return () => window.clearTimeout(timer);
+  }, [turnPhase]);
+
+  useEffect(() => {
+    if (turnPhase !== "enter") return;
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setTurnPhase("idle"));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [turnPhase]);
+
+  function handleNextPage() {
+    if (turnPhase !== "idle" || !canAdvance || isLastPage) return;
+    setTurnPhase("exit");
+  }
+
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden">
       <SceneAtmosphere />
@@ -33,17 +65,20 @@ export function StoryPageView({
         <WordsLearned count={wordsLearned} />
       </div>
 
-      <motion.article
-        key={page.id}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+      <article
         className={cn(
           "relative z-10 flex w-full flex-none flex-col",
           // Tablet: centered story card (~600–700px)
           "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
           // Desktop: wider book card (~800–900px)
           "lg:max-w-225",
+          "origin-center will-change-transform",
+          turnPhase === "exit" &&
+            "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
+          turnPhase === "enter" &&
+            "translate-x-[12%] opacity-0 transition-none",
+          turnPhase === "idle" &&
+            "translate-x-0 scale-100 opacity-100 transition-[opacity,transform] duration-350 ease-out",
         )}
       >
         <div
@@ -91,13 +126,13 @@ export function StoryPageView({
 
             <PageProgression
               isLastPage={isLastPage}
-              canAdvance={canAdvance}
-              onNextPage={onNextPage}
+              canAdvance={canAdvance && turnPhase === "idle"}
+              onNextPage={handleNextPage}
               className="relative z-10 mt-6 flex w-full sm:mt-auto sm:justify-end sm:pt-8"
             />
           </div>
         </div>
-      </motion.article>
+      </article>
     </div>
   );
 }
