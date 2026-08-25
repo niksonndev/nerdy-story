@@ -159,6 +159,7 @@ export const storyPages: StoryPage[] = [
   {
     id: "page-2",
     title: "A Cozy Hollow",
+    image: "/images/story/pip-and-the-rainy-woods/page-2.jpg",
     nextPageId: "page-3",
     segments: [
       {
@@ -171,6 +172,7 @@ export const storyPages: StoryPage[] = [
   {
     id: "page-3",
     title: "Safe and Dry",
+    image: "/images/story/pip-and-the-rainy-woods/page-3.jpg",
     choice: {
       prompt: "What does Pip do?",
       options: [
@@ -206,6 +208,7 @@ export const storyPages: StoryPage[] = [
   {
     id: "page-4a",
     title: "A Cozy Nap",
+    image: "/images/story/pip-and-the-rainy-woods/page-4a.jpg",
     segments: [
       {
         type: "text",
@@ -223,6 +226,7 @@ export const storyPages: StoryPage[] = [
   {
     id: "page-4b",
     title: "A Sparkling Surprise",
+    image: "/images/story/pip-and-the-rainy-woods/page-4b.jpg",
     segments: [
       {
         type: "text",

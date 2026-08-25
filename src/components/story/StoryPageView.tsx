@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import Image from "next/image";
 
 import { BranchChoice } from "@/components/story/BranchChoice";
 import { Button } from "@/components/ui/button";
@@ -203,7 +204,7 @@ function SceneImage({ src, alt }: { src?: string; alt: string }) {
   return (
     <div
       className={cn(
-        "w-full shrink-0 self-start bg-magic/10",
+        "relative w-full shrink-0 self-start overflow-hidden bg-magic/10",
         // Mobile only: 4/5, capped so title stays above the fold (max-sm avoids
         // fighting sm:max-h-none specificity with the arbitrary max-h value)
         "aspect-4/5 max-sm:max-h-[32vh]",
@@ -214,7 +215,14 @@ function SceneImage({ src, alt }: { src?: string; alt: string }) {
       )}
     >
       {src ? (
-        <img src={src} alt={alt} className="size-full object-cover" />
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          sizes="(min-width: 1024px) 900px, (min-width: 640px) 350px, 100vw"
+          priority
+        />
       ) : null}
     </div>
   );
