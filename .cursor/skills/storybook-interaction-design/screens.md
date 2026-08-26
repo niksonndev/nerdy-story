@@ -6,8 +6,9 @@ Behavior and chrome copy only. Visuals: [kid-friendly-ui-design](../kid-friendly
 StoryPage (read; mystery word highlighted)
   → VocabChallenge overlay → GradingWait → WhyFeedback
     accepted → overlay closes → same StoryPage; words-learned++; Next Page unlocked
-    rejected (retries left) → stay in overlay; hint; try again
-    rejected (retry limit) → MeaningReveal → overlay closes → same StoryPage; Next Page unlocked
+    rejected (retries left) → stay in overlay; live reason + live hint; try again
+    grading unavailable (retries left) → burn attempt; pre-written fallback hint; try again
+    retry limit (wrong or unavailable) → MeaningReveal → overlay closes → same StoryPage; Next Page unlocked
 StoryPage → NextPage → (next story page)
 StoryPage → BranchChoice → (path continues)
 StoryPage → ClosingBeat
@@ -31,9 +32,11 @@ StoryPage → ClosingBeat
 
 **Primary:** Check (≥56px). Prompt: “Explain what you understand by [word]”.
 
-**After a wrong answer (retries left):** Pre-written hint tiers (not AI-generated). Check stays the action; stay in the overlay.
+**After a wrong answer (retries left):** Live why-reason + live hint from the same grade call (distinct Hint line). Check stays the action; stay in the overlay.
 
-**After the retry limit:** Do not keep blocking. Move to meaning reveal, then close the overlay and unlock Next Page on the story page.
+**When grading is unavailable (retries left):** Burn the attempt; show a short “did not go through” reason plus the next pre-written fallback hint tier. Check stays the action; stay in the overlay.
+
+**After the retry limit:** Do not keep blocking (covers wrong grades and grading failures). Move to meaning reveal, then close the overlay and unlock Next Page on the story page.
 
 **Copy:** Kid-level; encouraging. Avoid “Submit”, “Answer the question”, “Vocabulary quiz”.
 
@@ -51,9 +54,10 @@ StoryPage → ClosingBeat
 
 **Job:** Show *why* the answer was right or wrong — still inside the overlay family.
 
-- Rejected (retries left): stay in overlay; “Try another idea” + hint path; Check stays the action.
+- Rejected (retries left): stay in overlay; “Try another idea” + live reason + live Hint; Check stays the action.
+- Grading unavailable (retries left): stay in overlay; “Try another idea” + unavailable line + pre-written Hint; attempt burned.
 - Accepted: words-learned increments live; then close overlay → same story page → Next Page available.
-- Rejected (retry limit): do not shame; hand off to meaning reveal.
+- Retry limit: do not shame; hand off to meaning reveal.
 
 **Copy:** Warm confirmation + why on success. Never “Incorrect”, “Failed”, stars, grades.
 

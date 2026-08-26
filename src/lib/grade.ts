@@ -10,7 +10,7 @@ export const GRADE_FALLBACK_MODELS = ["google/gemini-3.7-flash"] as const;
 export const gradeAttemptSchema = z.object({
   explanation: z.string(),
   reason: z.string(),
-  hintShown: z.string().nullable(),
+  hint: z.string().nullable(),
 });
 
 export const gradeRequestSchema = z.object({
@@ -25,6 +25,7 @@ export type GradeRequest = z.infer<typeof gradeRequestSchema>;
 export type GradeResult = {
   correct: boolean;
   reason: string;
+  hint: string | null;
 };
 
 export type GradeErrorKind = "structured" | "retryable" | "fatal";
@@ -83,6 +84,12 @@ const gradeResultSchema = z.object({
     .describe(
       "One short, plain sentence for a 7–9 year old explaining why the answer is right or wrong. No hype, no baby talk, no exclamation spam.",
     ),
+  hint: z
+    .string()
+    .nullable()
+    .describe(
+      "When correct is false: one short directional hint toward the idea (not the full definition). When correct is true: null.",
+    ),
 });
 
 const GRADER_SYSTEM = `You grade vocabulary explanations for children ages 7–9 (2nd–3rd grade reading level).
@@ -96,8 +103,9 @@ Grading:
 - Accept simplified wording, synonyms, and partial-but-correct understanding.
 - Reject answers that describe a different or wrong concept.
 - Grade only the latest explanation. Earlier wrong tries are context, not extra penalties.
-- If earlier feedback is provided, do not repeat the same reason wording when you can say it freshly and clearly.
+- If earlier feedback is provided, do not repeat the same reason or hint wording when you can say it freshly and clearly.
 - Respond only via the structured fields. Keep "reason" to one short sentence.
+- When correct is true: set hint to null. When correct is false: set hint to one short directional hint toward the idea — not the full definition, not a meaning dump.
 - Never invent a different definition than the target provided.`;
 
 function buildPrompt(
@@ -117,7 +125,7 @@ function buildPrompt(
       lines.push(
         `${index + 1}. Child said: ${attempt.explanation}`,
         `   Your prior reason: ${attempt.reason}`,
-        `   Hint shown: ${attempt.hintShown ?? "(none)"}`,
+        `   Hint shown: ${attempt.hint ?? "(none)"}`,
       );
     });
   }
@@ -139,6 +147,7 @@ export async function gradeExplanation(
     return {
       correct: false,
       reason: "Hmm, I could not find that word. Let's try again together.",
+      hint: null,
     };
   }
 
@@ -173,6 +182,7 @@ export async function gradeExplanation(
     return {
       correct: output.correct,
       reason: output.reason,
+      hint: output.correct ? null : output.hint,
     };
   } catch (error) {
     throw classifyGradeFailure(error);

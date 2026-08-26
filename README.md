@@ -7,7 +7,7 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 ## Core loop
 
 - Pre-written interactive story with an embedded vocabulary challenge mechanic
-- Challenge answers are graded live by **chatgpt-4o-mini** (`openai/gpt-4o-mini`) via **Vercel AI Gateway**, with failover to another Gateway model if needed — semantic match to the word’s meaning. Story definitions, hints, and progression stay the same no matter which model answers.
+- Challenge answers are graded live by **chatgpt-4o-mini** (`openai/gpt-4o-mini`) via **Vercel AI Gateway**, with failover to another Gateway model if needed — semantic match to the word’s meaning, plus a live **hint** on wrong answers (same call). Pre-written hints are the fallback when grading is unavailable; story definitions, soft progression, and words-learned stay the same no matter which model answers.
 - Words learned (session count of correctly graded challenge words), feedback after each grade, and a closing unlock beat for the demo
 
 ## Demo / MVP constraints

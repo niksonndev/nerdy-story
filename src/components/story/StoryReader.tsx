@@ -13,6 +13,7 @@ import {
   mysteryWords,
   STORY_START_ID,
   storyPagesById,
+  type MysteryWord,
   type StoryPage,
 } from "@/lib/story-data";
 
@@ -20,6 +21,14 @@ function mysteryWordIdsFor(page: StoryPage): string[] {
   return page.segments
     .filter((segment) => segment.type === "mystery")
     .map((segment) => segment.wordId);
+}
+
+function fallbackHintFor(
+  word: MysteryWord | null | undefined,
+  attemptIndex: number,
+): string | null {
+  if (!word || word.hints.length === 0) return null;
+  return word.hints[Math.min(attemptIndex, word.hints.length - 1)] ?? null;
 }
 
 class GradeRequestError extends Error {
@@ -68,6 +77,7 @@ export function StoryReader() {
   const [attempts, setAttempts] = useState(0);
   const [priorAttempts, setPriorAttempts] = useState<GradeAttempt[]>([]);
   const [lastReason, setLastReason] = useState<string | null>(null);
+  const [hintText, setHintText] = useState<string | null>(null);
   const [acceptedReason, setAcceptedReason] = useState<string | null>(null);
 
   const page = storyPagesById[pageId];
@@ -76,10 +86,6 @@ export function StoryReader() {
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
 
   const activeWord = activeWordId ? mysteryWords[activeWordId] : null;
-  const hintText =
-    activeWord && attempts > 0
-      ? activeWord.hints[Math.min(attempts - 1, activeWord.hints.length - 1)]
-      : null;
 
   function openChallenge(wordId: string) {
     if (resolvedWordIds.includes(wordId)) return;
@@ -89,7 +95,42 @@ export function StoryReader() {
     setAttempts(0);
     setPriorAttempts([]);
     setLastReason(null);
+    setHintText(null);
     setAcceptedReason(null);
+  }
+
+  function resolveWithReveal(wordId: string) {
+    setResolvedWordIds((prev) =>
+      prev.includes(wordId) ? prev : [...prev, wordId],
+    );
+    setPhase("reveal");
+  }
+
+  function recordFailedAttempt(
+    submittedExplanation: string,
+    reason: string,
+    hint: string | null,
+    nextAttempts: number,
+  ) {
+    setPriorAttempts((prev) => [
+      ...prev,
+      {
+        explanation: submittedExplanation,
+        reason,
+        hint,
+      },
+    ]);
+    setAttempts(nextAttempts);
+
+    if (nextAttempts >= MAX_ATTEMPTS && activeWordId) {
+      resolveWithReveal(activeWordId);
+      return;
+    }
+
+    setLastReason(reason);
+    setHintText(hint);
+    setExplanation("");
+    setPhase("prompt");
   }
 
   async function handleCheck() {
@@ -107,12 +148,12 @@ export function StoryReader() {
     } catch (error) {
       const retryable =
         error instanceof GradeRequestError ? error.retryable : true;
-      setLastReason(
-        retryable
-          ? "Hmm, that did not go through. Let's try again!"
-          : "I could not check that answer. Try again in a moment.",
-      );
-      setPhase("prompt");
+      const reason = retryable
+        ? "Hmm, that did not go through. Let's try again!"
+        : "I could not check that answer. Try again in a moment.";
+      const nextAttempts = attempts + 1;
+      const hint = fallbackHintFor(activeWord, nextAttempts - 1);
+      recordFailedAttempt(submittedExplanation, reason, hint, nextAttempts);
       return;
     }
 
@@ -122,37 +163,18 @@ export function StoryReader() {
       );
       setWordsLearned((count) => count + 1);
       setAcceptedReason(result.reason);
+      setHintText(null);
       setPhase("accepted");
       return;
     }
 
     const nextAttempts = attempts + 1;
-    const hintForThisFail =
-      activeWord?.hints[
-        Math.min(nextAttempts - 1, activeWord.hints.length - 1)
-      ] ?? null;
-
-    setPriorAttempts((prev) => [
-      ...prev,
-      {
-        explanation: submittedExplanation,
-        reason: result.reason,
-        hintShown: hintForThisFail,
-      },
-    ]);
-    setAttempts(nextAttempts);
-
-    if (nextAttempts >= MAX_ATTEMPTS) {
-      setResolvedWordIds((prev) =>
-        prev.includes(activeWordId) ? prev : [...prev, activeWordId],
-      );
-      setPhase("reveal");
-      return;
-    }
-
-    setLastReason(result.reason);
-    setExplanation("");
-    setPhase("prompt");
+    recordFailedAttempt(
+      submittedExplanation,
+      result.reason,
+      result.hint,
+      nextAttempts,
+    );
   }
 
   function closeChallenge() {
@@ -161,6 +183,7 @@ export function StoryReader() {
     setExplanation("");
     setPriorAttempts([]);
     setLastReason(null);
+    setHintText(null);
     setAcceptedReason(null);
   }
 

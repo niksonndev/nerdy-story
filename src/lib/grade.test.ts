@@ -35,7 +35,7 @@ describe("gradeRequestSchema", () => {
         {
           explanation: "a fruit",
           reason: "That sounds like food.",
-          hintShown: null,
+          hint: null,
         },
       ],
     });
@@ -75,7 +75,11 @@ describe("gradeExplanation", () => {
       wordId: "nope",
       explanation: "safe cover",
     });
-    expect(result.correct).toBe(false);
+    expect(result).toEqual({
+      correct: false,
+      reason: "Hmm, I could not find that word. Let's try again together.",
+      hint: null,
+    });
     expect(generateText).not.toHaveBeenCalled();
   });
 
@@ -84,6 +88,7 @@ describe("gradeExplanation", () => {
       output: {
         correct: true,
         reason: "A shelter is a safe place from the rain.",
+        hint: "should be cleared",
       },
     });
 
@@ -95,6 +100,7 @@ describe("gradeExplanation", () => {
     expect(result).toEqual({
       correct: true,
       reason: "A shelter is a safe place from the rain.",
+      hint: null,
     });
     expect(generateText).toHaveBeenCalledTimes(1);
 
@@ -121,6 +127,7 @@ describe("gradeExplanation", () => {
     expect(call.prompt).toContain("a safe place from the rain");
     expect(call.system).toMatch(/encouraging/i);
     expect(call.system).toMatch(/fake enthusiasm/i);
+    expect(call.system).toMatch(/hint/i);
   });
 
   it("includes prior attempts in the prompt as context", async () => {
@@ -128,6 +135,7 @@ describe("gradeExplanation", () => {
       output: {
         correct: false,
         reason: "That still sounds like something else.",
+        hint: "Think about a covered place.",
       },
     });
 
@@ -138,7 +146,7 @@ describe("gradeExplanation", () => {
         {
           explanation: "a tasty fruit",
           reason: "That sounds like food, not a place.",
-          hintShown: "Think about staying dry in the rain.",
+          hint: "Think about staying dry in the rain.",
         },
       ],
     });
@@ -150,11 +158,12 @@ describe("gradeExplanation", () => {
     expect(call.prompt).toContain("Child's latest explanation: a dry roof");
   });
 
-  it("maps an incorrect model result", async () => {
+  it("maps an incorrect model result with a hint", async () => {
     generateText.mockResolvedValue({
       output: {
         correct: false,
         reason: "That sounds like something else.",
+        hint: "Think about a safe, covered spot.",
       },
     });
 
@@ -163,8 +172,11 @@ describe("gradeExplanation", () => {
       explanation: "a kind of tasty fruit",
     });
 
-    expect(result.correct).toBe(false);
-    expect(result.reason).toContain("something else");
+    expect(result).toEqual({
+      correct: false,
+      reason: "That sounds like something else.",
+      hint: "Think about a safe, covered spot.",
+    });
   });
 
   it("throws a structured GradeError when output is missing", async () => {

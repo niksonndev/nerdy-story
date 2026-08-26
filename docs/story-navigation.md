@@ -10,7 +10,7 @@ Progression stays gated until every mystery word on the current page is resolved
 
 State lives in [`StoryReader`](../src/components/story/StoryReader.tsx) (`pageId` → `storyPagesById`). Page turns (Next Page and branch picks) use the shared CSS exit → advance → enter animation in [`StoryPageView`](../src/components/story/StoryPageView.tsx).
 
-## Flow
+## Page flow
 
 ```mermaid
 flowchart TD
@@ -27,6 +27,31 @@ flowchart TD
   branch -->|page turn to option.nextPageId| read
   read -->|no nextPageId no choice| endChrome
 ```
+
+## Challenge client flow (`StoryReader`)
+
+```mermaid
+flowchart TD
+  check[Check]
+  wait[Waiting]
+  accepted[Accepted]
+  liveHint[Show reason plus AI hint]
+  fallback[Burn attempt; pre-written hint]
+  reveal[Meaning reveal]
+  prompt[Prompt again]
+  check --> wait
+  wait -->|API OK correct| accepted
+  wait -->|API OK wrong retries left| liveHint
+  wait -->|API OK wrong at limit| reveal
+  wait -->|API fail retries left| fallback
+  wait -->|API fail at limit| reveal
+  liveHint --> prompt
+  fallback --> prompt
+```
+
+- **Correct:** words-learned increments; overlay closes after “Keep reading”.
+- **Wrong (API OK):** live `reason` + live `hint` from the grade response; attempt burned; at `MAX_ATTEMPTS` → meaning reveal.
+- **API failure:** burn attempt; short unavailable reason + next pre-written `hints` tier; at `MAX_ATTEMPTS` → meaning reveal (child is never stuck if grading is down).
 
 ## Pip and the Rainy Woods (current graph)
 
