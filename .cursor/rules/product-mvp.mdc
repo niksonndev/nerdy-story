@@ -50,7 +50,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Runtime:** Bun — officially supported Vercel Functions runtime; no shim/third-party runtime package
 - **Language:** TypeScript
 - **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR
-- **Grading model:** chatgpt-4o-mini (OpenAI) — the only live-AI dependency; API key stays server-side
+- **Grading model:** chatgpt-4o-mini (`openai/gpt-4o-mini`) via **Vercel AI Gateway** — the only live-AI dependency; auth is server-side OIDC (`VERCEL_OIDC_TOKEN`), never exposed to the client
 - **State:** plain React state/Context — no TanStack Query (no caching/refetching problem); no Zustand for MVP (no cross-cutting client-state complexity yet); revisit only if the app grows post-MVP
 - **Styling:** Tailwind
 - **Components:** shadcn/ui — owned generated component source (not a black-box import). Radix comes in as a dependency of shadcn; not a separate install decision

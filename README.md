@@ -18,12 +18,16 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 
 ## How to run
 
-Requires [Bun](https://bun.sh).
+Requires [Bun](https://bun.sh). Vocab grading uses **Vercel AI Gateway** with model `openai/gpt-4o-mini` (chatgpt-4o-mini). Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
 
 ```bash
+vercel link   # once
+vercel env pull
 bun install
 bun run dev
 ```
+
+OIDC tokens expire ~12 hours — run `vercel env pull` again if grading starts failing with auth errors locally. On Vercel, OIDC is automatic.
 
 Open [http://localhost:3000](http://localhost:3000).
 
