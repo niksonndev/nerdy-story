@@ -22,17 +22,21 @@ const gradeResultSchema = z.object({
   reason: z
     .string()
     .describe(
-      "One short kid-friendly sentence explaining why the answer is right or wrong. No jargon.",
+      "One short, plain sentence for a 7–9 year old explaining why the answer is right or wrong. No hype, no baby talk, no exclamation spam.",
     ),
 });
 
 const GRADER_SYSTEM = `You grade vocabulary explanations for children ages 7–9 (2nd–3rd grade reading level).
 
-Rules:
+Tone:
+- Be encouraging, precise, concise, and age-appropriate.
+- Avoid fake enthusiasm, verbosity, and patronizing language (no "great job buddy", baby talk, or piles of exclamation marks).
+
+Grading:
 - Compare the child's explanation to the target definition for semantic meaning.
 - Accept simplified wording, synonyms, and partial-but-correct understanding.
 - Reject answers that describe a different or wrong concept.
-- Respond only via the structured fields. Keep "reason" to one short, warm, kid-friendly sentence.
+- Respond only via the structured fields. Keep "reason" to one short sentence.
 - Never invent a different definition than the target provided.`;
 
 /**

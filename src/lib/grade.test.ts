@@ -29,7 +29,7 @@ describe("gradeExplanation", () => {
     generateText.mockResolvedValue({
       output: {
         correct: true,
-        reason: "Yes! A shelter keeps you safe from the rain.",
+        reason: "A shelter is a safe place from the rain.",
       },
     });
 
@@ -40,26 +40,29 @@ describe("gradeExplanation", () => {
 
     expect(result).toEqual({
       correct: true,
-      reason: "Yes! A shelter keeps you safe from the rain.",
+      reason: "A shelter is a safe place from the rain.",
     });
     expect(generateText).toHaveBeenCalledTimes(1);
 
     const call = generateText.mock.calls[0]?.[0] as {
       model: string;
       prompt: string;
+      system: string;
     };
     expect(call.model).toBe("openai/gpt-4o-mini");
     expect(call.prompt).toContain(
       "A shelter is a safe, covered place that keeps you protected",
     );
     expect(call.prompt).toContain("a safe place from the rain");
+    expect(call.system).toMatch(/encouraging/i);
+    expect(call.system).toMatch(/fake enthusiasm/i);
   });
 
   it("maps an incorrect model result", async () => {
     generateText.mockResolvedValue({
       output: {
         correct: false,
-        reason: "That sounds like something else. Try again!",
+        reason: "That sounds like something else.",
       },
     });
 
@@ -69,7 +72,7 @@ describe("gradeExplanation", () => {
     });
 
     expect(result.correct).toBe(false);
-    expect(result.reason).toContain("Try again");
+    expect(result.reason).toContain("something else");
   });
 
   it("throws when the model returns no structured output", async () => {
