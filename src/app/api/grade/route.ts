@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 import {
   gradeExplanation,
+  gradeRequestSchema,
   isGradeError,
   type GradeErrorKind,
-  type GradeRequest,
 } from "@/lib/grade";
 
 function errorResponse(kind: GradeErrorKind) {
@@ -21,10 +21,10 @@ function errorResponse(kind: GradeErrorKind) {
 }
 
 export async function POST(request: Request) {
-  let body: Partial<GradeRequest>;
+  let raw: unknown;
 
   try {
-    body = await request.json();
+    raw = await request.json();
   } catch {
     return NextResponse.json(
       { error: "Invalid request body." },
@@ -32,25 +32,16 @@ export async function POST(request: Request) {
     );
   }
 
-  if (typeof body.wordId !== "string" || typeof body.explanation !== "string") {
+  const parsed = gradeRequestSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing wordId or explanation." },
-      { status: 400 },
-    );
-  }
-
-  if (body.explanation.trim().length === 0) {
-    return NextResponse.json(
-      { error: "Explanation cannot be empty." },
+      { error: "Invalid request body." },
       { status: 400 },
     );
   }
 
   try {
-    const result = await gradeExplanation({
-      wordId: body.wordId,
-      explanation: body.explanation,
-    });
+    const result = await gradeExplanation(parsed.data);
     return NextResponse.json(result);
   } catch (error) {
     if (isGradeError(error)) {

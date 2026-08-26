@@ -23,7 +23,47 @@ import {
   GRADE_PRIMARY_MODEL,
   GradeError,
   gradeExplanation,
+  gradeRequestSchema,
 } from "@/lib/grade";
+
+describe("gradeRequestSchema", () => {
+  it("accepts a valid request and trims explanation", () => {
+    const parsed = gradeRequestSchema.safeParse({
+      wordId: "shelter",
+      explanation: "  a safe place  ",
+      priorAttempts: [
+        {
+          explanation: "a fruit",
+          reason: "That sounds like food.",
+          hintShown: null,
+        },
+      ],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.explanation).toBe("a safe place");
+      expect(parsed.data.priorAttempts).toHaveLength(1);
+    }
+  });
+
+  it("rejects empty explanation and malformed priorAttempts", () => {
+    expect(
+      gradeRequestSchema.safeParse({
+        wordId: "shelter",
+        explanation: "   ",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      gradeRequestSchema.safeParse({
+        wordId: "shelter",
+        explanation: "a safe place",
+        priorAttempts: [{ explanation: "x", reason: "y" }],
+      }).success,
+    ).toBe(false);
+  });
+});
 
 describe("gradeExplanation", () => {
   beforeEach(() => {
@@ -81,6 +121,33 @@ describe("gradeExplanation", () => {
     expect(call.prompt).toContain("a safe place from the rain");
     expect(call.system).toMatch(/encouraging/i);
     expect(call.system).toMatch(/fake enthusiasm/i);
+  });
+
+  it("includes prior attempts in the prompt as context", async () => {
+    generateText.mockResolvedValue({
+      output: {
+        correct: false,
+        reason: "That still sounds like something else.",
+      },
+    });
+
+    await gradeExplanation({
+      wordId: "shelter",
+      explanation: "a dry roof",
+      priorAttempts: [
+        {
+          explanation: "a tasty fruit",
+          reason: "That sounds like food, not a place.",
+          hintShown: "Think about staying dry in the rain.",
+        },
+      ],
+    });
+
+    const call = generateText.mock.calls[0]?.[0] as { prompt: string };
+    expect(call.prompt).toContain("Previous tries");
+    expect(call.prompt).toContain("a tasty fruit");
+    expect(call.prompt).toContain("Think about staying dry in the rain.");
+    expect(call.prompt).toContain("Child's latest explanation: a dry roof");
   });
 
   it("maps an incorrect model result", async () => {

@@ -7,7 +7,7 @@ import {
   VocabChallengeOverlay,
   type ChallengePhase,
 } from "@/components/story/VocabChallengeOverlay";
-import type { GradeResult } from "@/lib/grade";
+import type { GradeAttempt, GradeResult } from "@/lib/grade";
 import {
   MAX_ATTEMPTS,
   mysteryWords,
@@ -35,11 +35,12 @@ class GradeRequestError extends Error {
 async function requestGrade(
   wordId: string,
   explanation: string,
+  priorAttempts: GradeAttempt[],
 ): Promise<GradeResult> {
   const response = await fetch("/api/grade", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ wordId, explanation }),
+    body: JSON.stringify({ wordId, explanation, priorAttempts }),
   });
   if (!response.ok) {
     let retryable = response.status === 503;
@@ -65,6 +66,7 @@ export function StoryReader() {
   const [phase, setPhase] = useState<ChallengePhase>("prompt");
   const [explanation, setExplanation] = useState("");
   const [attempts, setAttempts] = useState(0);
+  const [priorAttempts, setPriorAttempts] = useState<GradeAttempt[]>([]);
   const [lastReason, setLastReason] = useState<string | null>(null);
   const [acceptedReason, setAcceptedReason] = useState<string | null>(null);
 
@@ -85,6 +87,7 @@ export function StoryReader() {
     setPhase("prompt");
     setExplanation("");
     setAttempts(0);
+    setPriorAttempts([]);
     setLastReason(null);
     setAcceptedReason(null);
   }
@@ -93,9 +96,14 @@ export function StoryReader() {
     if (!activeWordId || explanation.trim().length === 0) return;
     setPhase("waiting");
 
+    const submittedExplanation = explanation.trim();
     let result: GradeResult;
     try {
-      result = await requestGrade(activeWordId, explanation);
+      result = await requestGrade(
+        activeWordId,
+        submittedExplanation,
+        priorAttempts,
+      );
     } catch (error) {
       const retryable =
         error instanceof GradeRequestError ? error.retryable : true;
@@ -119,6 +127,19 @@ export function StoryReader() {
     }
 
     const nextAttempts = attempts + 1;
+    const hintForThisFail =
+      activeWord?.hints[
+        Math.min(nextAttempts - 1, activeWord.hints.length - 1)
+      ] ?? null;
+
+    setPriorAttempts((prev) => [
+      ...prev,
+      {
+        explanation: submittedExplanation,
+        reason: result.reason,
+        hintShown: hintForThisFail,
+      },
+    ]);
     setAttempts(nextAttempts);
 
     if (nextAttempts >= MAX_ATTEMPTS) {
@@ -138,6 +159,7 @@ export function StoryReader() {
     setActiveWordId(null);
     setPhase("prompt");
     setExplanation("");
+    setPriorAttempts([]);
     setLastReason(null);
     setAcceptedReason(null);
   }

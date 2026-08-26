@@ -7,10 +7,20 @@ import { mysteryWords } from "@/lib/story-data";
 export const GRADE_PRIMARY_MODEL = "openai/gpt-4o-mini";
 export const GRADE_FALLBACK_MODELS = ["google/gemini-3.7-flash"] as const;
 
-export type GradeRequest = {
-  wordId: string;
-  explanation: string;
-};
+export const gradeAttemptSchema = z.object({
+  explanation: z.string(),
+  reason: z.string(),
+  hintShown: z.string().nullable(),
+});
+
+export const gradeRequestSchema = z.object({
+  wordId: z.string().min(1),
+  explanation: z.string().trim().min(1),
+  priorAttempts: z.array(gradeAttemptSchema).optional(),
+});
+
+export type GradeAttempt = z.infer<typeof gradeAttemptSchema>;
+export type GradeRequest = z.infer<typeof gradeRequestSchema>;
 
 export type GradeResult = {
   correct: boolean;
@@ -66,7 +76,7 @@ const gradeResultSchema = z.object({
   correct: z
     .boolean()
     .describe(
-      "True if the child's explanation matches the word's meaning (including simple, partial, or synonym phrasing).",
+      "True if the child's latest explanation matches the word's meaning (including simple, partial, or synonym phrasing).",
     ),
   reason: z
     .string()
@@ -82,11 +92,39 @@ Tone:
 - Avoid fake enthusiasm, verbosity, and patronizing language (no "great job buddy", baby talk, or piles of exclamation marks).
 
 Grading:
-- Compare the child's explanation to the target definition for semantic meaning.
+- Compare the child's latest explanation to the target definition for semantic meaning.
 - Accept simplified wording, synonyms, and partial-but-correct understanding.
 - Reject answers that describe a different or wrong concept.
+- Grade only the latest explanation. Earlier wrong tries are context, not extra penalties.
+- If earlier feedback is provided, do not repeat the same reason wording when you can say it freshly and clearly.
 - Respond only via the structured fields. Keep "reason" to one short sentence.
 - Never invent a different definition than the target provided.`;
+
+function buildPrompt(
+  word: (typeof mysteryWords)[string],
+  explanation: string,
+  priorAttempts: GradeAttempt[] | undefined,
+): string {
+  const lines = [
+    `Mystery word: ${word.word}`,
+    `Target definition: ${word.targetDefinition}`,
+    `Child's latest explanation: ${explanation}`,
+  ];
+
+  if (priorAttempts && priorAttempts.length > 0) {
+    lines.push("", "Previous tries (context only — do not re-grade these):");
+    priorAttempts.forEach((attempt, index) => {
+      lines.push(
+        `${index + 1}. Child said: ${attempt.explanation}`,
+        `   Your prior reason: ${attempt.reason}`,
+        `   Hint shown: ${attempt.hintShown ?? "(none)"}`,
+      );
+    });
+  }
+
+  lines.push("", "Does the child's latest explanation match the meaning of the word?");
+  return lines.join("\n");
+}
 
 /**
  * Live AI meaning check via AI Gateway.
@@ -104,6 +142,8 @@ export async function gradeExplanation(
     };
   }
 
+  const explanation = request.explanation.trim();
+
   try {
     const { output } = await generateText({
       model: GRADE_PRIMARY_MODEL,
@@ -114,13 +154,7 @@ export async function gradeExplanation(
           "Whether the child's explanation matches the mystery word's meaning.",
       }),
       system: GRADER_SYSTEM,
-      prompt: [
-        `Mystery word: ${word.word}`,
-        `Target definition: ${word.targetDefinition}`,
-        `Child's explanation: ${request.explanation.trim()}`,
-        "",
-        "Does the child's explanation match the meaning of the word?",
-      ].join("\n"),
+      prompt: buildPrompt(word, explanation, request.priorAttempts),
       providerOptions: {
         gateway: {
           models: [...GRADE_FALLBACK_MODELS],
