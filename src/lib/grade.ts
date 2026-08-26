@@ -1,3 +1,6 @@
+import { generateText, Output } from "ai";
+import { z } from "zod";
+
 import { mysteryWords } from "@/lib/story-data";
 
 export type GradeRequest = {
@@ -10,16 +13,35 @@ export type GradeResult = {
   reason: string;
 };
 
-function normalize(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
-}
+const gradeResultSchema = z.object({
+  correct: z
+    .boolean()
+    .describe(
+      "True if the child's explanation matches the word's meaning (including simple, partial, or synonym phrasing).",
+    ),
+  reason: z
+    .string()
+    .describe(
+      "One short kid-friendly sentence explaining why the answer is right or wrong. No jargon.",
+    ),
+});
+
+const GRADER_SYSTEM = `You grade vocabulary explanations for children ages 7–9 (2nd–3rd grade reading level).
+
+Rules:
+- Compare the child's explanation to the target definition for semantic meaning.
+- Accept simplified wording, synonyms, and partial-but-correct understanding.
+- Reject answers that describe a different or wrong concept.
+- Respond only via the structured fields. Keep "reason" to one short, warm, kid-friendly sentence.
+- Never invent a different definition than the target provided.`;
 
 /**
- * Placeholder grader that stands in for the future live-AI meaning check.
- * Accepts an explanation when it contains any of the word's keywords.
- * Returns a structured, kid-friendly result (never free-form prose).
+ * Live AI meaning check via AI Gateway (openai/gpt-4o-mini).
+ * Looks up the target definition server-side; throws on provider/auth failure.
  */
-export function mockGradeExplanation(request: GradeRequest): GradeResult {
+export async function gradeExplanation(
+  request: GradeRequest,
+): Promise<GradeResult> {
   const word = mysteryWords[request.wordId];
 
   if (!word) {
@@ -29,20 +51,30 @@ export function mockGradeExplanation(request: GradeRequest): GradeResult {
     };
   }
 
-  const text = normalize(request.explanation);
-  const hasIdea =
-    text.trim().length > 0 &&
-    word.acceptKeywords.some((keyword) => text.includes(normalize(keyword)));
+  const { output } = await generateText({
+    model: "openai/gpt-4o-mini",
+    output: Output.object({
+      schema: gradeResultSchema,
+      name: "VocabGrade",
+      description:
+        "Whether the child's explanation matches the mystery word's meaning.",
+    }),
+    system: GRADER_SYSTEM,
+    prompt: [
+      `Mystery word: ${word.word}`,
+      `Target definition: ${word.targetDefinition}`,
+      `Child's explanation: ${request.explanation.trim()}`,
+      "",
+      "Does the child's explanation match the meaning of the word?",
+    ].join("\n"),
+  });
 
-  if (hasIdea) {
-    return {
-      correct: true,
-      reason: `Yes! ${word.targetDefinition} Great thinking!`,
-    };
+  if (!output) {
+    throw new Error("Grading model returned no structured output.");
   }
 
   return {
-    correct: false,
-    reason: `That's a good try! Think a little more about what "${word.word}" means. Let's try again.`,
+    correct: output.correct,
+    reason: output.reason,
   };
 }

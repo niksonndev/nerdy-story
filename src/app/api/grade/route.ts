@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { mockGradeExplanation, type GradeRequest } from "@/lib/grade";
+import { gradeExplanation, type GradeRequest } from "@/lib/grade";
 
-// Mock grading endpoint. Swaps for a real live-AI meaning check later;
-// the response shape ({ correct, reason }) stays the same.
 export async function POST(request: Request) {
   let body: Partial<GradeRequest>;
 
@@ -23,13 +21,23 @@ export async function POST(request: Request) {
     );
   }
 
-  // Small delay so the playful grading-wait state is visible.
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  if (body.explanation.trim().length === 0) {
+    return NextResponse.json(
+      { error: "Explanation cannot be empty." },
+      { status: 400 },
+    );
+  }
 
-  const result = mockGradeExplanation({
-    wordId: body.wordId,
-    explanation: body.explanation,
-  });
-
-  return NextResponse.json(result);
+  try {
+    const result = await gradeExplanation({
+      wordId: body.wordId,
+      explanation: body.explanation,
+    });
+    return NextResponse.json(result);
+  } catch {
+    return NextResponse.json(
+      { error: "Grading is temporarily unavailable." },
+      { status: 503 },
+    );
+  }
 }
