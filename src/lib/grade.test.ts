@@ -7,11 +7,21 @@ vi.mock("ai", () => ({
   Output: {
     object: (spec: unknown) => spec,
   },
+  NoObjectGeneratedError: {
+    isInstance: (error: unknown) =>
+      Boolean(
+        error &&
+          typeof error === "object" &&
+          (error as { name?: string }).name === "AI_NoObjectGeneratedError",
+      ),
+  },
 }));
 
 import {
+  classifyGradeFailure,
   GRADE_FALLBACK_MODELS,
   GRADE_PRIMARY_MODEL,
+  GradeError,
   gradeExplanation,
 } from "@/lib/grade";
 
@@ -90,7 +100,7 @@ describe("gradeExplanation", () => {
     expect(result.reason).toContain("something else");
   });
 
-  it("throws when the model returns no structured output", async () => {
+  it("throws a structured GradeError when output is missing", async () => {
     generateText.mockResolvedValue({ output: undefined });
 
     await expect(
@@ -98,6 +108,39 @@ describe("gradeExplanation", () => {
         wordId: "shelter",
         explanation: "safe cover",
       }),
-    ).rejects.toThrow(/no structured output/i);
+    ).rejects.toMatchObject({
+      name: "GradeError",
+      kind: "structured",
+    });
+  });
+
+  it("classifies NoObjectGeneratedError as structured", async () => {
+    const error = Object.assign(new Error("no object"), {
+      name: "AI_NoObjectGeneratedError",
+    });
+    generateText.mockRejectedValue(error);
+
+    await expect(
+      gradeExplanation({
+        wordId: "shelter",
+        explanation: "safe cover",
+      }),
+    ).rejects.toMatchObject({ kind: "structured" });
+  });
+
+  it("classifies 403 provider errors as fatal", () => {
+    const error = Object.assign(new Error("forbidden"), { statusCode: 403 });
+    expect(classifyGradeFailure(error)).toMatchObject({ kind: "fatal" });
+  });
+
+  it("classifies unknown failures as retryable", () => {
+    expect(classifyGradeFailure(new Error("network down"))).toMatchObject({
+      kind: "retryable",
+    });
+  });
+
+  it("preserves an existing GradeError", () => {
+    const original = new GradeError("fatal", "auth");
+    expect(classifyGradeFailure(original)).toBe(original);
   });
 });

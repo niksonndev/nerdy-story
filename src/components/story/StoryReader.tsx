@@ -22,6 +22,16 @@ function mysteryWordIdsFor(page: StoryPage): string[] {
     .map((segment) => segment.wordId);
 }
 
+class GradeRequestError extends Error {
+  readonly retryable: boolean;
+
+  constructor(retryable: boolean) {
+    super("Grade request failed");
+    this.name = "GradeRequestError";
+    this.retryable = retryable;
+  }
+}
+
 async function requestGrade(
   wordId: string,
   explanation: string,
@@ -32,7 +42,16 @@ async function requestGrade(
     body: JSON.stringify({ wordId, explanation }),
   });
   if (!response.ok) {
-    throw new Error("Grade request failed");
+    let retryable = response.status === 503;
+    try {
+      const payload = (await response.json()) as { retryable?: unknown };
+      if (typeof payload.retryable === "boolean") {
+        retryable = payload.retryable;
+      }
+    } catch {
+      // keep status-based default
+    }
+    throw new GradeRequestError(retryable);
   }
   return (await response.json()) as GradeResult;
 }
@@ -77,8 +96,14 @@ export function StoryReader() {
     let result: GradeResult;
     try {
       result = await requestGrade(activeWordId, explanation);
-    } catch {
-      setLastReason("Hmm, that did not go through. Let's try again!");
+    } catch (error) {
+      const retryable =
+        error instanceof GradeRequestError ? error.retryable : true;
+      setLastReason(
+        retryable
+          ? "Hmm, that did not go through. Let's try again!"
+          : "I could not check that answer. Try again in a moment.",
+      );
       setPhase("prompt");
       return;
     }

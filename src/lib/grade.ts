@@ -1,4 +1,4 @@
-import { generateText, Output } from "ai";
+import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 
 import { mysteryWords } from "@/lib/story-data";
@@ -16,6 +16,51 @@ export type GradeResult = {
   correct: boolean;
   reason: string;
 };
+
+export type GradeErrorKind = "structured" | "retryable" | "fatal";
+
+export class GradeError extends Error {
+  readonly kind: GradeErrorKind;
+
+  constructor(kind: GradeErrorKind, message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = "GradeError";
+    this.kind = kind;
+  }
+}
+
+export function isGradeError(error: unknown): error is GradeError {
+  return error instanceof GradeError;
+}
+
+function statusCodeOf(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const record = error as { statusCode?: unknown; cause?: unknown };
+  if (typeof record.statusCode === "number") return record.statusCode;
+  return statusCodeOf(record.cause);
+}
+
+/** Map thrown AI SDK / Gateway failures into GradeError kinds. */
+export function classifyGradeFailure(error: unknown): GradeError {
+  if (isGradeError(error)) return error;
+
+  if (NoObjectGeneratedError.isInstance(error)) {
+    return new GradeError("structured", "Structured grade output was invalid.", {
+      cause: error,
+    });
+  }
+
+  const status = statusCodeOf(error);
+  if (status === 401 || status === 403) {
+    return new GradeError("fatal", "Grading authentication failed.", {
+      cause: error,
+    });
+  }
+
+  return new GradeError("retryable", "Grading provider request failed.", {
+    cause: error,
+  });
+}
 
 const gradeResultSchema = z.object({
   correct: z
@@ -45,7 +90,7 @@ Grading:
 
 /**
  * Live AI meaning check via AI Gateway.
- * Looks up the target definition server-side; throws on provider/auth failure.
+ * Looks up the target definition server-side; throws GradeError on failure.
  */
 export async function gradeExplanation(
   request: GradeRequest,
@@ -59,36 +104,43 @@ export async function gradeExplanation(
     };
   }
 
-  const { output } = await generateText({
-    model: GRADE_PRIMARY_MODEL,
-    output: Output.object({
-      schema: gradeResultSchema,
-      name: "VocabGrade",
-      description:
-        "Whether the child's explanation matches the mystery word's meaning.",
-    }),
-    system: GRADER_SYSTEM,
-    prompt: [
-      `Mystery word: ${word.word}`,
-      `Target definition: ${word.targetDefinition}`,
-      `Child's explanation: ${request.explanation.trim()}`,
-      "",
-      "Does the child's explanation match the meaning of the word?",
-    ].join("\n"),
-    providerOptions: {
-      gateway: {
-        models: [...GRADE_FALLBACK_MODELS],
-        tags: ["feature:vocab-grade"],
+  try {
+    const { output } = await generateText({
+      model: GRADE_PRIMARY_MODEL,
+      output: Output.object({
+        schema: gradeResultSchema,
+        name: "VocabGrade",
+        description:
+          "Whether the child's explanation matches the mystery word's meaning.",
+      }),
+      system: GRADER_SYSTEM,
+      prompt: [
+        `Mystery word: ${word.word}`,
+        `Target definition: ${word.targetDefinition}`,
+        `Child's explanation: ${request.explanation.trim()}`,
+        "",
+        "Does the child's explanation match the meaning of the word?",
+      ].join("\n"),
+      providerOptions: {
+        gateway: {
+          models: [...GRADE_FALLBACK_MODELS],
+          tags: ["feature:vocab-grade"],
+        },
       },
-    },
-  });
+    });
 
-  if (!output) {
-    throw new Error("Grading model returned no structured output.");
+    if (!output) {
+      throw new GradeError(
+        "structured",
+        "Grading model returned no structured output.",
+      );
+    }
+
+    return {
+      correct: output.correct,
+      reason: output.reason,
+    };
+  } catch (error) {
+    throw classifyGradeFailure(error);
   }
-
-  return {
-    correct: output.correct,
-    reason: output.reason,
-  };
 }
