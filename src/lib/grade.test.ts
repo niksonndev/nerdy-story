@@ -9,7 +9,11 @@ vi.mock("ai", () => ({
   },
 }));
 
-import { gradeExplanation } from "@/lib/grade";
+import {
+  GRADE_FALLBACK_MODELS,
+  GRADE_PRIMARY_MODEL,
+  gradeExplanation,
+} from "@/lib/grade";
 
 describe("gradeExplanation", () => {
   beforeEach(() => {
@@ -25,7 +29,7 @@ describe("gradeExplanation", () => {
     expect(generateText).not.toHaveBeenCalled();
   });
 
-  it("maps a correct model result and includes the target definition in the prompt", async () => {
+  it("maps a correct model result and configures Gateway failover", async () => {
     generateText.mockResolvedValue({
       output: {
         correct: true,
@@ -48,8 +52,19 @@ describe("gradeExplanation", () => {
       model: string;
       prompt: string;
       system: string;
+      providerOptions: {
+        gateway: {
+          models: string[];
+          tags: string[];
+        };
+      };
     };
-    expect(call.model).toBe("openai/gpt-4o-mini");
+    expect(call.model).toBe(GRADE_PRIMARY_MODEL);
+    expect(call.providerOptions.gateway.models).toEqual([
+      ...GRADE_FALLBACK_MODELS,
+    ]);
+    expect(call.providerOptions.gateway).not.toHaveProperty("providerTimeouts");
+    expect(call.providerOptions.gateway.tags).toContain("feature:vocab-grade");
     expect(call.prompt).toContain(
       "A shelter is a safe, covered place that keeps you protected",
     );

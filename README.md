@@ -7,7 +7,7 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 ## Core loop
 
 - Pre-written interactive story with an embedded vocabulary challenge mechanic
-- Challenge answers are graded live by **chatgpt-4o-mini** (OpenAI) — semantic match to the word’s meaning
+- Challenge answers are graded live by **chatgpt-4o-mini** (`openai/gpt-4o-mini`) via **Vercel AI Gateway**, with failover to another Gateway model if needed — semantic match to the word’s meaning. Story definitions, hints, and progression stay the same no matter which model answers.
 - Words learned (session count of correctly graded challenge words), feedback after each grade, and a closing unlock beat for the demo
 
 ## Demo / MVP constraints
@@ -18,7 +18,7 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 
 ## How to run
 
-Requires [Bun](https://bun.sh). Vocab grading uses **Vercel AI Gateway** with model `openai/gpt-4o-mini` (chatgpt-4o-mini). Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
+Requires [Bun](https://bun.sh). Vocab grading uses **Vercel AI Gateway** (primary `openai/gpt-4o-mini` / chatgpt-4o-mini, with model failover). Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
 
 ```bash
 vercel link   # once

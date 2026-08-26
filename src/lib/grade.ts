@@ -3,6 +3,10 @@ import { z } from "zod";
 
 import { mysteryWords } from "@/lib/story-data";
 
+/** Primary + Gateway failover — educational prompt is independent of these IDs. */
+export const GRADE_PRIMARY_MODEL = "openai/gpt-4o-mini";
+export const GRADE_FALLBACK_MODELS = ["google/gemini-3.7-flash"] as const;
+
 export type GradeRequest = {
   wordId: string;
   explanation: string;
@@ -40,7 +44,7 @@ Grading:
 - Never invent a different definition than the target provided.`;
 
 /**
- * Live AI meaning check via AI Gateway (openai/gpt-4o-mini).
+ * Live AI meaning check via AI Gateway.
  * Looks up the target definition server-side; throws on provider/auth failure.
  */
 export async function gradeExplanation(
@@ -56,7 +60,7 @@ export async function gradeExplanation(
   }
 
   const { output } = await generateText({
-    model: "openai/gpt-4o-mini",
+    model: GRADE_PRIMARY_MODEL,
     output: Output.object({
       schema: gradeResultSchema,
       name: "VocabGrade",
@@ -71,6 +75,12 @@ export async function gradeExplanation(
       "",
       "Does the child's explanation match the meaning of the word?",
     ].join("\n"),
+    providerOptions: {
+      gateway: {
+        models: [...GRADE_FALLBACK_MODELS],
+        tags: ["feature:vocab-grade"],
+      },
+    },
   });
 
   if (!output) {
