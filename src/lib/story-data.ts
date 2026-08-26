@@ -4,7 +4,6 @@ export type MysteryWord = {
   targetDefinition: string;
   hints: string[];
   meaningReveal: string;
-  acceptKeywords: string[];
 };
 
 export type StorySegment =
@@ -46,17 +45,6 @@ export const mysteryWords: Record<string, MysteryWord> = {
     ],
     meaningReveal:
       "A shelter is a safe, covered spot that keeps you protected from rain, wind, or cold — like a cozy cave, a little hut, or under a big leaf.",
-    acceptKeywords: [
-      "safe",
-      "protect",
-      "cover",
-      "roof",
-      "hide",
-      "dry",
-      "shield",
-      "out of the rain",
-      "warm",
-    ],
   },
   snug: {
     id: "snug",
@@ -69,17 +57,6 @@ export const mysteryWords: Record<string, MysteryWord> = {
     ],
     meaningReveal:
       "Snug means warm, cozy, and comfortably tucked in — like curling up in a soft blanket or a little nest.",
-    acceptKeywords: [
-      "warm",
-      "cozy",
-      "comfortable",
-      "tucked",
-      "soft",
-      "safe",
-      "nest",
-      "blanket",
-      "comfy",
-    ],
   },
   lullaby: {
     id: "lullaby",
@@ -92,18 +69,6 @@ export const mysteryWords: Record<string, MysteryWord> = {
     ],
     meaningReveal:
       "A lullaby is a soft, gentle song that helps someone feel calm and drift off to sleep.",
-    acceptKeywords: [
-      "song",
-      "sing",
-      "soft",
-      "gentle",
-      "sleep",
-      "sleepy",
-      "calm",
-      "quiet",
-      "hum",
-      "bedtime",
-    ],
   },
   shimmered: {
     id: "shimmered",
@@ -116,18 +81,6 @@ export const mysteryWords: Record<string, MysteryWord> = {
     ],
     meaningReveal:
       "Shimmered means sparkled or shone with soft, moving light — like a puddle twinkling in the sun.",
-    acceptKeywords: [
-      "sparkle",
-      "sparkled",
-      "shine",
-      "shone",
-      "twinkle",
-      "twinkled",
-      "glow",
-      "glowed",
-      "light",
-      "glitter",
-    ],
   },
 };
 
