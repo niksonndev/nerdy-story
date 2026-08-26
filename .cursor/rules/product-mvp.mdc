@@ -26,7 +26,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - 8–10 challenge/"mystery" words embedded in the story (exact count/selection deprioritized until core loop works)
 - Mystery words are visually highlighted; the challenge opens as an **overlay/modal** over the story page. After grading/feedback, the overlay closes and the child returns to the **same** story page
 - **Challenge format:** "Explain what you understand by [word]" — open-ended; **not** multiple choice; **not** "use it in a sentence"
-- Correctness is graded by a **live API call** that evaluates whether the child's explanation semantically matches the word's real meaning
+- Correctness is graded by a **live API call** to **chatgpt-4o-mini** (OpenAI) that evaluates whether the child's explanation semantically matches the word's real meaning
 - Grading must be calibrated for a 7–9 year old's language: accept simplified phrasing, synonyms, and partial-but-correct understanding; reject answers describing a different/wrong concept
 - Grading prompt must supply the model with the **target definition** and instruct it to return a **structured, parseable result** (not free-form prose) — likely a strict correct/incorrect signal plus a short kid-friendly reason
 - **Hints are pre-written, not AI-generated** — 2–3 tiers per word, triggered on a wrong answer (live-generated hints rejected to reduce live-AI surface area)
@@ -49,7 +49,8 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 
 - **Runtime:** Bun — officially supported Vercel Functions runtime; no shim/third-party runtime package
 - **Language:** TypeScript
-- **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR. Grading API provider is **not decided** — do not assume any specific vendor
+- **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR
+- **Grading model:** chatgpt-4o-mini (OpenAI) — the only live-AI dependency; API key stays server-side
 - **State:** plain React state/Context — no TanStack Query (no caching/refetching problem); no Zustand for MVP (no cross-cutting client-state complexity yet); revisit only if the app grows post-MVP
 - **Styling:** Tailwind
 - **Components:** shadcn/ui — owned generated component source (not a black-box import). Radix comes in as a dependency of shadcn; not a separate install decision
