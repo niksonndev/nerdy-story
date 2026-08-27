@@ -36,7 +36,7 @@ flowchart TD
 
 ## Vocab challenge client flow (`StoryReader`)
 
-Server path (not shown in the client diagram): live AI grade with Gateway failover → on live failure, **local keyword** `GradeResult` (still HTTP 200).
+Server path (not shown in the client diagram): live AI grade via `POST /api/grade-vocabulary` (Gateway failover) → on live failure, **local keyword** `GradeResult` (still HTTP 200).
 
 ```mermaid
 flowchart TD
@@ -65,7 +65,7 @@ flowchart TD
 
 Trigger: **Next Page** on a page with unresolved `comprehensionId` (never auto-open on page enter).
 
-Server path: live AI grade via `POST /api/grade-comprehension` (Gateway failover). **No local matcher yet** — live failure → non-OK HTTP → client transport path.
+Server path: live AI grade via `POST /api/grade-comprehension` (Gateway failover) → on live failure, **local keyword** `GradeResult` (still HTTP 200).
 
 ```mermaid
 flowchart TD

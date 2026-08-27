@@ -59,7 +59,7 @@ StoryPage → ClosingBeat
 
 **After a wrong answer (retries left):** Same miss chrome as vocab — “Try another idea!” + soft about/not-exactly reason + answer-aware hint (live AI). Stay in overlay.
 
-**When the grade HTTP request fails (retries left):** Burn attempt; fixed reason **“Not quite — try another way.”** + story `hints` tier. No infra wording. (No server local matcher for comprehension yet.)
+**When the grade HTTP request fails (retries left):** Burn attempt; fixed reason **“Not quite — try another way.”** + story `hints` tier. No infra wording.
 
 **After the retry limit:** Show pre-written answer reveal (“Here’s the idea”), then **Got it** closes and **auto-advances**.
 
