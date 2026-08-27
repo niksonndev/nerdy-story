@@ -15,6 +15,14 @@ vi.mock("ai", () => ({
         (error as { name?: string }).name === "AI_NoObjectGeneratedError",
       ),
   },
+  NoOutputGeneratedError: {
+    isInstance: (error: unknown) =>
+      Boolean(
+        error &&
+        typeof error === "object" &&
+        (error as { name?: string }).name === "AI_NoOutputGeneratedError",
+      ),
+  },
 }));
 
 import {
@@ -233,22 +241,24 @@ describe("gradeExplanation", () => {
     });
   });
 
-  it("falls back to local grading when model output is missing", async () => {
-    generateText.mockResolvedValue({ output: undefined });
-
-    const result = await gradeExplanation({
-      wordId: "shelter",
-      explanation: "a safe covered place",
-    });
-
-    expect(result.correct).toBe(true);
-    expect(result.hint).toBeNull();
-    expect(generateText).toHaveBeenCalledTimes(1);
-  });
-
   it("falls back to local grading when generateText rejects", async () => {
     const error = Object.assign(new Error("no object"), {
       name: "AI_NoObjectGeneratedError",
+    });
+    generateText.mockRejectedValue(error);
+
+    const result = await gradeExplanation({
+      wordId: "shelter",
+      explanation: "a banana",
+    });
+
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(mysteryWords.shelter.hints[0]);
+  });
+
+  it("falls back to local grading when NoOutputGeneratedError is thrown", async () => {
+    const error = Object.assign(new Error("no output"), {
+      name: "AI_NoOutputGeneratedError",
     });
     generateText.mockRejectedValue(error);
 
@@ -280,6 +290,13 @@ describe("gradeExplanation", () => {
   it("classifies NoObjectGeneratedError as structured", () => {
     const error = Object.assign(new Error("no object"), {
       name: "AI_NoObjectGeneratedError",
+    });
+    expect(classifyGradeFailure(error)).toMatchObject({ kind: "structured" });
+  });
+
+  it("classifies NoOutputGeneratedError as structured", () => {
+    const error = Object.assign(new Error("no output"), {
+      name: "AI_NoOutputGeneratedError",
     });
     expect(classifyGradeFailure(error)).toMatchObject({ kind: "structured" });
   });

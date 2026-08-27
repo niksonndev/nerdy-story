@@ -125,13 +125,6 @@ export async function gradeComprehension(
       },
     });
 
-    if (!output) {
-      throw new GradeError(
-        "structured",
-        "Grading model returned no structured output.",
-      );
-    }
-
     return {
       correct: output.correct,
       reason: output.reason,

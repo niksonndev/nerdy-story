@@ -1,4 +1,9 @@
-import { generateText, NoObjectGeneratedError, Output } from "ai";
+import {
+  generateText,
+  NoObjectGeneratedError,
+  NoOutputGeneratedError,
+  Output,
+} from "ai";
 import { z } from "zod";
 
 import { gradeLocally } from "@/lib/grade-local";
@@ -56,7 +61,10 @@ function statusCodeOf(error: unknown): number | undefined {
 export function classifyGradeFailure(error: unknown): GradeError {
   if (isGradeError(error)) return error;
 
-  if (NoObjectGeneratedError.isInstance(error)) {
+  if (
+    NoObjectGeneratedError.isInstance(error) ||
+    NoOutputGeneratedError.isInstance(error)
+  ) {
     return new GradeError("structured", "Structured grade output was invalid.", {
       cause: error,
     });
@@ -177,13 +185,6 @@ export async function gradeExplanation(
         },
       },
     });
-
-    if (!output) {
-      throw new GradeError(
-        "structured",
-        "Grading model returned no structured output.",
-      );
-    }
 
     return {
       correct: output.correct,

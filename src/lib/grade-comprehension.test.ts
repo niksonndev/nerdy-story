@@ -15,6 +15,14 @@ vi.mock("ai", () => ({
         (error as { name?: string }).name === "AI_NoObjectGeneratedError",
       ),
   },
+  NoOutputGeneratedError: {
+    isInstance: (error: unknown) =>
+      Boolean(
+        error &&
+        typeof error === "object" &&
+        (error as { name?: string }).name === "AI_NoOutputGeneratedError",
+      ),
+  },
 }));
 
 import {
@@ -178,8 +186,25 @@ describe("gradeComprehension", () => {
     });
   });
 
-  it("throws structured GradeError when model output is missing", async () => {
-    generateText.mockResolvedValue({ output: undefined });
+  it("throws structured GradeError when NoObjectGeneratedError is thrown", async () => {
+    const error = Object.assign(new Error("no object"), {
+      name: "AI_NoObjectGeneratedError",
+    });
+    generateText.mockRejectedValue(error);
+
+    await expect(
+      gradeComprehension({
+        challengeId: "find-shelter",
+        answer: "bananas",
+      }),
+    ).rejects.toMatchObject({ kind: "structured" });
+  });
+
+  it("throws structured GradeError when NoOutputGeneratedError is thrown", async () => {
+    const error = Object.assign(new Error("no output"), {
+      name: "AI_NoOutputGeneratedError",
+    });
+    generateText.mockRejectedValue(error);
 
     await expect(
       gradeComprehension({
@@ -192,20 +217,6 @@ describe("gradeComprehension", () => {
       gradeComprehension({
         challengeId: "find-shelter",
         answer: "to stay dry",
-      }),
-    ).rejects.toMatchObject({ kind: "structured" });
-  });
-
-  it("throws classified GradeError when generateText rejects", async () => {
-    const error = Object.assign(new Error("no object"), {
-      name: "AI_NoObjectGeneratedError",
-    });
-    generateText.mockRejectedValue(error);
-
-    await expect(
-      gradeComprehension({
-        challengeId: "find-shelter",
-        answer: "bananas",
       }),
     ).rejects.toMatchObject({ kind: "structured" });
   });
