@@ -15,7 +15,9 @@ export type ComprehensionChallenge = {
   /** Explicit excerpt for the grader (not scraped from page layout). */
   passage: string;
   expectedUnderstanding: string;
-  /** 2 tiers — client HTTP-fail path only. */
+  /** Synonyms / short phrases kids may type; used by local grade fallback. */
+  acceptKeywords?: string[];
+  /** 2 tiers — server local miss + client HTTP-fail path. */
   hints: string[];
   /** Soft-progression reveal after retry limit. */
   answerReveal: string;
@@ -141,6 +143,14 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "Pip the little raccoon was walking home through the woods when fat raindrops began to fall. Plip! Plop! The sky went gray, and the path turned to mud under her paws. Pip pulled her tiny hat down tight. \"I need to find a shelter,\" she said, \"somewhere safe and dry until the storm blows past.\"",
     expectedUnderstanding:
       "Pip needs a shelter because it is raining hard and she wants a safe, dry place to wait out the storm.",
+    acceptKeywords: [
+      "raining",
+      "rain",
+      "stay dry",
+      "storm",
+      "safe place",
+      "safe and dry",
+    ],
     hints: [
       "Think about what the sky and the rain are doing to Pip.",
       "Pip wants somewhere safe and dry until the storm goes away.",
@@ -155,6 +165,15 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "Pip yawned and curled up tighter, tail wrapped around her like a blanket. The rain outside kept singing its quiet song. Her eyes grew heavy. Soon she was drifting toward a soft little sleep in the hollow.",
     expectedUnderstanding:
       "Pip stays curled up because she is cozy, sleepy, and comfortable resting safely in the hollow while the rain sings quietly outside.",
+    acceptKeywords: [
+      "cozy",
+      "sleepy",
+      "sleep",
+      "rest",
+      "hollow",
+      "comfortable",
+      "comfy",
+    ],
     hints: [
       "Think about how Pip feels after she wraps her tail around herself.",
       "Pip is cozy and sleepy, so she stays to rest in the hollow.",
@@ -169,6 +188,15 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "Pip crept to the edge of the hollow and peeked out. The rain had softened to a gentle drizzle, and the whole forest seemed to glow. Something beautiful was waiting just beyond the trees.",
     expectedUnderstanding:
       "Pip notices the rain has softened to a gentle drizzle and the forest seems to glow, with something beautiful waiting beyond the trees.",
+    acceptKeywords: [
+      "drizzle",
+      "glow",
+      "glowing",
+      "gentler",
+      "rain softened",
+      "beautiful",
+      "soft rain",
+    ],
     hints: [
       "Think about how the rain has changed since the storm.",
       "The rain is gentler now, and the forest looks like it is glowing.",

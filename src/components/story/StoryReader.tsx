@@ -11,7 +11,7 @@ import {
   VocabChallengeOverlay,
   type ChallengePhase,
 } from "@/components/story/VocabChallengeOverlay";
-import type { GradeAttempt, GradeResult } from "@/lib/grade";
+import type { GradeAttempt, GradeResult } from "@/lib/grade/shared";
 import {
   MAX_ATTEMPTS,
   comprehensionChallenges,

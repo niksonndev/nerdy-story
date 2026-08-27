@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 
 import {
-  gradeExplanation,
-  gradeRequestSchema,
   isGradeError,
   type GradeErrorKind,
-} from "@/lib/grade";
+} from "@/lib/grade/shared";
+import {
+  gradeExplanation,
+  gradeRequestSchema,
+} from "@/lib/grade/vocabulary";
 
 function errorResponse(kind: GradeErrorKind) {
   const retryable = kind === "retryable";

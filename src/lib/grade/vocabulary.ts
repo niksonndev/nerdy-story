@@ -1,23 +1,17 @@
-import {
-  generateText,
-  NoObjectGeneratedError,
-  NoOutputGeneratedError,
-  Output,
-} from "ai";
+import { generateText, Output } from "ai";
 import { z } from "zod";
 
-import { gradeLocally } from "@/lib/grade-local";
+import {
+  GRADE_FALLBACK_MODELS,
+  GRADE_PRIMARY_MODEL,
+  GradeError,
+  gradeAttemptSchema,
+  type GradeAttempt,
+  type GradeRequest,
+  type GradeResult,
+} from "@/lib/grade/shared";
+import { gradeVocabularyLocally } from "@/lib/grade/vocabulary-local";
 import { mysteryWords } from "@/lib/story-data";
-
-/** Primary + Gateway failover — educational prompt is independent of these IDs. */
-export const GRADE_PRIMARY_MODEL = "openai/gpt-4o";
-export const GRADE_FALLBACK_MODELS = ["google/gemini-3.7-flash"] as const;
-
-export const gradeAttemptSchema = z.object({
-  explanation: z.string(),
-  reason: z.string(),
-  hint: z.string().nullable(),
-});
 
 export const gradeRequestSchema = z.object({
   wordId: z.string().min(1),
@@ -25,62 +19,7 @@ export const gradeRequestSchema = z.object({
   priorAttempts: z.array(gradeAttemptSchema).optional(),
 });
 
-export type GradeAttempt = z.infer<typeof gradeAttemptSchema>;
-export type GradeRequest = z.infer<typeof gradeRequestSchema>;
-
-export type GradeResult = {
-  correct: boolean;
-  reason: string;
-  hint: string | null;
-};
-
-export type GradeErrorKind = "structured" | "retryable" | "fatal";
-
-export class GradeError extends Error {
-  readonly kind: GradeErrorKind;
-
-  constructor(kind: GradeErrorKind, message: string, options?: { cause?: unknown }) {
-    super(message, options);
-    this.name = "GradeError";
-    this.kind = kind;
-  }
-}
-
-export function isGradeError(error: unknown): error is GradeError {
-  return error instanceof GradeError;
-}
-
-function statusCodeOf(error: unknown): number | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const record = error as { statusCode?: unknown; cause?: unknown };
-  if (typeof record.statusCode === "number") return record.statusCode;
-  return statusCodeOf(record.cause);
-}
-
-/** Map thrown AI SDK / Gateway failures into GradeError kinds. */
-export function classifyGradeFailure(error: unknown): GradeError {
-  if (isGradeError(error)) return error;
-
-  if (
-    NoObjectGeneratedError.isInstance(error) ||
-    NoOutputGeneratedError.isInstance(error)
-  ) {
-    return new GradeError("structured", "Structured grade output was invalid.", {
-      cause: error,
-    });
-  }
-
-  const status = statusCodeOf(error);
-  if (status === 401 || status === 403) {
-    return new GradeError("fatal", "Grading authentication failed.", {
-      cause: error,
-    });
-  }
-
-  return new GradeError("retryable", "Grading provider request failed.", {
-    cause: error,
-  });
-}
+export type { GradeRequest };
 
 const gradeResultSchema = z.object({
   correct: z
@@ -158,11 +97,7 @@ export async function gradeExplanation(
   const word = mysteryWords[request.wordId];
 
   if (!word) {
-    return {
-      correct: false,
-      reason: "Hmm, I could not find that word. Let's try again together.",
-      hint: null,
-    };
+    throw new GradeError("fatal", "Unknown mystery word.");
   }
 
   const explanation = request.explanation.trim();
@@ -172,7 +107,7 @@ export async function gradeExplanation(
       model: GRADE_PRIMARY_MODEL,
       output: Output.object({
         schema: gradeResultSchema,
-        name: "VocabGrade",
+        name: "VocabularyGrade",
         description:
           "Whether the child's explanation matches the mystery word's meaning.",
       }),
@@ -181,7 +116,7 @@ export async function gradeExplanation(
       providerOptions: {
         gateway: {
           models: [...GRADE_FALLBACK_MODELS],
-          tags: ["feature:vocab-grade"],
+          tags: ["feature:vocabulary-grade"],
         },
       },
     });
@@ -193,6 +128,6 @@ export async function gradeExplanation(
     };
   } catch {
     // Gateway already tried primary + failover models inside generateText.
-    return gradeLocally({ ...request, explanation });
+    return gradeVocabularyLocally({ ...request, explanation });
   }
 }

@@ -26,14 +26,14 @@ vi.mock("ai", () => ({
 }));
 
 import {
-  GRADE_FALLBACK_MODELS,
-  GRADE_PRIMARY_MODEL,
-  GradeError,
-} from "@/lib/grade";
-import {
   comprehensionGradeRequestSchema,
   gradeComprehension,
-} from "@/lib/grade-comprehension";
+} from "@/lib/grade/comprehension";
+import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
+import {
+  GRADE_FALLBACK_MODELS,
+  GRADE_PRIMARY_MODEL,
+} from "@/lib/grade/shared";
 import { comprehensionChallenges } from "@/lib/story-data";
 
 describe("comprehensionGradeRequestSchema", () => {
@@ -72,6 +72,56 @@ describe("comprehensionGradeRequestSchema", () => {
         priorAttempts: [{ explanation: "x", reason: "y" }],
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("gradeComprehensionLocally", () => {
+  it("accepts acceptKeywords phrases as correct", () => {
+    const result = gradeComprehensionLocally({
+      challengeId: "find-shelter",
+      answer: "because of the rain",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+    expect(result.reason).toMatch(/matches/i);
+  });
+
+  it("accepts overlapping expectedUnderstanding tokens as correct", () => {
+    const result = gradeComprehensionLocally({
+      challengeId: "cozy-nap",
+      answer: "she is cozy and sleepy in the hollow",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+  });
+
+  it("rejects a wrong idea and returns a story hint", () => {
+    const result = gradeComprehensionLocally({
+      challengeId: "find-shelter",
+      answer: "bananas and candy",
+    });
+    expect(result).toEqual({
+      correct: false,
+      reason:
+        "That does not quite match this part of the story. Try another way to say it.",
+      hint: comprehensionChallenges["find-shelter"].hints[0],
+    });
+  });
+
+  it("uses the next hint tier after prior attempts", () => {
+    const result = gradeComprehensionLocally({
+      challengeId: "find-shelter",
+      answer: "bananas",
+      priorAttempts: [
+        {
+          explanation: "hungry",
+          reason: "nope",
+          hint: comprehensionChallenges["find-shelter"].hints[0],
+        },
+      ],
+    });
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(comprehensionChallenges["find-shelter"].hints[1]);
   });
 });
 
@@ -129,7 +179,9 @@ describe("gradeComprehension", () => {
     expect(call.providerOptions.gateway.tags).toContain(
       "feature:comprehension-grade",
     );
-    expect(call.prompt).toContain(comprehensionChallenges["find-shelter"].question);
+    expect(call.prompt).toContain(
+      comprehensionChallenges["find-shelter"].question,
+    );
     expect(call.prompt).toContain(
       comprehensionChallenges["find-shelter"].expectedUnderstanding,
     );
@@ -186,38 +238,33 @@ describe("gradeComprehension", () => {
     });
   });
 
-  it("throws structured GradeError when NoObjectGeneratedError is thrown", async () => {
+  it("falls back to local grading when NoObjectGeneratedError is thrown", async () => {
     const error = Object.assign(new Error("no object"), {
       name: "AI_NoObjectGeneratedError",
     });
     generateText.mockRejectedValue(error);
 
-    await expect(
-      gradeComprehension({
-        challengeId: "find-shelter",
-        answer: "bananas",
-      }),
-    ).rejects.toMatchObject({ kind: "structured" });
+    const result = await gradeComprehension({
+      challengeId: "find-shelter",
+      answer: "bananas",
+    });
+
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(comprehensionChallenges["find-shelter"].hints[0]);
   });
 
-  it("throws structured GradeError when NoOutputGeneratedError is thrown", async () => {
+  it("falls back to local grading when NoOutputGeneratedError is thrown", async () => {
     const error = Object.assign(new Error("no output"), {
       name: "AI_NoOutputGeneratedError",
     });
     generateText.mockRejectedValue(error);
 
-    await expect(
-      gradeComprehension({
-        challengeId: "find-shelter",
-        answer: "to stay dry",
-      }),
-    ).rejects.toBeInstanceOf(GradeError);
+    const result = await gradeComprehension({
+      challengeId: "find-shelter",
+      answer: "to stay dry",
+    });
 
-    await expect(
-      gradeComprehension({
-        challengeId: "find-shelter",
-        answer: "to stay dry",
-      }),
-    ).rejects.toMatchObject({ kind: "structured" });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
   });
 });

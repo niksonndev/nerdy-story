@@ -27,13 +27,12 @@ vi.mock("ai", () => ({
 
 import {
   classifyGradeFailure,
+  GradeError,
   GRADE_FALLBACK_MODELS,
   GRADE_PRIMARY_MODEL,
-  GradeError,
-  gradeExplanation,
-  gradeRequestSchema,
-} from "@/lib/grade";
-import { gradeLocally } from "@/lib/grade-local";
+} from "@/lib/grade/shared";
+import { gradeExplanation, gradeRequestSchema } from "@/lib/grade/vocabulary";
+import { gradeVocabularyLocally } from "@/lib/grade/vocabulary-local";
 import { mysteryWords } from "@/lib/story-data";
 
 describe("gradeRequestSchema", () => {
@@ -75,9 +74,9 @@ describe("gradeRequestSchema", () => {
   });
 });
 
-describe("gradeLocally", () => {
+describe("gradeVocabularyLocally", () => {
   it("accepts overlapping definition tokens as correct", () => {
-    const result = gradeLocally({
+    const result = gradeVocabularyLocally({
       wordId: "shelter",
       explanation: "a safe covered place from rain",
     });
@@ -87,7 +86,7 @@ describe("gradeLocally", () => {
   });
 
   it("accepts acceptKeywords phrases as correct", () => {
-    const result = gradeLocally({
+    const result = gradeVocabularyLocally({
       wordId: "snug",
       explanation: "it feels cozy under a blanket",
     });
@@ -96,7 +95,7 @@ describe("gradeLocally", () => {
   });
 
   it("rejects a wrong concept and returns a story hint", () => {
-    const result = gradeLocally({
+    const result = gradeVocabularyLocally({
       wordId: "shelter",
       explanation: "a kind of tasty fruit",
     });
@@ -109,7 +108,7 @@ describe("gradeLocally", () => {
   });
 
   it("uses the next hint tier after prior attempts", () => {
-    const result = gradeLocally({
+    const result = gradeVocabularyLocally({
       wordId: "shelter",
       explanation: "a banana",
       priorAttempts: [
@@ -130,16 +129,13 @@ describe("gradeExplanation", () => {
     generateText.mockReset();
   });
 
-  it("handles an unknown word without calling the model", async () => {
-    const result = await gradeExplanation({
-      wordId: "nope",
-      explanation: "safe cover",
-    });
-    expect(result).toEqual({
-      correct: false,
-      reason: "Hmm, I could not find that word. Let's try again together.",
-      hint: null,
-    });
+  it("throws fatal GradeError for an unknown word without calling the model", async () => {
+    await expect(
+      gradeExplanation({
+        wordId: "nope",
+        explanation: "safe cover",
+      }),
+    ).rejects.toMatchObject({ kind: "fatal" });
     expect(generateText).not.toHaveBeenCalled();
   });
 
@@ -180,7 +176,9 @@ describe("gradeExplanation", () => {
       ...GRADE_FALLBACK_MODELS,
     ]);
     expect(call.providerOptions.gateway).not.toHaveProperty("providerTimeouts");
-    expect(call.providerOptions.gateway.tags).toContain("feature:vocab-grade");
+    expect(call.providerOptions.gateway.tags).toContain(
+      "feature:vocabulary-grade",
+    );
     expect(call.prompt).toContain(
       "A shelter is a safe, covered place that keeps you protected",
     );

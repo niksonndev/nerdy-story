@@ -1,15 +1,16 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
 
+import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
 import {
-  classifyGradeFailure,
   GRADE_FALLBACK_MODELS,
   GRADE_PRIMARY_MODEL,
   GradeError,
   gradeAttemptSchema,
+  type ComprehensionGradeRequest,
   type GradeAttempt,
   type GradeResult,
-} from "@/lib/grade";
+} from "@/lib/grade/shared";
 import { comprehensionChallenges } from "@/lib/story-data";
 
 export const comprehensionGradeRequestSchema = z.object({
@@ -18,9 +19,7 @@ export const comprehensionGradeRequestSchema = z.object({
   priorAttempts: z.array(gradeAttemptSchema).optional(),
 });
 
-export type ComprehensionGradeRequest = z.infer<
-  typeof comprehensionGradeRequestSchema
->;
+export type { ComprehensionGradeRequest };
 
 const comprehensionGradeResultSchema = z.object({
   correct: z
@@ -93,7 +92,8 @@ function buildPrompt(
 /**
  * Live AI comprehension check via AI Gateway (primary + failover models).
  * Looks up passage / expected understanding server-side.
- * On live failure (after Gateway failover), throws GradeError — no local matcher yet.
+ * After the live call fails (failover already attempted inside generateText),
+ * returns a local keyword GradeResult instead of throwing.
  */
 export async function gradeComprehension(
   request: ComprehensionGradeRequest,
@@ -130,7 +130,8 @@ export async function gradeComprehension(
       reason: output.reason,
       hint: output.correct ? null : output.hint,
     };
-  } catch (error) {
-    throw classifyGradeFailure(error);
+  } catch {
+    // Gateway already tried primary + failover models inside generateText.
+    return gradeComprehensionLocally({ ...request, answer });
   }
 }
