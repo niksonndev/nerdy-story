@@ -7,7 +7,7 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 ## Core loop
 
 - Pre-written interactive story with embedded **vocabulary** and **comprehension** challenge mechanics
-- Challenge answers are graded live by **chatgpt-4o** (`openai/gpt-4o`) via **Vercel AI Gateway**, with failover to another Gateway model if needed — semantic match (word meaning or story understanding), plus a live **hint** on wrong answers (same call). If that live call still fails, the server falls back to a **local keyword matcher** and returns a normal grade (same response shape). Client **pre-written hints** apply only when the grade HTTP request itself fails (transport / non-OK). Story definitions, soft progression, and words-learned stay the same either way.
+- Challenge answers are graded live by **gemini-2.5-flash** (`google/gemini-2.5-flash`) via **Vercel AI Gateway**, with failover to **gpt-4o-mini** (`openai/gpt-4o-mini`) — semantic match (word meaning or story understanding), plus a live **hint** on wrong answers (same call). If that live call still fails, the server falls back to a **local keyword matcher** and returns a normal grade (same response shape). Client **pre-written hints** apply only when the grade HTTP request itself fails (transport / non-OK). Story definitions, soft progression, and words-learned stay the same either way.
 - Words learned (session count of correctly graded **vocab** challenge words), feedback after each grade, and a closing unlock beat for the demo
 
 ## Demo / MVP constraints
@@ -18,7 +18,7 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 
 ## How to run
 
-Requires [Bun](https://bun.sh). Vocab and comprehension grading prefer **Vercel AI Gateway** (primary `openai/gpt-4o` / chatgpt-4o, with model failover). If Gateway/OIDC fails after that failover, the API still returns a grade via the local keyword matcher so the loop is not blocked — live AI remains the intended grader. Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
+Requires [Bun](https://bun.sh). Vocab and comprehension grading prefer **Vercel AI Gateway** (primary `google/gemini-2.5-flash`, failover `openai/gpt-4o-mini`). If Gateway/OIDC fails after that failover, the API still returns a grade via the local keyword matcher so the loop is not blocked — live AI remains the intended grader. Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
 
 ```bash
 vercel link   # once

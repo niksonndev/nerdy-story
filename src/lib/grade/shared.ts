@@ -5,8 +5,8 @@ import {
 import { z } from "zod";
 
 /** Primary + Gateway failover — educational prompt is independent of these IDs. */
-export const GRADE_PRIMARY_MODEL = "openai/gpt-4o";
-export const GRADE_FALLBACK_MODELS = ["google/gemini-3.7-flash"] as const;
+export const GRADE_PRIMARY_MODEL = "google/gemini-2.5-flash";
+export const GRADE_FALLBACK_MODELS = ["openai/gpt-4o-mini"] as const;
 
 export const gradeAttemptSchema = z.object({
   explanation: z.string(),
