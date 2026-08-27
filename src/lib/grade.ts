@@ -1,6 +1,7 @@
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 
+import { gradeLocally } from "@/lib/grade-local";
 import { mysteryWords } from "@/lib/story-data";
 
 /** Primary + Gateway failover — educational prompt is independent of these IDs. */
@@ -135,8 +136,10 @@ function buildPrompt(
 }
 
 /**
- * Live AI meaning check via AI Gateway.
- * Looks up the target definition server-side; throws GradeError on failure.
+ * Live AI meaning check via AI Gateway (primary + failover models).
+ * Looks up the target definition server-side.
+ * After the live call fails (failover already attempted inside generateText),
+ * returns a local keyword GradeResult instead of throwing.
  */
 export async function gradeExplanation(
   request: GradeRequest,
@@ -184,7 +187,8 @@ export async function gradeExplanation(
       reason: output.reason,
       hint: output.correct ? null : output.hint,
     };
-  } catch (error) {
-    throw classifyGradeFailure(error);
+  } catch {
+    // Gateway already tried primary + failover models inside generateText.
+    return gradeLocally({ ...request, explanation });
   }
 }

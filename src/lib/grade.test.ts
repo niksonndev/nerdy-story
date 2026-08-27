@@ -25,6 +25,8 @@ import {
   gradeExplanation,
   gradeRequestSchema,
 } from "@/lib/grade";
+import { gradeLocally } from "@/lib/grade-local";
+import { mysteryWords } from "@/lib/story-data";
 
 describe("gradeRequestSchema", () => {
   it("accepts a valid request and trims explanation", () => {
@@ -62,6 +64,56 @@ describe("gradeRequestSchema", () => {
         priorAttempts: [{ explanation: "x", reason: "y" }],
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("gradeLocally", () => {
+  it("accepts overlapping definition tokens as correct", () => {
+    const result = gradeLocally({
+      wordId: "shelter",
+      explanation: "a safe covered place from rain",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+    expect(result.reason).toMatch(/shelter/i);
+  });
+
+  it("accepts acceptKeywords phrases as correct", () => {
+    const result = gradeLocally({
+      wordId: "snug",
+      explanation: "it feels cozy under a blanket",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+  });
+
+  it("rejects a wrong concept and returns a story hint", () => {
+    const result = gradeLocally({
+      wordId: "shelter",
+      explanation: "a kind of tasty fruit",
+    });
+    expect(result).toEqual({
+      correct: false,
+      reason:
+        "That does not quite match the meaning. Try another way to say it.",
+      hint: mysteryWords.shelter.hints[0],
+    });
+  });
+
+  it("uses the next hint tier after prior attempts", () => {
+    const result = gradeLocally({
+      wordId: "shelter",
+      explanation: "a banana",
+      priorAttempts: [
+        {
+          explanation: "a fruit",
+          reason: "nope",
+          hint: mysteryWords.shelter.hints[0],
+        },
+      ],
+    });
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(mysteryWords.shelter.hints[1]);
   });
 });
 
@@ -179,32 +231,32 @@ describe("gradeExplanation", () => {
     });
   });
 
-  it("throws a structured GradeError when output is missing", async () => {
+  it("falls back to local grading when model output is missing", async () => {
     generateText.mockResolvedValue({ output: undefined });
 
-    await expect(
-      gradeExplanation({
-        wordId: "shelter",
-        explanation: "safe cover",
-      }),
-    ).rejects.toMatchObject({
-      name: "GradeError",
-      kind: "structured",
+    const result = await gradeExplanation({
+      wordId: "shelter",
+      explanation: "a safe covered place",
     });
+
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+    expect(generateText).toHaveBeenCalledTimes(1);
   });
 
-  it("classifies NoObjectGeneratedError as structured", async () => {
+  it("falls back to local grading when generateText rejects", async () => {
     const error = Object.assign(new Error("no object"), {
       name: "AI_NoObjectGeneratedError",
     });
     generateText.mockRejectedValue(error);
 
-    await expect(
-      gradeExplanation({
-        wordId: "shelter",
-        explanation: "safe cover",
-      }),
-    ).rejects.toMatchObject({ kind: "structured" });
+    const result = await gradeExplanation({
+      wordId: "shelter",
+      explanation: "a banana",
+    });
+
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(mysteryWords.shelter.hints[0]);
   });
 
   it("classifies 403 provider errors as fatal", () => {
@@ -221,5 +273,12 @@ describe("gradeExplanation", () => {
   it("preserves an existing GradeError", () => {
     const original = new GradeError("fatal", "auth");
     expect(classifyGradeFailure(original)).toBe(original);
+  });
+
+  it("classifies NoObjectGeneratedError as structured", () => {
+    const error = Object.assign(new Error("no object"), {
+      name: "AI_NoObjectGeneratedError",
+    });
+    expect(classifyGradeFailure(error)).toMatchObject({ kind: "structured" });
   });
 });
