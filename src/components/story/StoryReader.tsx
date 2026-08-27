@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { StoryPageView } from "@/components/story/StoryPageView";
+import { ComprehensionChallengeOverlay } from "@/components/story/ComprehensionChallengeOverlay";
+import {
+  StoryPageView,
+  type StoryPageViewHandle,
+} from "@/components/story/StoryPageView";
 import {
   VocabChallengeOverlay,
   type ChallengePhase,
@@ -10,9 +14,11 @@ import {
 import type { GradeAttempt, GradeResult } from "@/lib/grade";
 import {
   MAX_ATTEMPTS,
+  comprehensionChallenges,
   mysteryWords,
   STORY_START_ID,
   storyPagesById,
+  type ComprehensionChallenge,
   type MysteryWord,
   type StoryPage,
 } from "@/lib/story-data";
@@ -24,11 +30,11 @@ function mysteryWordIdsFor(page: StoryPage): string[] {
 }
 
 function fallbackHintFor(
-  word: MysteryWord | null | undefined,
+  hints: string[],
   attemptIndex: number,
 ): string | null {
-  if (!word || word.hints.length === 0) return null;
-  return word.hints[Math.min(attemptIndex, word.hints.length - 1)] ?? null;
+  if (hints.length === 0) return null;
+  return hints[Math.min(attemptIndex, hints.length - 1)] ?? null;
 }
 
 class GradeRequestError extends Error {
@@ -38,7 +44,7 @@ class GradeRequestError extends Error {
   }
 }
 
-async function requestGrade(
+async function requestVocabGrade(
   wordId: string,
   explanation: string,
   priorAttempts: GradeAttempt[],
@@ -54,12 +60,37 @@ async function requestGrade(
   return (await response.json()) as GradeResult;
 }
 
+async function requestComprehensionGrade(
+  challengeId: string,
+  answer: string,
+  priorAttempts: GradeAttempt[],
+): Promise<GradeResult> {
+  const response = await fetch("/api/grade-comprehension", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ challengeId, answer, priorAttempts }),
+  });
+  if (!response.ok) {
+    throw new GradeRequestError();
+  }
+  return (await response.json()) as GradeResult;
+}
+
 export function StoryReader() {
+  const pageViewRef = useRef<StoryPageViewHandle>(null);
+  const pendingAdvanceId = useRef<string | null>(null);
+
   const [pageId, setPageId] = useState(STORY_START_ID);
   const [wordsLearned, setWordsLearned] = useState(0);
   const [resolvedWordIds, setResolvedWordIds] = useState<string[]>([]);
+  const [resolvedComprehensionIds, setResolvedComprehensionIds] = useState<
+    string[]
+  >([]);
 
   const [activeWordId, setActiveWordId] = useState<string | null>(null);
+  const [activeComprehensionId, setActiveComprehensionId] = useState<
+    string | null
+  >(null);
   const [phase, setPhase] = useState<ChallengePhase>("prompt");
   const [explanation, setExplanation] = useState("");
   const [attempts, setAttempts] = useState(0);
@@ -73,11 +104,14 @@ export function StoryReader() {
   const pageWordIds = mysteryWordIdsFor(page);
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
 
-  const activeWord = activeWordId ? mysteryWords[activeWordId] : null;
+  const activeWord: MysteryWord | null = activeWordId
+    ? mysteryWords[activeWordId]
+    : null;
+  const activeChallenge: ComprehensionChallenge | null = activeComprehensionId
+    ? comprehensionChallenges[activeComprehensionId]
+    : null;
 
-  function openChallenge(wordId: string) {
-    if (resolvedWordIds.includes(wordId)) return;
-    setActiveWordId(wordId);
+  function resetChallengeFields() {
     setPhase("prompt");
     setExplanation("");
     setAttempts(0);
@@ -87,14 +121,35 @@ export function StoryReader() {
     setAcceptedReason(null);
   }
 
-  function resolveWithReveal(wordId: string) {
+  function openVocabChallenge(wordId: string) {
+    if (resolvedWordIds.includes(wordId)) return;
+    setActiveComprehensionId(null);
+    setActiveWordId(wordId);
+    resetChallengeFields();
+  }
+
+  function openComprehensionChallenge(challengeId: string) {
+    if (resolvedComprehensionIds.includes(challengeId)) return;
+    setActiveWordId(null);
+    setActiveComprehensionId(challengeId);
+    resetChallengeFields();
+  }
+
+  function resolveWordWithReveal(wordId: string) {
     setResolvedWordIds((prev) =>
       prev.includes(wordId) ? prev : [...prev, wordId],
     );
     setPhase("reveal");
   }
 
-  function recordFailedAttempt(
+  function resolveComprehensionWithReveal(challengeId: string) {
+    setResolvedComprehensionIds((prev) =>
+      prev.includes(challengeId) ? prev : [...prev, challengeId],
+    );
+    setPhase("reveal");
+  }
+
+  function recordVocabFailedAttempt(
     submittedExplanation: string,
     reason: string,
     hint: string | null,
@@ -111,7 +166,7 @@ export function StoryReader() {
     setAttempts(nextAttempts);
 
     if (nextAttempts >= MAX_ATTEMPTS && activeWordId) {
-      resolveWithReveal(activeWordId);
+      resolveWordWithReveal(activeWordId);
       return;
     }
 
@@ -121,23 +176,52 @@ export function StoryReader() {
     setPhase("prompt");
   }
 
-  async function handleCheck() {
+  function recordComprehensionFailedAttempt(
+    submittedAnswer: string,
+    reason: string,
+    hint: string | null,
+    nextAttempts: number,
+  ) {
+    setPriorAttempts((prev) => [
+      ...prev,
+      {
+        explanation: submittedAnswer,
+        reason,
+        hint,
+      },
+    ]);
+    setAttempts(nextAttempts);
+
+    if (nextAttempts >= MAX_ATTEMPTS && activeComprehensionId) {
+      resolveComprehensionWithReveal(activeComprehensionId);
+      return;
+    }
+
+    setMissReason(reason);
+    setHintText(hint);
+    setExplanation("");
+    setPhase("prompt");
+  }
+
+  async function handleVocabCheck() {
     if (!activeWordId || explanation.trim().length === 0) return;
     setPhase("waiting");
 
     const submittedExplanation = explanation.trim();
     let result: GradeResult;
     try {
-      result = await requestGrade(
+      result = await requestVocabGrade(
         activeWordId,
         submittedExplanation,
         priorAttempts,
       );
     } catch {
-      // Transport / non-OK: same kid-facing shape as a gentle miss — no infra messaging.
       const nextAttempts = attempts + 1;
-      const hint = fallbackHintFor(activeWord, nextAttempts - 1);
-      recordFailedAttempt(
+      const hint = fallbackHintFor(
+        activeWord?.hints ?? [],
+        nextAttempts - 1,
+      );
+      recordVocabFailedAttempt(
         submittedExplanation,
         "Not quite — try another way.",
         hint,
@@ -158,7 +242,7 @@ export function StoryReader() {
     }
 
     const nextAttempts = attempts + 1;
-    recordFailedAttempt(
+    recordVocabFailedAttempt(
       submittedExplanation,
       result.reason,
       result.hint,
@@ -166,14 +250,73 @@ export function StoryReader() {
     );
   }
 
-  function closeChallenge() {
+  async function handleComprehensionCheck() {
+    if (!activeComprehensionId || explanation.trim().length === 0) return;
+    setPhase("waiting");
+
+    const submittedAnswer = explanation.trim();
+    let result: GradeResult;
+    try {
+      result = await requestComprehensionGrade(
+        activeComprehensionId,
+        submittedAnswer,
+        priorAttempts,
+      );
+    } catch {
+      const nextAttempts = attempts + 1;
+      const hint = fallbackHintFor(
+        activeChallenge?.hints ?? [],
+        nextAttempts - 1,
+      );
+      recordComprehensionFailedAttempt(
+        submittedAnswer,
+        "Not quite — try another way.",
+        hint,
+        nextAttempts,
+      );
+      return;
+    }
+
+    if (result.correct) {
+      setResolvedComprehensionIds((prev) =>
+        prev.includes(activeComprehensionId)
+          ? prev
+          : [...prev, activeComprehensionId],
+      );
+      setAcceptedReason(result.reason);
+      setHintText(null);
+      setPhase("accepted");
+      return;
+    }
+
+    const nextAttempts = attempts + 1;
+    recordComprehensionFailedAttempt(
+      submittedAnswer,
+      result.reason,
+      result.hint,
+      nextAttempts,
+    );
+  }
+
+  function closeVocabChallenge() {
     setActiveWordId(null);
-    setPhase("prompt");
-    setExplanation("");
-    setPriorAttempts([]);
-    setMissReason(null);
-    setHintText(null);
-    setAcceptedReason(null);
+    resetChallengeFields();
+  }
+
+  function closeComprehensionChallenge() {
+    setActiveComprehensionId(null);
+    pendingAdvanceId.current = null;
+    resetChallengeFields();
+  }
+
+  function continueComprehension() {
+    const nextPageId = pendingAdvanceId.current;
+    pendingAdvanceId.current = null;
+    setActiveComprehensionId(null);
+    resetChallengeFields();
+    if (nextPageId) {
+      pageViewRef.current?.advanceTo(nextPageId);
+    }
   }
 
   function goToPage(nextPageId: string) {
@@ -181,16 +324,31 @@ export function StoryReader() {
     setPageId(nextPageId);
   }
 
+  function handleBeforeNextPage(nextPageId: string): boolean {
+    const challengeId = page.comprehensionId;
+    if (
+      challengeId &&
+      !resolvedComprehensionIds.includes(challengeId)
+    ) {
+      pendingAdvanceId.current = nextPageId;
+      openComprehensionChallenge(challengeId);
+      return false;
+    }
+    return true;
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <StoryPageView
+        ref={pageViewRef}
         page={page}
         wordsLearned={wordsLearned}
         resolvedWordIds={resolvedWordIds}
         canAdvance={canAdvance}
         isLastPage={isLastPage}
-        onMysteryClick={openChallenge}
+        onMysteryClick={openVocabChallenge}
         onChoosePath={goToPage}
+        onBeforeNextPage={handleBeforeNextPage}
       />
 
       <VocabChallengeOverlay
@@ -202,8 +360,22 @@ export function StoryReader() {
         hintText={hintText}
         acceptedReason={acceptedReason}
         onChange={setExplanation}
-        onCheck={handleCheck}
-        onClose={closeChallenge}
+        onCheck={handleVocabCheck}
+        onClose={closeVocabChallenge}
+      />
+
+      <ComprehensionChallengeOverlay
+        open={activeComprehensionId !== null}
+        challenge={activeChallenge}
+        phase={phase}
+        value={explanation}
+        missReason={missReason}
+        hintText={hintText}
+        acceptedReason={acceptedReason}
+        onChange={setExplanation}
+        onCheck={handleComprehensionCheck}
+        onContinue={continueComprehension}
+        onClose={closeComprehensionChallenge}
       />
     </div>
   );

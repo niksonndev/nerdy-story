@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useEffectEvent,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 
@@ -17,140 +24,159 @@ type StoryPageViewProps = {
   isLastPage: boolean;
   onMysteryClick: (wordId: string) => void;
   onChoosePath: (nextPageId: string) => void;
+  /** Return false to block the page turn (e.g. open comprehension first). */
+  onBeforeNextPage?: (nextPageId: string) => boolean;
+};
+
+export type StoryPageViewHandle = {
+  advanceTo: (nextPageId: string) => void;
 };
 
 type PageTurnPhase = "idle" | "exit" | "enter";
 
 const PAGE_TURN_MS = 350;
 
-export function StoryPageView({
-  page,
-  wordsLearned,
-  resolvedWordIds,
-  canAdvance,
-  isLastPage,
-  onMysteryClick,
-  onChoosePath,
-}: StoryPageViewProps) {
-  const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
-  const pendingPageId = useRef<string | null>(null);
-  const advancePage = useEffectEvent(() => {
-    const nextId = pendingPageId.current;
-    pendingPageId.current = null;
-    if (nextId) onChoosePath(nextId);
-  });
-
-  useEffect(() => {
-    if (turnPhase !== "exit") return;
-    const timer = window.setTimeout(() => {
-      advancePage();
-      setTurnPhase("enter");
-    }, PAGE_TURN_MS);
-    return () => window.clearTimeout(timer);
-  }, [turnPhase]);
-
-  useEffect(() => {
-    if (turnPhase !== "enter") return;
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setTurnPhase("idle"));
+export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>(
+  function StoryPageView(
+    {
+      page,
+      wordsLearned,
+      resolvedWordIds,
+      canAdvance,
+      isLastPage,
+      onMysteryClick,
+      onChoosePath,
+      onBeforeNextPage,
+    },
+    ref,
+  ) {
+    const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
+    const pendingPageId = useRef<string | null>(null);
+    const advancePage = useEffectEvent(() => {
+      const nextId = pendingPageId.current;
+      pendingPageId.current = null;
+      if (nextId) onChoosePath(nextId);
     });
-    return () => cancelAnimationFrame(frame);
-  }, [turnPhase]);
 
-  function requestAdvance(nextPageId: string) {
-    if (turnPhase !== "idle" || !canAdvance) return;
-    pendingPageId.current = nextPageId;
-    setTurnPhase("exit");
-  }
+    useEffect(() => {
+      if (turnPhase !== "exit") return;
+      const timer = window.setTimeout(() => {
+        advancePage();
+        setTurnPhase("enter");
+      }, PAGE_TURN_MS);
+      return () => window.clearTimeout(timer);
+    }, [turnPhase]);
 
-  function handleNextPage() {
-    if (!page.nextPageId) return;
-    requestAdvance(page.nextPageId);
-  }
+    useEffect(() => {
+      if (turnPhase !== "enter") return;
+      const frame = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setTurnPhase("idle"));
+      });
+      return () => cancelAnimationFrame(frame);
+    }, [turnPhase]);
 
-  const progressionReady = canAdvance && turnPhase === "idle";
+    function requestAdvance(nextPageId: string) {
+      if (turnPhase !== "idle" || !canAdvance) return;
+      pendingPageId.current = nextPageId;
+      setTurnPhase("exit");
+    }
 
-  return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden">
-      <SceneAtmosphere />
+    useImperativeHandle(ref, () => ({
+      advanceTo(nextPageId: string) {
+        requestAdvance(nextPageId);
+      },
+    }));
 
-      <div className="relative z-10 hidden justify-center px-5 pt-4 sm:flex sm:pt-6">
-        <WordsLearned count={wordsLearned} />
-      </div>
+    function handleNextPage() {
+      if (!page.nextPageId) return;
+      if (onBeforeNextPage?.(page.nextPageId) === false) return;
+      requestAdvance(page.nextPageId);
+    }
 
-      <article
-        className={cn(
-          "relative z-10 flex w-full flex-none flex-col",
-          // Tablet: centered story card (~600–700px)
-          "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
-          // Desktop: wider book card (~800–900px)
-          "lg:max-w-225",
-          "origin-center will-change-transform",
-          turnPhase === "exit" &&
-            "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
-          turnPhase === "enter" &&
-            "translate-x-[12%] opacity-0 transition-none",
-          turnPhase === "idle" &&
-            "translate-x-0 scale-100 opacity-100 transition-[opacity,transform] duration-350 ease-out",
-        )}
-      >
-        <div
+    const progressionReady = canAdvance && turnPhase === "idle";
+
+    return (
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden">
+        <SceneAtmosphere />
+
+        <div className="relative z-10 hidden justify-center px-5 pt-4 sm:flex sm:pt-6">
+          <WordsLearned count={wordsLearned} />
+        </div>
+
+        <article
           className={cn(
-            "flex flex-col",
-            // Tablet: image | text side-by-side; items-start keeps image sized by aspect-ratio
-            "sm:flex-row sm:items-start",
-            // Desktop: stacked banner → text
-            "lg:flex-col",
+            "relative z-10 flex w-full flex-none flex-col",
+            // Tablet: centered story card (~600–700px)
+            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
+            // Desktop: wider book card (~800–900px)
+            "lg:max-w-225",
+            "origin-center will-change-transform",
+            turnPhase === "exit" &&
+              "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
+            turnPhase === "enter" &&
+              "translate-x-[12%] opacity-0 transition-none",
+            turnPhase === "idle" &&
+              "translate-x-0 scale-100 opacity-100 transition-[opacity,transform] duration-350 ease-out",
           )}
         >
-          <SceneImage src={page.image} alt={page.title} />
-
           <div
             className={cn(
-              "flex min-w-0 flex-col px-5 pb-8 pt-6",
-              "sm:flex-1 sm:px-6 sm:pb-6 sm:pt-6",
-              "lg:flex-none lg:px-10 lg:pb-8 lg:pt-8",
+              "flex flex-col",
+              // Tablet: image | text side-by-side; items-start keeps image sized by aspect-ratio
+              "sm:flex-row sm:items-start",
+              // Desktop: stacked banner → text
+              "lg:flex-col",
             )}
           >
-            <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
-              {page.title}
-            </h1>
+            <SceneImage src={page.image} alt={page.title} />
 
-            <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
-              {page.segments.map((segment, index) => {
-                if (segment.type === "mystery") {
-                  const isResolved = resolvedWordIds.includes(segment.wordId);
-                  return (
-                    <MysteryWord
-                      key={index}
-                      label={segment.content}
-                      resolved={isResolved}
-                      onClick={() => onMysteryClick(segment.wordId)}
-                    />
-                  );
-                }
-                return <span key={index}>{segment.content}</span>;
-              })}
-            </p>
+            <div
+              className={cn(
+                "flex min-w-0 flex-col px-5 pb-8 pt-6",
+                "sm:flex-1 sm:px-6 sm:pb-6 sm:pt-6",
+                "lg:flex-none lg:px-10 lg:pb-8 lg:pt-8",
+              )}
+            >
+              <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
+                {page.title}
+              </h1>
 
-            <div className="relative z-10 mt-8 self-center sm:hidden">
-              <WordsLearned count={wordsLearned} />
+              <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
+                {page.segments.map((segment, index) => {
+                  if (segment.type === "mystery") {
+                    const isResolved = resolvedWordIds.includes(segment.wordId);
+                    return (
+                      <MysteryWord
+                        key={index}
+                        label={segment.content}
+                        resolved={isResolved}
+                        onClick={() => onMysteryClick(segment.wordId)}
+                      />
+                    );
+                  }
+                  return <span key={index}>{segment.content}</span>;
+                })}
+              </p>
+
+              <div className="relative z-10 mt-8 self-center sm:hidden">
+                <WordsLearned count={wordsLearned} />
+              </div>
+
+              <PageProgression
+                page={page}
+                isLastPage={isLastPage}
+                canAdvance={progressionReady}
+                onNextPage={handleNextPage}
+                onChoosePath={requestAdvance}
+                className="relative z-10 mt-6 flex w-full sm:mt-auto sm:justify-end sm:pt-8"
+              />
             </div>
-
-            <PageProgression
-              page={page}
-              isLastPage={isLastPage}
-              canAdvance={progressionReady}
-              onNextPage={handleNextPage}
-              onChoosePath={requestAdvance}
-              className="relative z-10 mt-6 flex w-full sm:mt-auto sm:justify-end sm:pt-8"
-            />
           </div>
-        </div>
-      </article>
-    </div>
-  );
-}
+        </article>
+      </div>
+    );
+  },
+);
 
 function PageProgression({
   page,
