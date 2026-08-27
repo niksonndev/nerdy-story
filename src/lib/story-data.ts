@@ -2,6 +2,8 @@ export type MysteryWord = {
   id: string;
   word: string;
   targetDefinition: string;
+  /** Synonyms / short phrases kids may type; used by local grade fallback. */
+  acceptKeywords?: string[];
   hints: string[];
   meaningReveal: string;
 };
@@ -39,6 +41,14 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "shelter",
     targetDefinition:
       "A shelter is a safe, covered place that keeps you protected from rain, wind, cold, or danger.",
+    acceptKeywords: [
+      "safe place",
+      "covered place",
+      "stay dry",
+      "protected",
+      "roof",
+      "hide",
+    ],
     hints: [
       "Think about where you would go to stay dry when it starts to rain.",
       "It is a place with a roof or cover that keeps you safe and protected.",
@@ -51,6 +61,14 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "snug",
     targetDefinition:
       "Snug means warm, cozy, and comfortably tucked in — like feeling safe and soft in a little nest.",
+    acceptKeywords: [
+      "cozy",
+      "warm",
+      "tucked",
+      "comfortable",
+      "comfy",
+      "curl up",
+    ],
     hints: [
       "Think about how it feels to curl up under a soft blanket on a rainy day.",
       "It means warm and cozy, like you fit just right in a safe little spot.",
@@ -63,6 +81,14 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "lullaby",
     targetDefinition:
       "A lullaby is a soft, gentle song that helps someone feel calm and fall asleep.",
+    acceptKeywords: [
+      "sleep song",
+      "gentle song",
+      "soft song",
+      "bedtime song",
+      "asleep",
+      "sleepy",
+    ],
     hints: [
       "Think about a quiet song someone might hum to help a baby sleep.",
       "It is a soft, gentle song that makes you feel sleepy and calm.",
@@ -75,6 +101,14 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "shimmered",
     targetDefinition:
       "Shimmered means sparkled or shone with soft, moving light — like something twinkling gently.",
+    acceptKeywords: [
+      "sparkled",
+      "sparkle",
+      "twinkled",
+      "twinkle",
+      "shone",
+      "glittered",
+    ],
     hints: [
       "Think about how a puddle looks when sunlight dances on top of it.",
       "It means sparkled or shone with a soft, twinkly light.",
