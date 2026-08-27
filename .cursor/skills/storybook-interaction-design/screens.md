@@ -6,9 +6,9 @@ Behavior and chrome copy only. Visuals: [kid-friendly-ui-design](../kid-friendly
 StoryPage (read; mystery word highlighted)
   → VocabChallenge overlay → GradingWait → WhyFeedback
     accepted → overlay closes → same StoryPage; words-learned++; Next Page unlocked
-    rejected (retries left) → stay in overlay; live reason + live hint; try again
-    grading unavailable (retries left) → burn attempt; pre-written fallback hint; try again
-    retry limit (wrong or unavailable) → MeaningReveal → overlay closes → same StoryPage; Next Page unlocked
+    rejected (retries left) → stay in overlay; grade reason + hint (AI or local matcher); try again
+    grade HTTP failed (retries left) → burn attempt; “Not quite — try another way.” + story hint; try again
+    retry limit (wrong or HTTP fail) → MeaningReveal → overlay closes → same StoryPage; Next Page unlocked
 StoryPage → NextPage → (next story page)
 StoryPage → BranchChoice → (path continues)
 StoryPage → ClosingBeat
@@ -32,11 +32,11 @@ StoryPage → ClosingBeat
 
 **Primary:** Check (≥56px). Prompt: “Explain what you understand by [word]”.
 
-**After a wrong answer (retries left):** Live why-reason + live hint from the same grade call (distinct Hint line). Check stays the action; stay in the overlay.
+**After a wrong answer (retries left):** Why-reason + hint from the grade response — live AI or server local keyword fallback (distinct Hint line). Check stays the action; stay in the overlay.
 
-**When grading is unavailable (retries left):** Burn the attempt; show a short “did not go through” reason plus the next pre-written fallback hint tier. Check stays the action; stay in the overlay.
+**When the grade HTTP request fails (retries left):** Burn the attempt; show the same gentle-miss shape as a wrong answer — reason **“Not quite — try another way.”** plus the next story `hints` tier. Do not tell the child the request or grading system failed. Check stays the action; stay in the overlay.
 
-**After the retry limit:** Do not keep blocking (covers wrong grades and grading failures). Move to meaning reveal, then close the overlay and unlock Next Page on the story page.
+**After the retry limit:** Do not keep blocking (covers wrong grades and HTTP grade-request failures). Move to meaning reveal, then close the overlay and unlock Next Page on the story page.
 
 **Copy:** Kid-level; encouraging. Avoid “Submit”, “Answer the question”, “Vocabulary quiz”.
 
@@ -44,7 +44,7 @@ StoryPage → ClosingBeat
 
 ## Grading wait
 
-**Job:** Absorb the live grading call. Keep the child oriented — story still in context under the overlay if possible.
+**Job:** Absorb the grading request (live AI, or a quick local grade if live fails server-side). Keep the child oriented — story still in context under the overlay if possible.
 
 **Copy:** Short (“Checking dictionary…” / similar).
 
@@ -54,8 +54,8 @@ StoryPage → ClosingBeat
 
 **Job:** Show *why* the answer was right or wrong — still inside the overlay family.
 
-- Rejected (retries left): stay in overlay; “Try another idea” + live reason + live Hint; Check stays the action.
-- Grading unavailable (retries left): stay in overlay; “Try another idea” + unavailable line + pre-written Hint; attempt burned.
+- Rejected (retries left): stay in overlay; “Try another idea” + grade reason + Hint (AI or local); Check stays the action.
+- Grade HTTP failed (retries left): stay in overlay; “Try another idea” + “Not quite — try another way.” + story Hint; attempt burned. No infra / “unavailable” wording.
 - Accepted: words-learned increments live; then close overlay → same story page → Next Page available.
 - Retry limit: do not shame; hand off to meaning reveal.
 

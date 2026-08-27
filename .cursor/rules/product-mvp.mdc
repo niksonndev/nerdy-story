@@ -12,7 +12,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Name:** nerdy-story
 - English reading literacy app for kids, narrative-driven, AI-powered
 - **Age band:** 7–9 years old / 2nd–3rd grade reading level — all story text, vocab difficulty, and sentence complexity must be calibrated to this band
-- **Core loop:** pre-written interactive story with an embedded vocabulary challenge mechanic, live-AI-graded
+- **Core loop:** pre-written interactive story with an embedded vocabulary challenge mechanic, AI-graded with a local keyword fallback after live grading fails
 
 ## Story structure
 
@@ -26,12 +26,13 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - 8–10 challenge/"mystery" words embedded in the story (exact count/selection deprioritized until core loop works)
 - Mystery words are visually highlighted; the challenge opens as an **overlay/modal** over the story page. After grading/feedback, the overlay closes and the child returns to the **same** story page
 - **Challenge format:** "Explain what you understand by [word]" — open-ended; **not** multiple choice; **not** "use it in a sentence"
-- Correctness is graded by a **live API call** to **chatgpt-4o-mini** (OpenAI) that evaluates whether the child's explanation semantically matches the word's real meaning
+- Correctness is graded first by a **live API call** to **chatgpt-4o-mini** (OpenAI) via **Vercel AI Gateway** (with Gateway model failover) that evaluates whether the child's explanation semantically matches the word's real meaning
 - Grading must be calibrated for a 7–9 year old's language: accept simplified phrasing, synonyms, and partial-but-correct understanding; reject answers describing a different/wrong concept
 - Grading prompt must supply the model with the **target definition** and instruct it to return a **structured, parseable result** (not free-form prose) — correct/incorrect, a short kid-friendly **reason**, and on wrong answers a short live **hint** (same grading call; not a second AI request)
-- **Live hint** (wrong answer, grading OK): directional hint from the grade response, shown distinctly from the why-reason; not the full definition / meaning reveal
-- **Pre-written hints** (2 tiers per word): **only** when grading is unavailable (request failure, timeout, network, parse failure); still burn a retry attempt so soft progression can reach meaning reveal
-- **Soft progression:** the child is not hard-blocked forever on a correct answer. After the retry limit (wrong grades **or** grading failures), reveal the word's meaning in a kid-friendly way (pre-written, not live-AI), then unlock **Next Page**. Meaning reveal does **not** count as a correct answer for words-learned
+- **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade result from a simple keyword/synonym matcher against the target definition (and per-word `acceptKeywords`) — not an HTTP error, not a second AI call
+- **Grade hint** (wrong answer, HTTP 200 grade): directional hint from the grade response (AI live hint or local matcher using story `hints`), shown distinctly from the why-reason; not the full definition / meaning reveal
+- **Client pre-written hints** (2 tiers per word): **only** when the grade **HTTP request** itself fails (transport / non-OK response); still burn a retry attempt so soft progression can reach meaning reveal. Kid-facing copy matches a gentle miss (“Not quite — try another way.” + story hint) — never expose that the request or grading system failed. Provider/parse failures handled on the server become local grades, not this path
+- **Soft progression:** the child is not hard-blocked forever on a correct answer. After the retry limit (wrong grades **or** client grade-request failures), reveal the word's meaning in a kid-friendly way (pre-written, not live-AI), then unlock **Next Page**. Meaning reveal does **not** count as a correct answer for words-learned
 
 ## Feedback & progress
 
@@ -51,7 +52,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Runtime:** Bun — officially supported Vercel Functions runtime; no shim/third-party runtime package
 - **Language:** TypeScript
 - **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR
-- **Grading model:** chatgpt-4o-mini (`openai/gpt-4o-mini`) via **Vercel AI Gateway**, with **provider/model failover** configured in Gateway options — the only live-AI dependency; auth is server-side OIDC (`VERCEL_OIDC_TOKEN`), never exposed to the client. Educational logic (target definitions, pre-written fallback hints, soft progression, words-learned) is **independent** of which model or provider answers a grade request.
+- **Grading model:** chatgpt-4o-mini (`openai/gpt-4o-mini`) via **Vercel AI Gateway**, with **provider/model failover** configured in Gateway options — the only live-AI dependency; auth is server-side OIDC (`VERCEL_OIDC_TOKEN`), never exposed to the client. After live grading fails, a **local keyword matcher** still returns a grade. Educational logic (target definitions, acceptKeywords, client pre-written hints on HTTP failure, soft progression, words-learned) is **independent** of which model or provider answers a live grade request.
 - **State:** plain React state/Context — no TanStack Query (no caching/refetching problem); no Zustand for MVP (no cross-cutting client-state complexity yet); revisit only if the app grows post-MVP
 - **Styling:** Tailwind
 - **Components:** shadcn/ui — owned generated component source (not a black-box import). Radix comes in as a dependency of shadcn; not a separate install decision

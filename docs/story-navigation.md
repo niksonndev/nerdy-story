@@ -30,28 +30,30 @@ flowchart TD
 
 ## Challenge client flow (`StoryReader`)
 
+Server path (not shown in the client diagram): live AI grade with Gateway failover → on live failure, **local keyword** `GradeResult` (still HTTP 200).
+
 ```mermaid
 flowchart TD
   check[Check]
   wait[Waiting]
   accepted[Accepted]
-  liveHint[Show reason plus AI hint]
-  fallback[Burn attempt; pre-written hint]
+  gradeHint[Show reason plus grade hint]
+  transportFallback[Not quite plus story hint]
   reveal[Meaning reveal]
   prompt[Prompt again]
   check --> wait
-  wait -->|API OK correct| accepted
-  wait -->|API OK wrong retries left| liveHint
-  wait -->|API OK wrong at limit| reveal
-  wait -->|API fail retries left| fallback
-  wait -->|API fail at limit| reveal
-  liveHint --> prompt
-  fallback --> prompt
+  wait -->|HTTP 200 correct| accepted
+  wait -->|HTTP 200 wrong retries left| gradeHint
+  wait -->|HTTP 200 wrong at limit| reveal
+  wait -->|HTTP fail retries left| transportFallback
+  wait -->|HTTP fail at limit| reveal
+  gradeHint --> prompt
+  transportFallback --> prompt
 ```
 
-- **Correct:** words-learned increments; overlay closes after “Keep reading”.
-- **Wrong (API OK):** live `reason` + live `hint` from the grade response; attempt burned; at `MAX_ATTEMPTS` → meaning reveal.
-- **API failure:** burn attempt; short unavailable reason + next pre-written `hints` tier; at `MAX_ATTEMPTS` → meaning reveal (child is never stuck if grading is down).
+- **Correct (HTTP 200):** words-learned increments; overlay closes after “Keep reading”. Grade may be from live AI or the local keyword matcher.
+- **Wrong (HTTP 200):** `reason` + `hint` from the grade response (AI or local); attempt burned; at `MAX_ATTEMPTS` → meaning reveal.
+- **HTTP / transport failure:** burn attempt; reason **“Not quite — try another way.”** + next story `hints` tier (same shape as a gentle miss — no infra messaging); at `MAX_ATTEMPTS` → meaning reveal.
 
 ## Pip and the Rainy Woods (current graph)
 

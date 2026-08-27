@@ -20,7 +20,7 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 **Huge:** The word, the prompt, the text input, the primary Check control.
 
-**Quiet:** Hint affordance (after a wrong answer or grading failure — live or pre-written fallback).
+**Quiet:** Hint affordance (after a wrong answer — grade hint from AI or local matcher — or after grade HTTP failure — story hint with the same gentle-miss reason).
 
 **Containers:** One panel or overlay is earned — it marks the interaction. Do not nest cards inside that panel.
 
