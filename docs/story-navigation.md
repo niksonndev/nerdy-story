@@ -37,8 +37,8 @@ flowchart TD
   check[Check]
   wait[Waiting]
   accepted[Accepted]
-  gradeHint[Show reason plus grade hint]
-  transportFallback[Not quite plus story hint]
+  gradeHint[Show about-not-exactly reason plus answer-aware hint]
+  transportFallback[Show fixed reason plus story hint]
   reveal[Meaning reveal]
   prompt[Prompt again]
   check --> wait
@@ -52,8 +52,8 @@ flowchart TD
 ```
 
 - **Correct (HTTP 200):** words-learned increments; overlay closes after “Keep reading”. Grade may be from live AI or the local keyword matcher.
-- **Wrong (HTTP 200):** `reason` + `hint` from the grade response (AI or local); attempt burned; at `MAX_ATTEMPTS` → meaning reveal.
-- **HTTP / transport failure:** burn attempt; reason **“Not quite — try another way.”** + next story `hints` tier (same shape as a gentle miss — no infra messaging); at `MAX_ATTEMPTS` → meaning reveal.
+- **Wrong (HTTP 200):** kid-facing miss UI shows chrome + soft about/not-exactly `reason` + answer-aware `hint`; attempt burned; at `MAX_ATTEMPTS` → meaning reveal.
+- **HTTP / transport failure:** burn attempt; fixed short reason **“Not quite — try another way.”** + next story `hints` tier; at `MAX_ATTEMPTS` → meaning reveal.
 
 ## Pip and the Rainy Woods (current graph)
 

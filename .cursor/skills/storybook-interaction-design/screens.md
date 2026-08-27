@@ -5,9 +5,9 @@ Behavior and chrome copy only. Visuals: [kid-friendly-ui-design](../kid-friendly
 ```
 StoryPage (read; mystery word highlighted)
   → VocabChallenge overlay → GradingWait → WhyFeedback
-    accepted → overlay closes → same StoryPage; words-learned++; Next Page unlocked
-    rejected (retries left) → stay in overlay; grade reason + hint (AI or local matcher); try again
-    grade HTTP failed (retries left) → burn attempt; “Not quite — try another way.” + story hint; try again
+    accepted → success why (grade reason); overlay closes → same StoryPage; words-learned++; Next Page unlocked
+    rejected (retries left) → stay in overlay; “Try another idea!” + about/not-exactly reason + answer-aware hint (AI or local); try again
+    grade HTTP failed (retries left) → burn attempt; “Try another idea!” + fixed reason + story hint; try again
     retry limit (wrong or HTTP fail) → MeaningReveal → overlay closes → same StoryPage; Next Page unlocked
 StoryPage → NextPage → (next story page)
 StoryPage → BranchChoice → (path continues)
@@ -32,9 +32,9 @@ StoryPage → ClosingBeat
 
 **Primary:** Check (≥56px). Prompt: “Explain what you understand by [word]”.
 
-**After a wrong answer (retries left):** Why-reason + hint from the grade response — live AI or server local keyword fallback (distinct Hint line). Check stays the action; stay in the overlay.
+**After a wrong answer (retries left):** “Try another idea!” + soft about/not-exactly reason (grade `reason`) + answer-aware hint from the grade response — live AI or server local keyword fallback (distinct Hint line). Check stays the action; stay in the overlay.
 
-**When the grade HTTP request fails (retries left):** Burn the attempt; show the same gentle-miss shape as a wrong answer — reason **“Not quite — try another way.”** plus the next story `hints` tier. Do not tell the child the request or grading system failed. Check stays the action; stay in the overlay.
+**When the grade HTTP request fails (retries left):** Burn the attempt; show the same gentle-miss shape — fixed short reason **“Not quite — try another way.”** plus the next story `hints` tier. Do not tell the child the request or grading system failed. Check stays the action; stay in the overlay.
 
 **After the retry limit:** Do not keep blocking (covers wrong grades and HTTP grade-request failures). Move to meaning reveal, then close the overlay and unlock Next Page on the story page.
 
@@ -52,14 +52,14 @@ StoryPage → ClosingBeat
 
 ## Why feedback
 
-**Job:** Show *why* the answer was right or wrong — still inside the overlay family.
+**Job:** Show that the answer was heard — still inside the overlay family.
 
-- Rejected (retries left): stay in overlay; “Try another idea” + grade reason + Hint (AI or local); Check stays the action.
-- Grade HTTP failed (retries left): stay in overlay; “Try another idea” + “Not quite — try another way.” + story Hint; attempt burned. No infra / “unavailable” wording.
-- Accepted: words-learned increments live; then close overlay → same story page → Next Page available.
+- Rejected (retries left): stay in overlay; “Try another idea” + about/not-exactly reason + answer-aware Hint (AI or local); Check stays the action.
+- Grade HTTP failed (retries left): stay in overlay; “Try another idea” + fixed short reason + story Hint; attempt burned. No infra / “unavailable” wording.
+- Accepted: warm confirmation + grade why-reason; words-learned increments live; then close overlay → same story page → Next Page available.
 - Retry limit: do not shame; hand off to meaning reveal.
 
-**Copy:** Warm confirmation + why on success. Never “Incorrect”, “Failed”, stars, grades.
+**Copy:** Warm confirmation + why on success. On miss: “[Word] is about [core idea], not exactly about [their idea]” + Hint that nods to their answer. Never “Incorrect”, “Failed”, stars, grades.
 
 **Do not:** Scoreboards, multi-step review dashboards, advancing to the next story page from here.
 

@@ -11,8 +11,8 @@ vi.mock("ai", () => ({
     isInstance: (error: unknown) =>
       Boolean(
         error &&
-          typeof error === "object" &&
-          (error as { name?: string }).name === "AI_NoObjectGeneratedError",
+        typeof error === "object" &&
+        (error as { name?: string }).name === "AI_NoObjectGeneratedError",
       ),
   },
 }));
@@ -180,6 +180,8 @@ describe("gradeExplanation", () => {
     expect(call.system).toMatch(/encouraging/i);
     expect(call.system).toMatch(/fake enthusiasm/i);
     expect(call.system).toMatch(/hint/i);
+    expect(call.system).toMatch(/not exactly about/i);
+    expect(call.system).toMatch(/staying safe, not exactly about food/i);
   });
 
   it("includes prior attempts in the prompt as context", async () => {

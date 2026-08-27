@@ -14,7 +14,7 @@ type VocabChallengeOverlayProps = {
   word: MysteryWord | null;
   phase: ChallengePhase;
   value: string;
-  lastReason: string | null;
+  missReason: string | null;
   hintText: string | null;
   acceptedReason: string | null;
   onChange: (value: string) => void;
@@ -27,7 +27,7 @@ export function VocabChallengeOverlay({
   word,
   phase,
   value,
-  lastReason,
+  missReason,
   hintText,
   acceptedReason,
   onChange,
@@ -91,7 +91,7 @@ export function VocabChallengeOverlay({
               <PromptState
                 word={word}
                 value={value}
-                lastReason={lastReason}
+                missReason={missReason}
                 hintText={hintText}
                 inputRef={inputRef}
                 onChange={onChange}
@@ -108,7 +108,7 @@ export function VocabChallengeOverlay({
 function PromptState({
   word,
   value,
-  lastReason,
+  missReason,
   hintText,
   inputRef,
   onChange,
@@ -116,7 +116,7 @@ function PromptState({
 }: {
   word: MysteryWord;
   value: string;
-  lastReason: string | null;
+  missReason: string | null;
   hintText: string | null;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
   onChange: (value: string) => void;
@@ -135,12 +135,12 @@ function PromptState({
         <span className="font-semibold text-magic">{word.word}</span>.
       </p>
 
-      {lastReason ? (
+      {missReason ? (
         <div className="mt-4 rounded-2xl bg-accent/60 p-4 text-foreground/90">
           <p className="font-heading font-semibold text-reward">
             Try another idea!
           </p>
-          <p className="mt-1 leading-relaxed">{lastReason}</p>
+          <p className="mt-1 leading-relaxed">{missReason}</p>
           {hintText ? (
             <p className="mt-2 leading-relaxed">
               <span className="font-semibold">Hint:</span> {hintText}

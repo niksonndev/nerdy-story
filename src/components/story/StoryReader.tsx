@@ -64,7 +64,7 @@ export function StoryReader() {
   const [explanation, setExplanation] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [priorAttempts, setPriorAttempts] = useState<GradeAttempt[]>([]);
-  const [lastReason, setLastReason] = useState<string | null>(null);
+  const [missReason, setMissReason] = useState<string | null>(null);
   const [hintText, setHintText] = useState<string | null>(null);
   const [acceptedReason, setAcceptedReason] = useState<string | null>(null);
 
@@ -82,7 +82,7 @@ export function StoryReader() {
     setExplanation("");
     setAttempts(0);
     setPriorAttempts([]);
-    setLastReason(null);
+    setMissReason(null);
     setHintText(null);
     setAcceptedReason(null);
   }
@@ -115,7 +115,7 @@ export function StoryReader() {
       return;
     }
 
-    setLastReason(reason);
+    setMissReason(reason);
     setHintText(hint);
     setExplanation("");
     setPhase("prompt");
@@ -171,7 +171,7 @@ export function StoryReader() {
     setPhase("prompt");
     setExplanation("");
     setPriorAttempts([]);
-    setLastReason(null);
+    setMissReason(null);
     setHintText(null);
     setAcceptedReason(null);
   }
@@ -198,7 +198,7 @@ export function StoryReader() {
         word={activeWord}
         phase={phase}
         value={explanation}
-        lastReason={lastReason}
+        missReason={missReason}
         hintText={hintText}
         acceptedReason={acceptedReason}
         onChange={setExplanation}

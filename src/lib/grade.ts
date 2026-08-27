@@ -5,7 +5,7 @@ import { gradeLocally } from "@/lib/grade-local";
 import { mysteryWords } from "@/lib/story-data";
 
 /** Primary + Gateway failover — educational prompt is independent of these IDs. */
-export const GRADE_PRIMARY_MODEL = "openai/gpt-4o-mini";
+export const GRADE_PRIMARY_MODEL = "openai/gpt-4o";
 export const GRADE_FALLBACK_MODELS = ["google/gemini-3.7-flash"] as const;
 
 export const gradeAttemptSchema = z.object({
@@ -83,13 +83,13 @@ const gradeResultSchema = z.object({
   reason: z
     .string()
     .describe(
-      "One short, plain sentence for a 7–9 year old explaining why the answer is right or wrong. No hype, no baby talk, no exclamation spam.",
+      "Kid-facing why. If correct: one short plain sentence saying why it matches. If incorrect: one short sentence shaped like '[Word] is about [core idea], not exactly about [child's idea].' Positive core idea first; soft contrast with 'not exactly about' (or 'not mainly about'). No 'wrong'/'incorrect', no meta openers, no full definition dump. About 8–16 words. Leave the personal nod and next-step nudge to hint.",
     ),
   hint: z
     .string()
     .nullable()
     .describe(
-      "When correct is false: one short directional hint toward the idea (not the full definition). When correct is true: null.",
+      "When correct is false: one short answer-aware nudge that nods to what the child said and points toward the idea (not the full definition, not repeating the reason). When correct is true: null.",
     ),
 });
 
@@ -105,8 +105,11 @@ Grading:
 - Reject answers that describe a different or wrong concept.
 - Grade only the latest explanation. Earlier wrong tries are context, not extra penalties.
 - If earlier feedback is provided, do not repeat the same reason or hint wording when you can say it freshly and clearly.
-- Respond only via the structured fields. Keep "reason" to one short sentence.
-- When correct is true: set hint to null. When correct is false: set hint to one short directional hint toward the idea — not the full definition, not a meaning dump.
+- Respond only via the structured fields.
+- When correct is true: reason is one short kid-friendly why it matches; hint must be null.
+- When correct is false:
+  - reason explains with this shape: "[Word] is about [core idea in a few kid words], not exactly about [what the child meant]." Put the positive core idea first; soften with "not exactly about" or "not mainly about". Never say wrong/incorrect/no. Do not dump the full target definition (no rain/wind/danger lists). Example: child says "a place to eat" → "Shelter is about staying safe, not exactly about food."
+  - hint is the personal nod + next-step nudge: briefly acknowledge their idea and point toward the meaning — e.g. "You said eating — think about a place that keeps you dry." Not the full definition, not a repeat of reason.
 - Never invent a different definition than the target provided.`;
 
 function buildPrompt(

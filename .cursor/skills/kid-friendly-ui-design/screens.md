@@ -20,7 +20,7 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 **Huge:** The word, the prompt, the text input, the primary Check control.
 
-**Quiet:** Hint affordance (after a wrong answer — grade hint from AI or local matcher — or after grade HTTP failure — story hint with the same gentle-miss reason).
+**Quiet:** After a miss — “Try another idea!” + soft about/not-exactly reason + answer-aware hint (AI/local), or fixed reason + story hint on HTTP failure.
 
 **Containers:** One panel or overlay is earned — it marks the interaction. Do not nest cards inside that panel.
 
@@ -36,13 +36,13 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 ## Why feedback
 
-**Look:** The reason is the visual focus; the correct/incorrect signal is support, not the whole message.
+**Look:** On success, the why-reason is the visual focus. On miss, soft about/not-exactly reason plus answer-aware Hint — correct/incorrect signal stays support, not the whole message.
 
-**Huge:** Short kid-friendly reason; treasure count bump uses teal/gold.
+**Huge:** Short kid-friendly why on success; treasure count bump uses teal/gold. On miss: reason + Hint under “Try another idea!”
 
 **Containers:** One feedback panel is earned. Same overlay family as the challenge.
 
-**Do not:** Red-X shame, scoreboards, multi-step review dashboards.
+**Do not:** Red-X shame, scoreboards, multi-step review dashboards. Shame words (“wrong”, “incorrect”) or full definition dumps in miss reason.
 
 ## Branch choice
 
