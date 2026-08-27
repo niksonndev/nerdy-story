@@ -32,12 +32,9 @@ function fallbackHintFor(
 }
 
 class GradeRequestError extends Error {
-  readonly retryable: boolean;
-
-  constructor(retryable: boolean) {
+  constructor() {
     super("Grade request failed");
     this.name = "GradeRequestError";
-    this.retryable = retryable;
   }
 }
 
@@ -52,16 +49,7 @@ async function requestGrade(
     body: JSON.stringify({ wordId, explanation, priorAttempts }),
   });
   if (!response.ok) {
-    let retryable = response.status === 503;
-    try {
-      const payload = (await response.json()) as { retryable?: unknown };
-      if (typeof payload.retryable === "boolean") {
-        retryable = payload.retryable;
-      }
-    } catch {
-      // keep status-based default
-    }
-    throw new GradeRequestError(retryable);
+    throw new GradeRequestError();
   }
   return (await response.json()) as GradeResult;
 }
@@ -145,15 +133,16 @@ export function StoryReader() {
         submittedExplanation,
         priorAttempts,
       );
-    } catch (error) {
-      const retryable =
-        error instanceof GradeRequestError ? error.retryable : true;
-      const reason = retryable
-        ? "Hmm, that did not go through. Let's try again!"
-        : "I could not check that answer. Try again in a moment.";
+    } catch {
+      // Transport / non-OK: same kid-facing shape as a gentle miss — no infra messaging.
       const nextAttempts = attempts + 1;
       const hint = fallbackHintFor(activeWord, nextAttempts - 1);
-      recordFailedAttempt(submittedExplanation, reason, hint, nextAttempts);
+      recordFailedAttempt(
+        submittedExplanation,
+        "Not quite — try another way.",
+        hint,
+        nextAttempts,
+      );
       return;
     }
 
