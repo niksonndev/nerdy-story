@@ -9,7 +9,14 @@ StoryPage (read; mystery word highlighted)
     rejected (retries left) → stay in overlay; “Try another idea!” + about/not-exactly reason + answer-aware hint (AI or local); try again
     grade HTTP failed (retries left) → burn attempt; “Try another idea!” + fixed reason + story hint; try again
     retry limit (wrong or HTTP fail) → MeaningReveal → overlay closes → same StoryPage; Next Page unlocked
-StoryPage → NextPage → (next story page)
+StoryPage → NextPage
+  → if unresolved comprehension on this page → ComprehensionChallenge overlay (does not turn page yet)
+  → else → next story page
+ComprehensionChallenge → GradingWait → WhyFeedback
+  accepted → success why; Keep going → close + auto-advance to next page (no words-learned bump)
+  rejected (retries left) → stay; Try another idea + reason + hint
+  grade HTTP failed (retries left) → burn attempt; fixed reason + story hint
+  retry limit → AnswerReveal → Got it → close + auto-advance
 StoryPage → BranchChoice → (path continues)
 StoryPage → ClosingBeat
 ```
@@ -20,11 +27,13 @@ StoryPage → ClosingBeat
 
 **Mystery words:** Visually highlighted in the story text. Encountering one opens the vocab challenge overlay; the story page remains underneath.
 
-**After a challenge:** Overlay closes; child is back on this same page. Next Page is available once that page’s challenge is resolved.
+**After a vocab challenge:** Overlay closes; child is back on this same page. Next Page is available once that page’s mystery words are resolved.
+
+**Comprehension:** Not opened on page enter. First **Next Page** press opens the comprehension overlay when the page has an unresolved `comprehensionId`. After resolve, Keep going / Got it advances the story.
 
 **Copy:** Story text is pre-written. Progression chrome is **Next Page** — not “Continue”, “Next”, or “Skip”.
 
-**Do not:** Multiple competing CTAs. Do not auto-advance. Do not jump to the next page from inside the challenge overlay.
+**Do not:** Multiple competing CTAs. Do not auto-open comprehension on page load. Do not auto-advance from vocab overlays.
 
 ## Vocab challenge
 
@@ -40,13 +49,31 @@ StoryPage → ClosingBeat
 
 **Copy:** Kid-level; encouraging. Avoid “Submit”, “Answer the question”, “Vocabulary quiz”.
 
-**Do not:** Multiple choice, “use it in a sentence”, timer, score, or allowing Next Page before the challenge is resolved.
+**Do not:** Multiple choice, “use it in a sentence”, timer, score, or allowing Next Page before the challenge is resolved. Do not advance to the next story page from inside the vocab overlay.
+
+## Comprehension challenge
+
+**Job:** Answer a pre-written story question in an overlay over the story page. Opened by **Next Page**, not by tapping story text.
+
+**Primary:** Check (≥56px). Prompt is the story question (learning objective).
+
+**After a wrong answer (retries left):** Same miss chrome as vocab — “Try another idea!” + soft about/not-exactly reason + answer-aware hint (live AI). Stay in overlay.
+
+**When the grade HTTP request fails (retries left):** Burn attempt; fixed reason **“Not quite — try another way.”** + story `hints` tier. No infra wording. (No server local matcher for comprehension yet.)
+
+**After the retry limit:** Show pre-written answer reveal (“Here’s the idea”), then **Got it** closes and **auto-advances**.
+
+**On correct:** Short why-reason; **Keep going** closes and **auto-advances**. Do **not** increment words-learned.
+
+**Copy:** Kid-level; encouraging. Avoid “Submit”, “Quiz”, “Comprehension check”.
+
+**Do not:** Multiple choice, timer, score, words-learned bump, or auto-open on page enter.
 
 ## Grading wait
 
-**Job:** Absorb the grading request (live AI, or a quick local grade if live fails server-side). Keep the child oriented — story still in context under the overlay if possible.
+**Job:** Absorb the grading request (live AI; vocab may resolve quickly via server local grade if live fails). Keep the child oriented — story still in context under the overlay if possible.
 
-**Copy:** Short (“Checking dictionary…” / similar).
+**Copy:** Vocab — “Checking dictionary…” / similar. Comprehension — “Thinking about your answer…” / similar.
 
 **Do not:** Progress percentages, tips carousels, extra actions, over-invested loading UX.
 
@@ -54,24 +81,25 @@ StoryPage → ClosingBeat
 
 **Job:** Show that the answer was heard — still inside the overlay family.
 
-- Rejected (retries left): stay in overlay; “Try another idea” + about/not-exactly reason + answer-aware Hint (AI or local); Check stays the action.
+- Rejected (retries left): stay in overlay; “Try another idea” + about/not-exactly reason + answer-aware Hint (AI or local for vocab); Check stays the action.
 - Grade HTTP failed (retries left): stay in overlay; “Try another idea” + fixed short reason + story Hint; attempt burned. No infra / “unavailable” wording.
-- Accepted: warm confirmation + grade why-reason; words-learned increments live; then close overlay → same story page → Next Page available.
-- Retry limit: do not shame; hand off to meaning reveal.
+- Accepted (vocab): warm confirmation + grade why-reason; words-learned increments live; then close overlay → same story page → Next Page available.
+- Accepted (comprehension): warm confirmation + grade why-reason; **Keep going** → close + advance to next page; no words-learned bump.
+- Retry limit: do not shame; hand off to meaning/answer reveal.
 
-**Copy:** Warm confirmation + why on success. On miss: “[Word] is about [core idea], not exactly about [their idea]” + Hint that nods to their answer. Never “Incorrect”, “Failed”, stars, grades.
+**Copy:** Warm confirmation + why on success. On miss: soft about/not-exactly + Hint that nods to their answer. Never “Incorrect”, “Failed”, stars, grades.
 
-**Do not:** Scoreboards, multi-step review dashboards, advancing to the next story page from here.
+**Do not:** Scoreboards, multi-step review dashboards. Vocab must not advance the story from here; comprehension advances only via Keep going / Got it after resolve.
 
-## Meaning reveal
+## Meaning / answer reveal
 
-**Job:** After the retry limit, teach the word so the child can keep reading. Then unlock progression.
+**Job:** After the retry limit, teach the idea so the child can keep going.
 
-**Primary:** A clear dismiss/continue control (≥56px) that closes the overlay (e.g. “Got it” / story-appropriate). Not Next Page — that lives on the story page after close.
+**Vocab primary:** A clear dismiss control (≥56px) that closes the overlay (e.g. “Got it”). Not Next Page — that lives on the story page after close. Unlock Next Page; do not increment words-learned; do not auto-advance.
 
-**Copy:** Kid-friendly definition of the mystery word; short and plain. Warm tone (“Here’s what it means…”). Not a lecture or quiz recap.
+**Comprehension primary:** “Got it” closes the overlay and **auto-advances** to the next page. Do not increment words-learned.
 
-**Do not:** Increment words-learned. Do not require another graded attempt. Do not auto-advance to the next story page.
+**Copy:** Kid-friendly; short and plain. Warm tone (“Here’s what it means…” / “Here’s the idea…”). Not a lecture or quiz recap.
 
 ## Branch choice
 

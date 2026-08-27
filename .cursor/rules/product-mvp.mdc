@@ -12,7 +12,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Name:** nerdy-story
 - English reading literacy app for kids, narrative-driven, AI-powered
 - **Age band:** 7–9 years old / 2nd–3rd grade reading level — all story text, vocab difficulty, and sentence complexity must be calibrated to this band
-- **Core loop:** pre-written interactive story with an embedded vocabulary challenge mechanic, AI-graded with a local keyword fallback after live grading fails
+- **Core loop:** pre-written interactive story with embedded **vocabulary** and **comprehension** challenge mechanics; vocab is AI-graded with a local keyword fallback after live grading fails; comprehension is live-AI graded only for now (local matcher deferred)
 
 ## Story structure
 
@@ -23,7 +23,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 
 ## Vocabulary challenge mechanic
 
-- 8–10 challenge/"mystery" words embedded in the story (exact count/selection deprioritized until core loop works)
+- **Demo challenge count (fixed):** 5 challenges per playthrough — **3 vocabulary** + **2 comprehension**. Vocab #3 is path-specific (different mystery word on each ending); child still sees exactly 3 vocab encounters
 - Mystery words are visually highlighted; the challenge opens as an **overlay/modal** over the story page. After grading/feedback, the overlay closes and the child returns to the **same** story page
 - **Challenge format:** "Explain what you understand by [word]" — open-ended; **not** multiple choice; **not** "use it in a sentence"
 - Correctness is graded first by a **live API call** to **chatgpt-4o** (OpenAI) via **Vercel AI Gateway** (with Gateway model failover) that evaluates whether the child's explanation semantically matches the word's real meaning
@@ -35,17 +35,29 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Client pre-written hints** (2 tiers per word): **only** when the grade **HTTP request** itself fails (transport / non-OK response); still burn a retry attempt so soft progression can reach meaning reveal. Kid-facing copy matches a gentle miss (fixed short reason + story hint) — never expose that the request or grading system failed. Provider/parse failures handled on the server become local grades, not this path
 - **Soft progression:** the child is not hard-blocked forever on a correct answer. After the retry limit (wrong grades **or** client grade-request failures), reveal the word's meaning in a kid-friendly way (pre-written, not live-AI), then unlock **Next Page**. Meaning reveal does **not** count as a correct answer for words-learned
 
+## Comprehension challenge mechanic
+
+- Pre-written open-ended story questions (not multiple choice); **2 per playthrough** — one shared before the branch, one path-specific on 6A or 6B
+- Each challenge stores an explicit **passage**, **question**, **expectedUnderstanding**, client **hints** (2 tiers), and **answerReveal**
+- **Trigger:** **Next Page** opens the overlay (never auto-open on page enter). Vocab pages still gate Next Page until mystery words are resolved; comprehension does **not** disable Next Page
+- Graded by a **live API call** to **chatgpt-4o** via **Vercel AI Gateway** (failover) at `POST /api/grade-comprehension`; returns the same structured shape as vocab (`correct`, `reason`, `hint`)
+- Grading calibrated for 7–9: accept simplified / partial-but-correct story understanding; reject unrelated ideas
+- **No local keyword fallback yet** — if live grading fails after failover, the route returns a non-OK response; client uses fixed reason + story `hints` (same transport path as vocab HTTP fail)
+- **Soft progression:** after retry limit (wrong grades or HTTP failures), show pre-written **answerReveal**, then **Keep going** / **Got it** closes the overlay and **auto-advances** to the next page
+- Correct comprehension answers do **not** increment words-learned
+
 ## Feedback & progress
 
 - After grading: on a **correct** answer, show a short kid-friendly **why** (grade `reason`); on a **miss** with retries left, show chrome + soft **about / not exactly about** reason + answer-aware **hint**
-- Story progression (**Next Page**) stays gated until the challenge is **resolved** — either an accepted explanation, or meaning reveal after the retry limit — then the overlay closes and Next Page becomes available on the same story page
-- **Words learned** = count of challenge words answered correctly within the **current session** (session-scoped for the demo; not a multi-day / persisted progress metric)
-- Words-learned count increments **live on screen** as a direct result of correct answers only, not on meaning reveal, and not revealed only at the end
+- **Vocab:** Story progression (**Next Page**) stays gated until the challenge is **resolved** — either an accepted explanation, or meaning reveal after the retry limit — then the overlay closes and Next Page becomes available on the same story page
+- **Comprehension:** Next Page opens the challenge; after resolve, overlay CTA advances the page (exception to “stay on same page”)
+- **Words learned** = count of **vocabulary** challenge words answered correctly within the **current session** (session-scoped for the demo; not a multi-day / persisted progress metric); comprehension corrects do not count
+- Words-learned count increments **live on screen** as a direct result of correct vocab answers only, not on meaning/answer reveal, and not revealed only at the end
 - **Ending beat:** book-coloring animation + words-learned count, followed by a chapter-unlock reveal — this is the closing moment of the demo
 
 ## Loading / latency
 
-- The **only** live-AI dependency in the whole app is the meaning-grading call
+- Live-AI dependencies: vocab meaning-grading and comprehension grading calls
 - Latency is absorbed with a minimal, playful loading state (cat/dictionary theme was the working idea) — keep simple; do not over-invest
 
 ## Tech stack
@@ -53,7 +65,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Runtime:** Bun — officially supported Vercel Functions runtime; no shim/third-party runtime package
 - **Language:** TypeScript
 - **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR
-- **Grading model:** chatgpt-4o (`openai/gpt-4o`) via **Vercel AI Gateway**, with **provider/model failover** configured in Gateway options — the only live-AI dependency; auth is server-side OIDC (`VERCEL_OIDC_TOKEN`), never exposed to the client. After live grading fails, a **local keyword matcher** still returns a grade. Educational logic (target definitions, acceptKeywords, client pre-written hints on HTTP failure, soft progression, words-learned) is **independent** of which model or provider answers a live grade request.
+- **Grading model:** chatgpt-4o (`openai/gpt-4o`) via **Vercel AI Gateway**, with **provider/model failover** configured in Gateway options; auth is server-side OIDC (`VERCEL_OIDC_TOKEN`), never exposed to the client. Vocab: after live grading fails, a **local keyword matcher** still returns a grade. Comprehension: live only for now (HTTP error on live failure). Educational logic is **independent** of which model or provider answers a live grade request.
 - **State:** plain React state/Context — no TanStack Query (no caching/refetching problem); no Zustand for MVP (no cross-cutting client-state complexity yet); revisit only if the app grows post-MVP
 - **Styling:** Tailwind
 - **Components:** shadcn/ui — owned generated component source (not a black-box import). Radix comes in as a dependency of shadcn; not a separate install decision
@@ -72,5 +84,6 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - Playable chapter 2 content
 - Settings, auth, persistence
 - Live-generated story text
+- Local keyword fallback for comprehension (deferred)
 - TanStack Query, Zustand (unless post-MVP growth requires them)
 - Over-investing in loading UX beyond a minimal playful state

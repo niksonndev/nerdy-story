@@ -24,6 +24,16 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 **Containers:** One panel or overlay is earned — it marks the interaction. Do not nest cards inside that panel.
 
+## Comprehension challenge
+
+**Look:** Same overlay family as vocab — still inside the book. Different copy (story question, not mystery word), not a second visual theme.
+
+**Huge:** The question, the text input, the primary Check control.
+
+**Quiet:** Same miss chrome as vocab; waiting line is “Thinking about your answer…” (not dictionary).
+
+**Containers:** One panel or overlay is earned. Do not nest cards inside that panel.
+
 ## Grading wait
 
 **Look:** Minimal playful wait — cat/dictionary theme is fine. Not a second product.
