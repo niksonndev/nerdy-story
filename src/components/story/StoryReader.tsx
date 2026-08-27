@@ -49,7 +49,7 @@ async function requestVocabGrade(
   explanation: string,
   priorAttempts: GradeAttempt[],
 ): Promise<GradeResult> {
-  const response = await fetch("/api/grade", {
+  const response = await fetch("/api/grade-vocabulary", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ wordId, explanation, priorAttempts }),
