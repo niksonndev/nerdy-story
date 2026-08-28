@@ -192,10 +192,13 @@ describe("gradeExplanation", () => {
     expect(call.prompt).toContain("a safe place from the rain");
     expect(call.system).toMatch(/encouraging/i);
     expect(call.system).toMatch(/fake enthusiasm/i);
-    expect(call.system).toMatch(/hint/i);
-    expect(gradeResultSchema.shape.reason.description).toMatch(/Perfect!/);
+    expect(call.system).toMatch(/target definition/i);
+    expect(gradeResultSchema.shape.hint.description).toMatch(/Null when correct is true/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
-      /Good guess, but \[word\] isn't about/,
+      /Vocabulary \(mystery word\)/i,
+    );
+    expect(gradeResultSchema.shape.reason.description).toMatch(
+      /without revealing the target/i,
     );
   });
 

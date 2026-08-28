@@ -194,8 +194,9 @@ describe("gradeComprehension", () => {
     );
     expect(call.prompt).toContain("so she can stay dry in the storm");
     expect(call.system).toMatch(/reading-comprehension/i);
+    expect(call.system).toMatch(/expected understanding/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
-      /this story part/,
+      /Story comprehension/i,
     );
   });
 
