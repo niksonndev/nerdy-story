@@ -2,21 +2,36 @@ import { z } from "zod";
 
 import type { GradeAttempt } from "@/lib/grade/shared";
 
+const REASON_FIELD_DESCRIPTION = `One short kid-friendly sentence that always praises — what you praise depends on correct.
+When correct is true: affirm the result and explain why — tie their words to the target.
+Templates: "Perfect! That's exactly it: [definition]." "Exactly! Since [word] is about [dimension], that fits perfectly." "Right — [word] means [definition], just like you said."
+For story comprehension, use "this part" instead of [word].
+When correct is false: name the domain or category their answer landed in and contrast against the target without revealing the target.
+Templates: "Good guess, but [word] isn't about [child's concept]." "That's more about [child's concept] than about this word."
+For comprehension: "...isn't about [child's concept]" / "...than about this story part."`;
+
+const HINT_FIELD_DESCRIPTION = `When correct is false: one short answer-aware thinking question that nods to what the child said and points toward the target idea — make them wonder, not give the answer. Not a repeat of reason. Null when correct is true.`;
+
 export const gradeResultSchema = z.object({
-  correct: z.boolean(),
-  reason: z.string(),
-  hint: z.string().nullable(),
+  correct: z
+    .boolean()
+    .describe("Whether the child's latest answer semantically matches."),
+  reason: z.string().describe(REASON_FIELD_DESCRIPTION),
+  hint: z.string().nullable().describe(HINT_FIELD_DESCRIPTION),
 });
 
 const GRADER_TONE = `Tone:
 - Be encouraging, precise, concise, and age-appropriate.
 - Avoid fake enthusiasm, verbosity, and patronizing language (no "great job buddy", baby talk, or piles of exclamation marks).`;
 
-const GRADER_OUTPUT_RULES = `Output (structured fields only):
+const GRADER_OUTPUT_BEHAVIOR = `Output behavior:
 - Grade only the latest answer. Earlier wrong tries are context, not extra penalties.
 - If earlier feedback is provided, do not repeat the same reason or hint wording when you can say it freshly and clearly.
-- When correct is true: reason is one short kid-friendly why it matches; hint must be null.
-- When correct is false: reason is one short sentence (~8–16 words) with the positive core idea first and a soft "not exactly about" contrast — never say wrong/incorrect/no, no meta openers, no full definition dump. hint is a separate answer-aware nudge that nods to what the child said and points toward the idea — not the full answer, not a repeat of reason.`;
+- When correct is true: hint must be null.`;
+
+const GRADER_ACCEPTANCE_RULES = `Acceptance:
+- Accept simplified wording, synonyms, and partial-but-correct understanding.
+- Reject answers that describe a different or wrong idea than the target.`;
 
 export const VOCAB_GRADER_SYSTEM = `You grade vocabulary explanations for children ages 7–9 (2nd–3rd grade reading level).
 
@@ -24,11 +39,11 @@ ${GRADER_TONE}
 
 Grading:
 - Compare the child's latest explanation to the target definition for semantic meaning.
-- Accept simplified wording, synonyms, and partial-but-correct understanding.
-- Reject answers that describe a different or wrong concept.
-- When correct is false, shape reason like: "[Word] is about [core idea in a few kid words], not exactly about [what the child meant]." Do not list every detail from the target definition. Example: child says "a place to eat" → "Shelter is about staying safe, not exactly about food."
 
-${GRADER_OUTPUT_RULES}
+${GRADER_ACCEPTANCE_RULES}
+
+${GRADER_OUTPUT_BEHAVIOR}
+
 - Never invent a different definition than the target provided.`;
 
 export const COMPREHENSION_GRADER_SYSTEM = `You grade reading-comprehension answers for children ages 7–9 (2nd–3rd grade reading level).
@@ -37,11 +52,12 @@ ${GRADER_TONE}
 
 Grading:
 - Compare the child's latest answer to the expected understanding, using the story passage and question as context.
-- Accept simplified wording, synonyms, and partial-but-correct understanding of the story idea.
 - Reject answers that describe a different event, reason, or wrong idea from the passage.
-- When correct is false, shape reason like: "This part is about [core idea in a few kid words], not exactly about [what the child meant]." Do not dump the full expected understanding.
 
-${GRADER_OUTPUT_RULES}
+${GRADER_ACCEPTANCE_RULES}
+
+${GRADER_OUTPUT_BEHAVIOR}
+
 - Never invent story facts that are not in the passage or expected understanding.`;
 
 export function appendPriorAttempts(

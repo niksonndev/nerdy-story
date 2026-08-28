@@ -31,6 +31,7 @@ import {
   GRADE_FALLBACK_MODELS,
   GRADE_PRIMARY_MODEL,
 } from "@/lib/grade/shared";
+import { gradeResultSchema } from "@/lib/grade/prompts";
 import { gradeExplanation, gradeRequestSchema } from "@/lib/grade/vocabulary";
 import { gradeVocabularyLocally } from "@/lib/grade/vocabulary-local";
 import { mysteryWords } from "@/lib/story-data";
@@ -186,8 +187,10 @@ describe("gradeExplanation", () => {
     expect(call.system).toMatch(/encouraging/i);
     expect(call.system).toMatch(/fake enthusiasm/i);
     expect(call.system).toMatch(/hint/i);
-    expect(call.system).toMatch(/not exactly about/i);
-    expect(call.system).toMatch(/staying safe, not exactly about food/i);
+    expect(gradeResultSchema.shape.reason.description).toMatch(/Perfect!/);
+    expect(gradeResultSchema.shape.reason.description).toMatch(
+      /Good guess, but \[word\] isn't about/,
+    );
   });
 
   it("includes prior attempts in the prompt as context", async () => {

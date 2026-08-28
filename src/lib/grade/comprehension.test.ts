@@ -30,6 +30,7 @@ import {
   gradeComprehension,
 } from "@/lib/grade/comprehension";
 import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
+import { gradeResultSchema } from "@/lib/grade/prompts";
 import {
   GRADE_FALLBACK_MODELS,
   GRADE_PRIMARY_MODEL,
@@ -187,7 +188,9 @@ describe("gradeComprehension", () => {
     );
     expect(call.prompt).toContain("so she can stay dry in the storm");
     expect(call.system).toMatch(/reading-comprehension/i);
-    expect(call.system).toMatch(/not exactly about/i);
+    expect(gradeResultSchema.shape.reason.description).toMatch(
+      /this story part/,
+    );
   });
 
   it("includes prior attempts in the prompt as context", async () => {
