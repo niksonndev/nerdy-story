@@ -1,0 +1,385 @@
+/* Challenge overlay loading animations — CSS-only SVG loops */
+
+/* ── Dictionary scan (vocab) ── */
+/* Sequence: left AERO→BALL→CAT→DUCK, jump right, FISH→HOME→NEST→STAR, reset */
+
+@keyframes dict-scan-glass {
+  /* Part A — left page, four rows top to bottom (gentle tilt left) */
+  0%,
+  3% {
+    transform: translate(0, -24px) rotate(-7deg);
+  }
+  10%,
+  13% {
+    transform: translate(0, -24px) rotate(-7deg);
+  }
+  20%,
+  23% {
+    transform: translate(0, -4px) rotate(-6deg);
+  }
+  30%,
+  33% {
+    transform: translate(0, 16px) rotate(-5deg);
+  }
+  40%,
+  43% {
+    transform: translate(0, 36px) rotate(-6deg);
+  }
+  /* Jump to right page top */
+  47%,
+  50% {
+    transform: translate(66px, -24px) rotate(7deg);
+  }
+  /* Part B — right page, four rows top to bottom (gentle tilt right) */
+  57%,
+  60% {
+    transform: translate(66px, -24px) rotate(7deg);
+  }
+  67%,
+  70% {
+    transform: translate(66px, -4px) rotate(6deg);
+  }
+  77%,
+  80% {
+    transform: translate(66px, 16px) rotate(5deg);
+  }
+  87%,
+  90% {
+    transform: translate(66px, 36px) rotate(6deg);
+  }
+  100% {
+    transform: translate(0, -24px) rotate(-7deg);
+  }
+}
+
+@keyframes dict-highlight-aero {
+  0%,
+  4%,
+  16%,
+  100% {
+    opacity: 0;
+  }
+  8%,
+  12% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-highlight-ball {
+  0%,
+  14%,
+  26%,
+  100% {
+    opacity: 0;
+  }
+  18%,
+  22% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-highlight-cat {
+  0%,
+  24%,
+  36%,
+  100% {
+    opacity: 0;
+  }
+  28%,
+  32% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-highlight-duck {
+  0%,
+  34%,
+  46%,
+  100% {
+    opacity: 0;
+  }
+  38%,
+  42% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-highlight-fish {
+  0%,
+  51%,
+  63%,
+  100% {
+    opacity: 0;
+  }
+  55%,
+  59% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-highlight-home {
+  0%,
+  61%,
+  73%,
+  100% {
+    opacity: 0;
+  }
+  65%,
+  69% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-highlight-nest {
+  0%,
+  71%,
+  83%,
+  100% {
+    opacity: 0;
+  }
+  75%,
+  79% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-highlight-star {
+  0%,
+  81%,
+  93%,
+  100% {
+    opacity: 0;
+  }
+  85%,
+  89% {
+    opacity: 1;
+  }
+}
+
+@keyframes dict-page-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+.loader-dict-glass {
+  transform-box: view-box;
+  transform-origin: 26.25% 45%;
+  animation: dict-scan-glass 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-aero {
+  animation: dict-highlight-aero 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-ball {
+  animation: dict-highlight-ball 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-cat {
+  animation: dict-highlight-cat 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-duck {
+  animation: dict-highlight-duck 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-fish {
+  animation: dict-highlight-fish 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-home {
+  animation: dict-highlight-home 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-nest {
+  animation: dict-highlight-nest 4.75s ease-in-out infinite;
+}
+
+.loader-dict-highlight-star {
+  animation: dict-highlight-star 4.75s ease-in-out infinite;
+}
+
+.loader-dict-pages {
+  animation: dict-page-breathe 4.75s ease-in-out infinite;
+}
+
+/* ── Story puzzle (comprehension) — 4-piece snap loop ── */
+
+@keyframes puzzle-snap-tl {
+  0%,
+  100% {
+    transform: translate(-8px, -8px) scale(1);
+  }
+  44%,
+  60% {
+    transform: translate(0, 0) scale(1);
+  }
+  52% {
+    transform: translate(0, 0) scale(1.03);
+  }
+  76% {
+    transform: translate(-8px, -8px) scale(1);
+  }
+}
+
+@keyframes puzzle-snap-tr {
+  0%,
+  100% {
+    transform: translate(8px, -8px) scale(1);
+  }
+  44%,
+  60% {
+    transform: translate(0, 0) scale(1);
+  }
+  52% {
+    transform: translate(0, 0) scale(1.03);
+  }
+  76% {
+    transform: translate(8px, -8px) scale(1);
+  }
+}
+
+@keyframes puzzle-snap-bl {
+  0%,
+  100% {
+    transform: translate(-8px, 8px) scale(1);
+  }
+  44%,
+  60% {
+    transform: translate(0, 0) scale(1);
+  }
+  52% {
+    transform: translate(0, 0) scale(1.03);
+  }
+  76% {
+    transform: translate(-8px, 8px) scale(1);
+  }
+}
+
+@keyframes puzzle-snap-br {
+  0%,
+  100% {
+    transform: translate(8px, 8px) scale(1);
+  }
+  44%,
+  60% {
+    transform: translate(0, 0) scale(1);
+  }
+  52% {
+    transform: translate(0, 0) scale(1.03);
+  }
+  76% {
+    transform: translate(8px, 8px) scale(1);
+  }
+}
+
+@keyframes puzzle-center-glow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  44%,
+  60% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+  52% {
+    opacity: 0.55;
+    transform: scale(1.08);
+  }
+  76% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loader-puzzle-tl,
+.loader-puzzle-tr,
+.loader-puzzle-bl,
+.loader-puzzle-br,
+.loader-puzzle-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.loader-puzzle-tl {
+  animation: puzzle-snap-tl 3.2s ease-in-out infinite;
+}
+
+.loader-puzzle-tr {
+  animation: puzzle-snap-tr 3.2s ease-in-out infinite;
+}
+
+.loader-puzzle-bl {
+  animation: puzzle-snap-bl 3.2s ease-in-out infinite;
+}
+
+.loader-puzzle-br {
+  animation: puzzle-snap-br 3.2s ease-in-out infinite;
+}
+
+.loader-puzzle-glow {
+  animation: puzzle-center-glow 3.2s ease-in-out infinite;
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-dict-glass,
+  .loader-dict-highlight-aero,
+  .loader-dict-highlight-ball,
+  .loader-dict-highlight-cat,
+  .loader-dict-highlight-duck,
+  .loader-dict-highlight-fish,
+  .loader-dict-highlight-home,
+  .loader-dict-highlight-nest,
+  .loader-dict-highlight-star,
+  .loader-dict-pages,
+  .loader-puzzle-tl,
+  .loader-puzzle-tr,
+  .loader-puzzle-bl,
+  .loader-puzzle-br,
+  .loader-puzzle-glow {
+    animation: none !important;
+  }
+
+  .loader-puzzle-tl {
+    transform: translate(-8px, -8px);
+  }
+
+  .loader-puzzle-tr {
+    transform: translate(8px, -8px);
+  }
+
+  .loader-puzzle-bl {
+    transform: translate(-8px, 8px);
+  }
+
+  .loader-puzzle-br {
+    transform: translate(8px, 8px);
+  }
+
+  .loader-dict-glass {
+    transform: translate(0, -24px) rotate(-7deg);
+  }
+
+  .loader-dict-highlight-aero {
+    opacity: 0.7;
+  }
+
+  .loader-dict-highlight-ball,
+  .loader-dict-highlight-cat,
+  .loader-dict-highlight-duck,
+  .loader-dict-highlight-fish,
+  .loader-dict-highlight-home,
+  .loader-dict-highlight-nest,
+  .loader-dict-highlight-star {
+    opacity: 0;
+  }
+}
