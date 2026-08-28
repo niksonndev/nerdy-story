@@ -5,6 +5,8 @@ import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
+import { DictionaryScanLoader } from "@/components/story/loading/DictionaryScanLoader";
 import { type MysteryWord } from "@/lib/story-data";
 
 export type ChallengePhase = "prompt" | "waiting" | "accepted" | "reveal";
@@ -78,7 +80,9 @@ export function VocabChallengeOverlay({
             </button>
 
             {phase === "waiting" ? (
-              <WaitingState />
+              <ChallengeWaitingState text="Checking the dictionary...">
+                <DictionaryScanLoader />
+              </ChallengeWaitingState>
             ) : phase === "accepted" ? (
               <AcceptedState
                 word={word}
@@ -166,24 +170,6 @@ function PromptState({
       >
         Check
       </Button>
-    </div>
-  );
-}
-
-function WaitingState() {
-  return (
-    <div className="flex flex-col items-center py-8 text-center">
-      <motion.div
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-        className="text-5xl"
-        aria-hidden
-      >
-        {"\uD83D\uDCD6"}
-      </motion.div>
-      <p className="mt-4 font-heading text-xl font-semibold text-foreground">
-        Checking dictionary...
-      </p>
     </div>
   );
 }
