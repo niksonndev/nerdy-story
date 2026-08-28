@@ -26,7 +26,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Demo challenge count (fixed):** 5 challenges per playthrough — **3 vocabulary** + **2 comprehension**. Vocab #3 is path-specific (different mystery word on each ending); child still sees exactly 3 vocab encounters
 - Mystery words are visually highlighted; the challenge opens as an **overlay/modal** over the story page. After grading/feedback, the overlay closes and the child returns to the **same** story page
 - **Challenge format:** "Explain what you understand by [word]" — open-ended; **not** multiple choice; **not** "use it in a sentence"
-- Correctness is graded first by a **live API call** to **gemini-2.5-flash** (Google) via **Vercel AI Gateway** (with Gateway model failover to gpt-4o-mini) that evaluates whether the child's explanation semantically matches the word's real meaning
+- Correctness is graded first by a **live API call** to **gpt-oss-120b** (OpenAI) via **Vercel AI Gateway** (with Gateway model failover to `google/gemini-2.5-flash-lite`) that evaluates whether the child's explanation semantically matches the word's real meaning
 - Grading must be calibrated for a 7–9 year old's language: accept simplified phrasing, synonyms, and partial-but-correct understanding; reject answers describing a different/wrong concept
 - Grading prompt must supply the model with the **target definition** and instruct it to return a **structured, parseable result** (not free-form prose) — correct/incorrect, a short kid-friendly **reason**, and on wrong answers a short live **hint** (same grading call; not a second AI request)
 - **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade result from a simple keyword/synonym matcher against the target definition (and per-word `acceptKeywords`) — not an HTTP error, not a second AI call
@@ -40,7 +40,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - Pre-written open-ended story questions (not multiple choice); **2 per playthrough** — one shared before the branch, one path-specific on 6A or 6B
 - Each challenge stores an explicit **passage**, **question**, **expectedUnderstanding**, **acceptKeywords** (local fallback), client **hints** (2 tiers), and **answerReveal**
 - **Trigger:** **Next Page** opens the overlay (never auto-open on page enter). Vocab pages still gate Next Page until mystery words are resolved; comprehension does **not** disable Next Page
-- Graded by a **live API call** to **gemini-2.5-flash** via **Vercel AI Gateway** (failover to gpt-4o-mini) at `POST /api/grade-comprehension`; returns the same structured shape as vocab (`correct`, `reason`, `hint`)
+- Graded by a **live API call** to **gpt-oss-120b** via **Vercel AI Gateway** (failover to `google/gemini-2.5-flash-lite`) at `POST /api/grade-comprehension`; returns the same structured shape as vocab (`correct`, `reason`, `hint`)
 - Grading calibrated for 7–9: accept simplified / partial-but-correct story understanding; reject unrelated ideas
 - **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade from a simple keyword/synonym matcher against `expectedUnderstanding` (and per-challenge `acceptKeywords`) — not an HTTP error, not a second AI call
 - **Soft progression:** after retry limit (wrong grades or HTTP failures), show pre-written **answerReveal**, then **Keep going** / **Got it** closes the overlay and **auto-advances** to the next page
@@ -65,7 +65,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 - **Runtime:** Bun — officially supported Vercel Functions runtime; no shim/third-party runtime package
 - **Language:** TypeScript
 - **Framework:** Next.js (App Router) — for API routes (grading API credentials stay server-side, never exposed to the client) and frontend+backend as one deployable unit; **not** chosen for SEO/SSR
-- **Grading model:** gemini-2.5-flash (`google/gemini-2.5-flash`) via **Vercel AI Gateway**, with failover to gpt-4o-mini (`openai/gpt-4o-mini`); auth is server-side OIDC (`VERCEL_OIDC_TOKEN`), never exposed to the client. Vocab and comprehension: after live grading fails, a **local keyword matcher** still returns a grade. Educational logic is **independent** of which model or provider answers a live grade request.
+- **Grading model:** gpt-oss-120b (`openai/gpt-oss-120b`) via **Vercel AI Gateway**, with failover to gemini-2.5-flash-lite (`google/gemini-2.5-flash-lite`); live calls use low temperature (0.1) and `maxOutputTokens` 1024. Auth is server-side OIDC (`VERCEL_OIDC_TOKEN`), never exposed to the client. Vocab and comprehension: after live grading fails, a **local keyword matcher** still returns a grade. Educational logic is **independent** of which model or provider answers a live grade request.
 - **State:** plain React state/Context — no TanStack Query (no caching/refetching problem); no Zustand for MVP (no cross-cutting client-state complexity yet); revisit only if the app grows post-MVP
 - **Styling:** Tailwind
 - **Components:** shadcn/ui — owned generated component source (not a black-box import). Radix comes in as a dependency of shadcn; not a separate install decision

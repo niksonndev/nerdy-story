@@ -12,7 +12,7 @@ English reading literacy app for kids — narrative-driven and AI-powered.
 
 ### Grading models
 
-Uses `openai/gpt-oss-120b` for evaluating kids' answers — needs real reasoning to judge freeform explanations, and it's the fastest/cheapest option on Vercel AI Gateway with that capability. Falls back to `alibaba/qwen3-next-80b-a3b-thinking` (different provider, similar reasoning tier) on rate limits/errors.
+Uses `openai/gpt-oss-120b` for evaluating kids' answers — strong semantic grading at low cost on Vercel AI Gateway free tier. Falls back to `google/gemini-2.5-flash-lite` (different provider) on rate limits/errors.
 
 ## Demo / MVP constraints
 
@@ -22,7 +22,7 @@ Uses `openai/gpt-oss-120b` for evaluating kids' answers — needs real reasoning
 
 ## How to run
 
-Requires [Bun](https://bun.sh). Vocab and comprehension grading use **Vercel AI Gateway** (primary `openai/gpt-oss-120b`, failover `alibaba/qwen3-next-80b-a3b-thinking`). If Gateway/OIDC fails after that failover, the API still returns a grade via the local keyword matcher so the loop is not blocked — live AI remains the intended grader. Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
+Requires [Bun](https://bun.sh). Vocab and comprehension grading use **Vercel AI Gateway** (primary `openai/gpt-oss-120b`, failover `google/gemini-2.5-flash-lite`; `temperature` 0.1, `maxOutputTokens` 1024). If Gateway/OIDC fails after that failover, the API still returns a grade via the local keyword matcher so the loop is not blocked — live AI remains the intended grader. Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
 
 ```bash
 vercel link   # once
