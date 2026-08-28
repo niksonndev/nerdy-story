@@ -29,7 +29,9 @@ import {
   classifyGradeFailure,
   GradeError,
   GRADE_FALLBACK_MODELS,
+  GRADE_MAX_OUTPUT_TOKENS,
   GRADE_PRIMARY_MODEL,
+  GRADE_TEMPERATURE,
 } from "@/lib/grade/shared";
 import { gradeResultSchema } from "@/lib/grade/prompts";
 import { gradeExplanation, gradeRequestSchema } from "@/lib/grade/vocabulary";
@@ -163,6 +165,8 @@ describe("gradeExplanation", () => {
 
     const call = generateText.mock.calls[0]?.[0] as {
       model: string;
+      temperature: number;
+      maxOutputTokens: number;
       prompt: string;
       system: string;
       providerOptions: {
@@ -173,6 +177,8 @@ describe("gradeExplanation", () => {
       };
     };
     expect(call.model).toBe(GRADE_PRIMARY_MODEL);
+    expect(call.temperature).toBe(GRADE_TEMPERATURE);
+    expect(call.maxOutputTokens).toBe(GRADE_MAX_OUTPUT_TOKENS);
     expect(call.providerOptions.gateway.models).toEqual([
       ...GRADE_FALLBACK_MODELS,
     ]);

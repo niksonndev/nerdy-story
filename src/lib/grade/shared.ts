@@ -7,8 +7,12 @@ import { z } from "zod";
 /** Primary + Gateway failover — educational prompt is independent of these IDs. */
 export const GRADE_PRIMARY_MODEL = "openai/gpt-oss-120b";
 export const GRADE_FALLBACK_MODELS = [
-  "alibaba/qwen3-next-80b-a3b-thinking",
+  "google/gemini-2.5-flash-lite",
 ] as const;
+
+/** Shared live-grade generation limits (vocab + comprehension). */
+export const GRADE_MAX_OUTPUT_TOKENS = 1024;
+export const GRADE_TEMPERATURE = 0.1;
 
 export const gradeAttemptSchema = z.object({
   explanation: z.string(),

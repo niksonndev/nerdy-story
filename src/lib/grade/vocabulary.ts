@@ -8,7 +8,9 @@ import {
 } from "@/lib/grade/prompts";
 import {
   GRADE_FALLBACK_MODELS,
+  GRADE_MAX_OUTPUT_TOKENS,
   GRADE_PRIMARY_MODEL,
+  GRADE_TEMPERATURE,
   GradeError,
   gradeAttemptSchema,
   type GradeAttempt,
@@ -63,6 +65,8 @@ export async function gradeExplanation(
   try {
     const { output } = await generateText({
       model: GRADE_PRIMARY_MODEL,
+      temperature: GRADE_TEMPERATURE,
+      maxOutputTokens: GRADE_MAX_OUTPUT_TOKENS,
       output: Output.object({
         schema: gradeResultSchema,
         name: "VocabularyGrade",

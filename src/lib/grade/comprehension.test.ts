@@ -33,7 +33,9 @@ import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
 import { gradeResultSchema } from "@/lib/grade/prompts";
 import {
   GRADE_FALLBACK_MODELS,
+  GRADE_MAX_OUTPUT_TOKENS,
   GRADE_PRIMARY_MODEL,
+  GRADE_TEMPERATURE,
 } from "@/lib/grade/shared";
 import { comprehensionChallenges } from "@/lib/story-data";
 
@@ -164,6 +166,8 @@ describe("gradeComprehension", () => {
 
     const call = generateText.mock.calls[0]?.[0] as {
       model: string;
+      temperature: number;
+      maxOutputTokens: number;
       prompt: string;
       system: string;
       providerOptions: {
@@ -174,6 +178,8 @@ describe("gradeComprehension", () => {
       };
     };
     expect(call.model).toBe(GRADE_PRIMARY_MODEL);
+    expect(call.temperature).toBe(GRADE_TEMPERATURE);
+    expect(call.maxOutputTokens).toBe(GRADE_MAX_OUTPUT_TOKENS);
     expect(call.providerOptions.gateway.models).toEqual([
       ...GRADE_FALLBACK_MODELS,
     ]);
