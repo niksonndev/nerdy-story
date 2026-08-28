@@ -1,8 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ComprehensionChallengeOverlay } from "@/components/story/ComprehensionChallengeOverlay";
+import {
+  EndingBeat,
+  type EndingBeatView,
+} from "@/components/story/EndingBeat";
 import {
   StoryPageView,
   type StoryPageViewHandle,
@@ -22,6 +26,35 @@ import {
   type MysteryWord,
   type StoryPage,
 } from "@/lib/story-data";
+
+const ENDING_PAGE_IDS = ["page-7a", "page-7b"] as const;
+
+const ENDING_MYSTERY_WORD: Record<(typeof ENDING_PAGE_IDS)[number], string> = {
+  "page-7a": "lullaby",
+  "page-7b": "shimmered",
+};
+
+const DEFAULT_LEARNED_WORD_IDS: Record<
+  (typeof ENDING_PAGE_IDS)[number],
+  string[]
+> = {
+  "page-7a": ["shelter", "snug", "lullaby"],
+  "page-7b": ["shelter", "snug", "shimmered"],
+};
+
+type DebugShowEndingBeatOptions = {
+  pageId?: (typeof ENDING_PAGE_IDS)[number];
+  wordsLearned?: number;
+  learnedWordIds?: string[];
+  exploredEndingIds?: string[];
+  endingView?: EndingBeatView;
+};
+
+declare global {
+  interface Window {
+    __debugShowEndingBeat?: (options?: DebugShowEndingBeatOptions) => void;
+  }
+}
 
 function mysteryWordIdsFor(page: StoryPage): string[] {
   return page.segments
@@ -82,6 +115,10 @@ export function StoryReader() {
 
   const [pageId, setPageId] = useState(STORY_START_ID);
   const [wordsLearned, setWordsLearned] = useState(0);
+  const [learnedWordIds, setLearnedWordIds] = useState<string[]>([]);
+  const [exploredEndingIds, setExploredEndingIds] = useState<string[]>([]);
+  const [endingView, setEndingView] = useState<EndingBeatView>("beat");
+  const [beatSession, setBeatSession] = useState(0);
   const [resolvedWordIds, setResolvedWordIds] = useState<string[]>([]);
   const [resolvedComprehensionIds, setResolvedComprehensionIds] = useState<
     string[]
@@ -103,6 +140,11 @@ export function StoryReader() {
   const isLastPage = !page.nextPageId && !page.choice;
   const pageWordIds = mysteryWordIdsFor(page);
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
+  const showEndingBeat =
+    isLastPage &&
+    canAdvance &&
+    activeWordId === null &&
+    activeComprehensionId === null;
 
   const activeWord: MysteryWord | null = activeWordId
     ? mysteryWords[activeWordId]
@@ -110,6 +152,20 @@ export function StoryReader() {
   const activeChallenge: ComprehensionChallenge | null = activeComprehensionId
     ? comprehensionChallenges[activeComprehensionId]
     : null;
+
+  const learnedWords = learnedWordIds.map(
+    (wordId) => mysteryWords[wordId]?.word ?? wordId,
+  );
+
+  function recordEndingExplored() {
+    if (!ENDING_PAGE_IDS.includes(pageId as (typeof ENDING_PAGE_IDS)[number])) {
+      return;
+    }
+    setExploredEndingIds((prev) =>
+      prev.includes(pageId) ? prev : [...prev, pageId],
+    );
+    setEndingView("beat");
+  }
 
   function resetChallengeFields() {
     setPhase("prompt");
@@ -234,6 +290,9 @@ export function StoryReader() {
       setResolvedWordIds((prev) =>
         prev.includes(activeWordId) ? prev : [...prev, activeWordId],
       );
+      setLearnedWordIds((prev) =>
+        prev.includes(activeWordId) ? prev : [...prev, activeWordId],
+      );
       setWordsLearned((count) => count + 1);
       setAcceptedReason(result.reason);
       setHintText(null);
@@ -301,6 +360,9 @@ export function StoryReader() {
   function closeVocabChallenge() {
     setActiveWordId(null);
     resetChallengeFields();
+    if (isLastPage && canAdvance) {
+      recordEndingExplored();
+    }
   }
 
   function closeComprehensionChallenge() {
@@ -337,46 +399,132 @@ export function StoryReader() {
     return true;
   }
 
+  function handleReadAgain() {
+    setPageId(STORY_START_ID);
+    setWordsLearned(0);
+    setLearnedWordIds([]);
+    setResolvedWordIds([]);
+    setResolvedComprehensionIds([]);
+    setActiveWordId(null);
+    setActiveComprehensionId(null);
+    setEndingView("beat");
+    setBeatSession((session) => session + 1);
+    resetChallengeFields();
+  }
+
+  function handleReadChapter2() {
+    setEndingView("chapter2");
+  }
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    window.__debugShowEndingBeat = (options = {}) => {
+      const pageId = options.pageId ?? "page-7a";
+      const learnedWordIds =
+        options.learnedWordIds ?? DEFAULT_LEARNED_WORD_IDS[pageId];
+      const wordsLearned = options.wordsLearned ?? learnedWordIds.length;
+      const exploredEndingIds =
+        options.exploredEndingIds ?? [pageId];
+      const endingView = options.endingView ?? "beat";
+
+      pendingAdvanceId.current = null;
+      setPageId(pageId);
+      setWordsLearned(wordsLearned);
+      setLearnedWordIds(learnedWordIds);
+      setExploredEndingIds(exploredEndingIds);
+      setResolvedWordIds([ENDING_MYSTERY_WORD[pageId]]);
+      setResolvedComprehensionIds([
+        "find-shelter",
+        "cozy-nap",
+        "rainy-surprise",
+      ]);
+      setActiveWordId(null);
+      setActiveComprehensionId(null);
+      setEndingView(endingView);
+      setBeatSession((session) => session + 1);
+      setPhase("prompt");
+      setExplanation("");
+      setAttempts(0);
+      setPriorAttempts([]);
+      setMissReason(null);
+      setHintText(null);
+      setAcceptedReason(null);
+
+      console.info(
+        "[nerdy-story] Ending beat shown.",
+        "Try: __debugShowEndingBeat({ exploredEndingIds: ['page-7a','page-7b'] })",
+        "or: __debugShowEndingBeat({ endingView: 'chapter2' })",
+      );
+    };
+
+    console.info(
+      "[nerdy-story] Dev hook ready: __debugShowEndingBeat()",
+    );
+
+    return () => {
+      delete window.__debugShowEndingBeat;
+    };
+  }, []);
+
   return (
     <div className="flex flex-1 flex-col">
-      <StoryPageView
-        ref={pageViewRef}
-        page={page}
-        wordsLearned={wordsLearned}
-        resolvedWordIds={resolvedWordIds}
-        canAdvance={canAdvance}
-        isLastPage={isLastPage}
-        onMysteryClick={openVocabChallenge}
-        onChoosePath={goToPage}
-        onBeforeNextPage={handleBeforeNextPage}
-      />
+      {showEndingBeat ? (
+        <EndingBeat
+          key={`${pageId}-${beatSession}`}
+          wordsLearned={wordsLearned}
+          learnedWords={learnedWords}
+          endingsExplored={
+            ENDING_PAGE_IDS.filter((id) =>
+              exploredEndingIds.includes(id),
+            ).length
+          }
+          view={endingView}
+          onReadAgain={handleReadAgain}
+          onReadChapter2={handleReadChapter2}
+        />
+      ) : (
+        <>
+          <StoryPageView
+            ref={pageViewRef}
+            page={page}
+            wordsLearned={wordsLearned}
+            resolvedWordIds={resolvedWordIds}
+            canAdvance={canAdvance}
+            isLastPage={isLastPage}
+            onMysteryClick={openVocabChallenge}
+            onChoosePath={goToPage}
+            onBeforeNextPage={handleBeforeNextPage}
+          />
 
-      <VocabChallengeOverlay
-        open={activeWordId !== null}
-        word={activeWord}
-        phase={phase}
-        value={explanation}
-        missReason={missReason}
-        hintText={hintText}
-        acceptedReason={acceptedReason}
-        onChange={setExplanation}
-        onCheck={handleVocabCheck}
-        onClose={closeVocabChallenge}
-      />
+          <VocabChallengeOverlay
+            open={activeWordId !== null}
+            word={activeWord}
+            phase={phase}
+            value={explanation}
+            missReason={missReason}
+            hintText={hintText}
+            acceptedReason={acceptedReason}
+            onChange={setExplanation}
+            onCheck={handleVocabCheck}
+            onClose={closeVocabChallenge}
+          />
 
-      <ComprehensionChallengeOverlay
-        open={activeComprehensionId !== null}
-        challenge={activeChallenge}
-        phase={phase}
-        value={explanation}
-        missReason={missReason}
-        hintText={hintText}
-        acceptedReason={acceptedReason}
-        onChange={setExplanation}
-        onCheck={handleComprehensionCheck}
-        onContinue={continueComprehension}
-        onClose={closeComprehensionChallenge}
-      />
+          <ComprehensionChallengeOverlay
+            open={activeComprehensionId !== null}
+            challenge={activeChallenge}
+            phase={phase}
+            value={explanation}
+            missReason={missReason}
+            hintText={hintText}
+            acceptedReason={acceptedReason}
+            onChange={setExplanation}
+            onCheck={handleComprehensionCheck}
+            onContinue={continueComprehension}
+            onClose={closeComprehensionChallenge}
+          />
+        </>
+      )}
     </div>
   );
 }

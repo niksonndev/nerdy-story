@@ -204,23 +204,21 @@ function PageProgression({
     );
   }
 
+  if (isLastPage) {
+    return null;
+  }
+
   return (
     <div className={className}>
-      {isLastPage ? (
-        <p className="font-heading text-lg font-semibold text-magic">
-          The End of this adventure!
-        </p>
-      ) : (
-        <Button
-          size="kid"
-          className="w-full min-h-14 sm:w-auto"
-          onClick={onNextPage}
-          disabled={!canAdvance}
-          aria-label="Next Page"
-        >
-          Next Page
-        </Button>
-      )}
+      <Button
+        size="kid"
+        className="w-full min-h-14 sm:w-auto"
+        onClick={onNextPage}
+        disabled={!canAdvance}
+        aria-label="Next Page"
+      >
+        Next Page
+      </Button>
     </div>
   );
 }

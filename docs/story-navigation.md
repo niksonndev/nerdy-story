@@ -4,7 +4,7 @@ The story reader advances by **page id**, not array order. Each page in [`src/li
 
 - has `nextPageId` — linear **Next Page**
 - has `choice` — two equal-weight options (`BranchChoice`)
-- has neither — ending (“The End of this adventure!”)
+- has neither — ending (swaps to the **EndingBeat** page when vocab on the page is resolved)
 
 Optional interactions on a page:
 
@@ -22,7 +22,7 @@ flowchart TD
   comp[ComprehensionChallenge overlay]
   nextBtn[Next Page]
   branch[BranchChoice]
-  endChrome[The End chrome]
+  endChrome[EndingBeat page]
   read -->|mystery tap| vocab
   vocab -->|resolved| read
   read -->|Next Page and unresolved comprehension| comp
@@ -31,8 +31,19 @@ flowchart TD
   read -->|has choice and canAdvance| branch
   nextBtn -->|page turn| read
   branch -->|page turn to option.nextPageId| read
-  read -->|no nextPageId no choice| endChrome
+  read -->|no nextPageId no choice vocab resolved| endChrome
 ```
+
+## Ending beat (`EndingBeat`)
+
+When the child resolves the last vocab word on `page-7a` or `page-7b` and closes the vocab overlay, [`StoryReader`](../src/components/story/StoryReader.tsx) **replaces** the story page with [`EndingBeat`](../src/components/story/EndingBeat.tsx) — a full storybook page (same atmosphere / book-card shell), not a modal over the last page:
+
+1. **Book coloring** — SVG fill animation (~1.4s)
+2. **Celebration** (one screen) — “Story complete!” + count-up + learned-word list + “You explored N of 2 endings”, then “Next chapter unlocked!” + replay nudge + two CTAs:
+   - **Read chapter 2** (primary) → chapter-2 unlock stub (not playable content)
+   - **Read the chapter again** (secondary) → resets chapter 1; keeps `exploredEndingIds` in session
+
+Words-learned on the ending screen counts only vocab answers graded **correct** (not meaning reveals). Comprehension corrects never appear in the word list.
 
 ## Vocab challenge client flow (`StoryReader`)
 
