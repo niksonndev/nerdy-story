@@ -113,6 +113,7 @@ function ColoringPhase() {
 function BookColoring() {
   return (
     <div className="relative h-44 w-52 sm:h-52 sm:w-60">
+      {/* Open storybook — spine, dashed center fold, sketch lines, then left/right pages fill with teal and gold */}
       <svg
         viewBox="0 0 160 120"
         className="h-full w-full drop-shadow-md"
@@ -333,6 +334,7 @@ function SceneAtmosphere() {
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
       <div className="absolute inset-0 bg-linear-to-b from-magic/5 via-transparent to-reward/10" />
+      {/* Jagged forest/mountain skyline — five overlapping triangles along the bottom edge */}
       <svg
         className="absolute -bottom-2 left-0 h-40 w-full text-magic/20"
         viewBox="0 0 400 120"
