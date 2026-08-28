@@ -124,9 +124,7 @@ export function storySessionReducer(
 
 export type ChallengeKind = "vocab" | "comprehension";
 
-export type ChallengeUiState = {
-  kind: ChallengeKind | null;
-  id: string | null;
+export type ChallengeProgress = {
   phase: ChallengePhase;
   explanation: string;
   attempts: number;
@@ -136,16 +134,68 @@ export type ChallengeUiState = {
   acceptedReason: string | null;
 };
 
+export type ChallengeUiState = ChallengeProgress & {
+  kind: ChallengeKind | null;
+  id: string | null;
+  progressById: Record<string, ChallengeProgress>;
+};
+
+function defaultChallengeProgress(): ChallengeProgress {
+  return {
+    phase: "prompt",
+    explanation: "",
+    attempts: 0,
+    priorAttempts: [],
+    missReason: null,
+    hintText: null,
+    acceptedReason: null,
+  };
+}
+
+function snapshotProgress({
+  phase,
+  explanation,
+  attempts,
+  priorAttempts,
+  missReason,
+  hintText,
+  acceptedReason,
+}: ChallengeUiState): ChallengeProgress {
+  return {
+    phase,
+    explanation,
+    attempts,
+    priorAttempts,
+    missReason,
+    hintText,
+    acceptedReason,
+  };
+}
+
+function closedChallengeUi(
+  progressById: Record<string, ChallengeProgress>,
+): ChallengeUiState {
+  return {
+    ...initialChallengeUi,
+    progressById,
+  };
+}
+
+function saveProgressForId(
+  state: ChallengeUiState,
+  id: string,
+): Record<string, ChallengeProgress> {
+  return {
+    ...state.progressById,
+    [id]: snapshotProgress(state),
+  };
+}
+
 export const initialChallengeUi: ChallengeUiState = {
+  ...defaultChallengeProgress(),
   kind: null,
   id: null,
-  phase: "prompt",
-  explanation: "",
-  attempts: 0,
-  priorAttempts: [],
-  missReason: null,
-  hintText: null,
-  acceptedReason: null,
+  progressById: {},
 };
 
 export type ChallengeUiAction =
@@ -171,8 +221,19 @@ export function challengeUiReducer(
   switch (action.type) {
     case "reset":
       return initialChallengeUi;
-    case "open":
-      return { ...initialChallengeUi, kind: action.kind, id: action.id };
+    case "open": {
+      let progressById = state.progressById;
+      if (state.id) {
+        progressById = saveProgressForId(state, state.id);
+      }
+      const saved = progressById[action.id] ?? defaultChallengeProgress();
+      return {
+        ...saved,
+        kind: action.kind,
+        id: action.id,
+        progressById,
+      };
+    }
     case "setExplanation":
       return { ...state, explanation: action.explanation };
     case "setWaiting":
@@ -213,8 +274,12 @@ export function challengeUiReducer(
       };
     case "reveal":
       return { ...state, phase: "reveal" };
-    case "close":
-      return initialChallengeUi;
+    case "close": {
+      if (!state.id) {
+        return closedChallengeUi(state.progressById);
+      }
+      return closedChallengeUi(saveProgressForId(state, state.id));
+    }
   }
 }
 
