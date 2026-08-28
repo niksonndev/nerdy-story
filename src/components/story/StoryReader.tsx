@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import { ComprehensionChallengeOverlay } from "@/components/story/ComprehensionChallengeOverlay";
 import {
@@ -12,39 +12,28 @@ import {
   type StoryPageViewHandle,
 } from "@/components/story/StoryPageView";
 import {
-  VocabChallengeOverlay,
-  type ChallengePhase,
-} from "@/components/story/VocabChallengeOverlay";
+  DEFAULT_LEARNED_WORD_IDS,
+  type EndingPageId,
+  challengeUiReducer,
+  endingsExploredCount,
+  initialChallengeUi,
+  initialStorySession,
+  storySessionReducer,
+} from "@/components/story/story-reader-state";
+import { VocabChallengeOverlay } from "@/components/story/VocabChallengeOverlay";
 import type { GradeAttempt, GradeResult } from "@/lib/grade/shared";
 import {
   MAX_ATTEMPTS,
   comprehensionChallenges,
   mysteryWords,
-  STORY_START_ID,
   storyPagesById,
   type ComprehensionChallenge,
   type MysteryWord,
   type StoryPage,
 } from "@/lib/story-data";
 
-const ENDING_PAGE_IDS = ["page-7a", "page-7b"] as const;
-
-const ENDING_MYSTERY_WORD: Record<(typeof ENDING_PAGE_IDS)[number], string> = {
-  "page-7a": "lullaby",
-  "page-7b": "shimmered",
-};
-
-const DEFAULT_LEARNED_WORD_IDS: Record<
-  (typeof ENDING_PAGE_IDS)[number],
-  string[]
-> = {
-  "page-7a": ["shelter", "snug", "lullaby"],
-  "page-7b": ["shelter", "snug", "shimmered"],
-};
-
 type DebugShowEndingBeatOptions = {
-  pageId?: (typeof ENDING_PAGE_IDS)[number];
-  wordsLearned?: number;
+  pageId?: EndingPageId;
   learnedWordIds?: string[];
   exploredEndingIds?: string[];
   endingView?: EndingBeatView;
@@ -113,155 +102,100 @@ export function StoryReader() {
   const pageViewRef = useRef<StoryPageViewHandle>(null);
   const pendingAdvanceId = useRef<string | null>(null);
 
-  const [pageId, setPageId] = useState(STORY_START_ID);
-  const [wordsLearned, setWordsLearned] = useState(0);
-  const [learnedWordIds, setLearnedWordIds] = useState<string[]>([]);
-  const [exploredEndingIds, setExploredEndingIds] = useState<string[]>([]);
-  const [endingView, setEndingView] = useState<EndingBeatView>("beat");
-  const [beatSession, setBeatSession] = useState(0);
-  const [resolvedWordIds, setResolvedWordIds] = useState<string[]>([]);
-  const [resolvedComprehensionIds, setResolvedComprehensionIds] = useState<
-    string[]
-  >([]);
+  const [session, dispatchSession] = useReducer(
+    storySessionReducer,
+    initialStorySession,
+  );
+  const [challenge, dispatchChallenge] = useReducer(
+    challengeUiReducer,
+    initialChallengeUi,
+  );
 
-  const [activeWordId, setActiveWordId] = useState<string | null>(null);
-  const [activeComprehensionId, setActiveComprehensionId] = useState<
-    string | null
-  >(null);
-  const [phase, setPhase] = useState<ChallengePhase>("prompt");
-  const [explanation, setExplanation] = useState("");
-  const [attempts, setAttempts] = useState(0);
-  const [priorAttempts, setPriorAttempts] = useState<GradeAttempt[]>([]);
-  const [missReason, setMissReason] = useState<string | null>(null);
-  const [hintText, setHintText] = useState<string | null>(null);
-  const [acceptedReason, setAcceptedReason] = useState<string | null>(null);
+  const {
+    pageId,
+    learnedWordIds,
+    exploredEndingIds,
+    endingView,
+    beatSession,
+    resolvedWordIds,
+    resolvedComprehensionIds,
+  } = session;
+
+  const {
+    kind: challengeKind,
+    id: challengeId,
+    phase,
+    explanation,
+    attempts,
+    priorAttempts,
+    missReason,
+    hintText,
+    acceptedReason,
+  } = challenge;
 
   const page = storyPagesById[pageId];
   const isLastPage = !page.nextPageId && !page.choice;
   const pageWordIds = mysteryWordIdsFor(page);
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
+  const activeWordId = challengeKind === "vocab" ? challengeId : null;
+  const activeComprehensionId =
+    challengeKind === "comprehension" ? challengeId : null;
   const showEndingBeat =
     isLastPage &&
     canAdvance &&
     activeWordId === null &&
     activeComprehensionId === null;
 
+  const wordsLearned = learnedWordIds.length;
   const activeWord: MysteryWord | null = activeWordId
     ? mysteryWords[activeWordId]
     : null;
   const activeChallenge: ComprehensionChallenge | null = activeComprehensionId
     ? comprehensionChallenges[activeComprehensionId]
     : null;
-
   const learnedWords = learnedWordIds.map(
     (wordId) => mysteryWords[wordId]?.word ?? wordId,
   );
 
-  function recordEndingExplored() {
-    if (!ENDING_PAGE_IDS.includes(pageId as (typeof ENDING_PAGE_IDS)[number])) {
-      return;
-    }
-    setExploredEndingIds((prev) =>
-      prev.includes(pageId) ? prev : [...prev, pageId],
-    );
-    setEndingView("beat");
-  }
-
-  function resetChallengeFields() {
-    setPhase("prompt");
-    setExplanation("");
-    setAttempts(0);
-    setPriorAttempts([]);
-    setMissReason(null);
-    setHintText(null);
-    setAcceptedReason(null);
-  }
-
   function openVocabChallenge(wordId: string) {
     if (resolvedWordIds.includes(wordId)) return;
-    setActiveComprehensionId(null);
-    setActiveWordId(wordId);
-    resetChallengeFields();
+    dispatchChallenge({ type: "open", kind: "vocab", id: wordId });
   }
 
   function openComprehensionChallenge(challengeId: string) {
     if (resolvedComprehensionIds.includes(challengeId)) return;
-    setActiveWordId(null);
-    setActiveComprehensionId(challengeId);
-    resetChallengeFields();
+    dispatchChallenge({ type: "open", kind: "comprehension", id: challengeId });
   }
 
-  function resolveWordWithReveal(wordId: string) {
-    setResolvedWordIds((prev) =>
-      prev.includes(wordId) ? prev : [...prev, wordId],
-    );
-    setPhase("reveal");
-  }
-
-  function resolveComprehensionWithReveal(challengeId: string) {
-    setResolvedComprehensionIds((prev) =>
-      prev.includes(challengeId) ? prev : [...prev, challengeId],
-    );
-    setPhase("reveal");
-  }
-
-  function recordVocabFailedAttempt(
-    submittedExplanation: string,
+  function recordFailedAttempt(
+    submitted: string,
     reason: string,
     hint: string | null,
     nextAttempts: number,
   ) {
-    setPriorAttempts((prev) => [
-      ...prev,
-      {
-        explanation: submittedExplanation,
-        reason,
-        hint,
-      },
-    ]);
-    setAttempts(nextAttempts);
+    dispatchChallenge({
+      type: "recordFailedAttempt",
+      submitted,
+      reason,
+      hint,
+      nextAttempts,
+    });
 
-    if (nextAttempts >= MAX_ATTEMPTS && activeWordId) {
-      resolveWordWithReveal(activeWordId);
-      return;
+    if (nextAttempts >= MAX_ATTEMPTS && challengeId) {
+      if (challengeKind === "vocab") {
+        dispatchSession({ type: "resolveWord", wordId: challengeId });
+      } else if (challengeKind === "comprehension") {
+        dispatchSession({
+          type: "resolveComprehension",
+          challengeId,
+        });
+      }
     }
-
-    setMissReason(reason);
-    setHintText(hint);
-    setExplanation("");
-    setPhase("prompt");
-  }
-
-  function recordComprehensionFailedAttempt(
-    submittedAnswer: string,
-    reason: string,
-    hint: string | null,
-    nextAttempts: number,
-  ) {
-    setPriorAttempts((prev) => [
-      ...prev,
-      {
-        explanation: submittedAnswer,
-        reason,
-        hint,
-      },
-    ]);
-    setAttempts(nextAttempts);
-
-    if (nextAttempts >= MAX_ATTEMPTS && activeComprehensionId) {
-      resolveComprehensionWithReveal(activeComprehensionId);
-      return;
-    }
-
-    setMissReason(reason);
-    setHintText(hint);
-    setExplanation("");
-    setPhase("prompt");
   }
 
   async function handleVocabCheck() {
     if (!activeWordId || explanation.trim().length === 0) return;
-    setPhase("waiting");
+    dispatchChallenge({ type: "setWaiting" });
 
     const submittedExplanation = explanation.trim();
     let result: GradeResult;
@@ -277,7 +211,7 @@ export function StoryReader() {
         activeWord?.hints ?? [],
         nextAttempts - 1,
       );
-      recordVocabFailedAttempt(
+      recordFailedAttempt(
         submittedExplanation,
         "Not quite — try another way.",
         hint,
@@ -287,31 +221,22 @@ export function StoryReader() {
     }
 
     if (result.correct) {
-      setResolvedWordIds((prev) =>
-        prev.includes(activeWordId) ? prev : [...prev, activeWordId],
-      );
-      setLearnedWordIds((prev) =>
-        prev.includes(activeWordId) ? prev : [...prev, activeWordId],
-      );
-      setWordsLearned((count) => count + 1);
-      setAcceptedReason(result.reason);
-      setHintText(null);
-      setPhase("accepted");
+      dispatchSession({ type: "acceptWord", wordId: activeWordId });
+      dispatchChallenge({ type: "accepted", reason: result.reason });
       return;
     }
 
-    const nextAttempts = attempts + 1;
-    recordVocabFailedAttempt(
+    recordFailedAttempt(
       submittedExplanation,
       result.reason,
       result.hint,
-      nextAttempts,
+      attempts + 1,
     );
   }
 
   async function handleComprehensionCheck() {
     if (!activeComprehensionId || explanation.trim().length === 0) return;
-    setPhase("waiting");
+    dispatchChallenge({ type: "setWaiting" });
 
     const submittedAnswer = explanation.trim();
     let result: GradeResult;
@@ -327,7 +252,7 @@ export function StoryReader() {
         activeChallenge?.hints ?? [],
         nextAttempts - 1,
       );
-      recordComprehensionFailedAttempt(
+      recordFailedAttempt(
         submittedAnswer,
         "Not quite — try another way.",
         hint,
@@ -337,45 +262,38 @@ export function StoryReader() {
     }
 
     if (result.correct) {
-      setResolvedComprehensionIds((prev) =>
-        prev.includes(activeComprehensionId)
-          ? prev
-          : [...prev, activeComprehensionId],
-      );
-      setAcceptedReason(result.reason);
-      setHintText(null);
-      setPhase("accepted");
+      dispatchSession({
+        type: "resolveComprehension",
+        challengeId: activeComprehensionId,
+      });
+      dispatchChallenge({ type: "accepted", reason: result.reason });
       return;
     }
 
-    const nextAttempts = attempts + 1;
-    recordComprehensionFailedAttempt(
+    recordFailedAttempt(
       submittedAnswer,
       result.reason,
       result.hint,
-      nextAttempts,
+      attempts + 1,
     );
   }
 
   function closeVocabChallenge() {
-    setActiveWordId(null);
-    resetChallengeFields();
+    dispatchChallenge({ type: "close" });
     if (isLastPage && canAdvance) {
-      recordEndingExplored();
+      dispatchSession({ type: "recordEndingExplored", pageId });
     }
   }
 
   function closeComprehensionChallenge() {
-    setActiveComprehensionId(null);
     pendingAdvanceId.current = null;
-    resetChallengeFields();
+    dispatchChallenge({ type: "close" });
   }
 
   function continueComprehension() {
     const nextPageId = pendingAdvanceId.current;
     pendingAdvanceId.current = null;
-    setActiveComprehensionId(null);
-    resetChallengeFields();
+    dispatchChallenge({ type: "close" });
     if (nextPageId) {
       pageViewRef.current?.advanceTo(nextPageId);
     }
@@ -383,73 +301,49 @@ export function StoryReader() {
 
   function goToPage(nextPageId: string) {
     if (!canAdvance || !storyPagesById[nextPageId]) return;
-    setPageId(nextPageId);
+    dispatchSession({ type: "goToPage", pageId: nextPageId });
   }
 
   function handleBeforeNextPage(nextPageId: string): boolean {
-    const challengeId = page.comprehensionId;
+    const comprehensionId = page.comprehensionId;
     if (
-      challengeId &&
-      !resolvedComprehensionIds.includes(challengeId)
+      comprehensionId &&
+      !resolvedComprehensionIds.includes(comprehensionId)
     ) {
       pendingAdvanceId.current = nextPageId;
-      openComprehensionChallenge(challengeId);
+      openComprehensionChallenge(comprehensionId);
       return false;
     }
     return true;
   }
 
   function handleReadAgain() {
-    setPageId(STORY_START_ID);
-    setWordsLearned(0);
-    setLearnedWordIds([]);
-    setResolvedWordIds([]);
-    setResolvedComprehensionIds([]);
-    setActiveWordId(null);
-    setActiveComprehensionId(null);
-    setEndingView("beat");
-    setBeatSession((session) => session + 1);
-    resetChallengeFields();
+    pendingAdvanceId.current = null;
+    dispatchSession({ type: "readAgain" });
+    dispatchChallenge({ type: "reset" });
   }
 
   function handleReadChapter2() {
-    setEndingView("chapter2");
+    dispatchSession({ type: "setEndingView", view: "chapter2" });
   }
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
 
     window.__debugShowEndingBeat = (options = {}) => {
-      const pageId = options.pageId ?? "page-7a";
-      const learnedWordIds =
-        options.learnedWordIds ?? DEFAULT_LEARNED_WORD_IDS[pageId];
-      const wordsLearned = options.wordsLearned ?? learnedWordIds.length;
-      const exploredEndingIds =
-        options.exploredEndingIds ?? [pageId];
-      const endingView = options.endingView ?? "beat";
+      const debugPageId = options.pageId ?? "page-7a";
+      const debugLearnedWordIds =
+        options.learnedWordIds ?? DEFAULT_LEARNED_WORD_IDS[debugPageId];
 
       pendingAdvanceId.current = null;
-      setPageId(pageId);
-      setWordsLearned(wordsLearned);
-      setLearnedWordIds(learnedWordIds);
-      setExploredEndingIds(exploredEndingIds);
-      setResolvedWordIds([ENDING_MYSTERY_WORD[pageId]]);
-      setResolvedComprehensionIds([
-        "find-shelter",
-        "cozy-nap",
-        "rainy-surprise",
-      ]);
-      setActiveWordId(null);
-      setActiveComprehensionId(null);
-      setEndingView(endingView);
-      setBeatSession((session) => session + 1);
-      setPhase("prompt");
-      setExplanation("");
-      setAttempts(0);
-      setPriorAttempts([]);
-      setMissReason(null);
-      setHintText(null);
-      setAcceptedReason(null);
+      dispatchSession({
+        type: "debugShowEndingBeat",
+        pageId: debugPageId,
+        learnedWordIds: debugLearnedWordIds,
+        exploredEndingIds: options.exploredEndingIds ?? [debugPageId],
+        endingView: options.endingView ?? "beat",
+      });
+      dispatchChallenge({ type: "reset" });
 
       console.info(
         "[nerdy-story] Ending beat shown.",
@@ -474,11 +368,7 @@ export function StoryReader() {
           key={`${pageId}-${beatSession}`}
           wordsLearned={wordsLearned}
           learnedWords={learnedWords}
-          endingsExplored={
-            ENDING_PAGE_IDS.filter((id) =>
-              exploredEndingIds.includes(id),
-            ).length
-          }
+          endingsExplored={endingsExploredCount(exploredEndingIds)}
           view={endingView}
           onReadAgain={handleReadAgain}
           onReadChapter2={handleReadChapter2}
@@ -505,7 +395,9 @@ export function StoryReader() {
             missReason={missReason}
             hintText={hintText}
             acceptedReason={acceptedReason}
-            onChange={setExplanation}
+            onChange={(value) =>
+              dispatchChallenge({ type: "setExplanation", explanation: value })
+            }
             onCheck={handleVocabCheck}
             onClose={closeVocabChallenge}
           />
@@ -518,7 +410,9 @@ export function StoryReader() {
             missReason={missReason}
             hintText={hintText}
             acceptedReason={acceptedReason}
-            onChange={setExplanation}
+            onChange={(value) =>
+              dispatchChallenge({ type: "setExplanation", explanation: value })
+            }
             onCheck={handleComprehensionCheck}
             onContinue={continueComprehension}
             onClose={closeComprehensionChallenge}
