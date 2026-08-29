@@ -1,7 +1,6 @@
-import type { EndingBeatView } from "@/components/story/EndingBeat";
-import type { ChallengePhase } from "@/components/story/VocabChallengeOverlay";
 import type { GradeAttempt } from "@/lib/grade/shared";
 import { MAX_ATTEMPTS, STORY_START_ID } from "@/lib/story-data";
+import type { ChallengePhase, EndingBeatView } from "@/lib/story/types";
 
 export const ENDING_PAGE_IDS = ["page-7a", "page-7b"] as const;
 

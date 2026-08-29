@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   challengeUiReducer,
   initialChallengeUi,
-} from "@/components/story/story-reader-state";
+} from "@/lib/story/reader-state";
 
 describe("challengeUiReducer", () => {
   it("restores reason, hint, and attempts after close then reopen", () => {

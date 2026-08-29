@@ -6,8 +6,9 @@ import { AnimatePresence, animate, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { type EndingBeatView } from "@/lib/story/types";
+
 export type EndingBeatPhase = "coloring" | "celebration";
-export type EndingBeatView = "beat" | "chapter2";
 
 type EndingBeatProps = {
   wordsLearned: number;

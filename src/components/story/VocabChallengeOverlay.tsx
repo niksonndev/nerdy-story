@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
 import { DictionaryScanLoader } from "@/components/story/loading/DictionaryScanLoader";
 import { type MysteryWord } from "@/lib/story-data";
-
-export type ChallengePhase = "prompt" | "waiting" | "accepted" | "reveal";
+import { type ChallengePhase } from "@/lib/story/types";
 
 type VocabChallengeOverlayProps = {
   open: boolean;

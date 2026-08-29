@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { ChallengeWaitingState } from '@/components/story/loading/ChallengeWaitingState';
 import { StoryPuzzleLoader } from '@/components/story/loading/StoryPuzzleLoader';
-import { type ChallengePhase } from '@/components/story/VocabChallengeOverlay';
+import { type ChallengePhase } from "@/lib/story/types";
 import { type ComprehensionChallenge } from '@/lib/story-data';
 
 type ComprehensionChallengeOverlayProps = {
