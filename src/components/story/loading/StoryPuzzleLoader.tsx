@@ -1,9 +1,9 @@
-const CREAM = '#FFF8E1';
-const INK = '#1E3A2B';
-const TEAL = '#4A8B8D';
-const HONEY = '#E0A938';
-const BLUE = '#5C7DA3';
-const SAGE = '#6B8E63';
+const CREAM = "#FFF8E1";
+const INK = "#1E3A2B";
+const TEAL = "#4A8B8D";
+const HONEY = "#E0A938";
+const BLUE = "#5C7DA3";
+const SAGE = "#6B8E63";
 
 const STROKE = 1.75;
 
@@ -14,28 +14,28 @@ const STROKE = 1.75;
 export function StoryPuzzleLoader() {
   return (
     <svg
-      viewBox='0 0 140 100'
-      className='h-full w-full drop-shadow-sm'
+      viewBox="0 0 140 100"
+      className="h-full w-full drop-shadow-sm"
       aria-hidden
     >
-      <g id='background'>
+      <g id="background">
         <rect
-          x='6'
-          y='6'
-          width='128'
-          height='88'
-          rx='18'
+          x="6"
+          y="6"
+          width="128"
+          height="88"
+          rx="18"
           fill={CREAM}
           stroke={INK}
           strokeWidth={STROKE}
-          strokeLinejoin='round'
+          strokeLinejoin="round"
         />
       </g>
 
       {/* Flat top + left; male knob on right + bottom */}
-      <g id='puzzle-piece-top-left' className='loader-puzzle-tl'>
+      <g id="puzzle-piece-top-left" className="loader-puzzle-tl">
         <path
-          d='
+          d="
             M 40 28
             Q 40 20 48 20
             L 70 20
@@ -49,19 +49,19 @@ export function StoryPuzzleLoader() {
             L 40 50
             L 40 28
             Z
-          '
+          "
           fill={TEAL}
           stroke={INK}
           strokeWidth={STROKE}
-          strokeLinejoin='round'
-          strokeLinecap='round'
+          strokeLinejoin="round"
+          strokeLinecap="round"
         />
       </g>
 
       {/* Flat top + right; female slot on left; male knob on bottom */}
-      <g id='puzzle-piece-top-right' className='loader-puzzle-tr'>
+      <g id="puzzle-piece-top-right" className="loader-puzzle-tr">
         <path
-          d='
+          d="
             M 70 20
             L 100 20
             Q 100 20 100 28
@@ -75,19 +75,19 @@ export function StoryPuzzleLoader() {
             C 79 33.2 70 33.2 70 30
             L 70 20
             Z
-          '
+          "
           fill={HONEY}
           stroke={INK}
           strokeWidth={STROKE}
-          strokeLinejoin='round'
-          strokeLinecap='round'
+          strokeLinejoin="round"
+          strokeLinecap="round"
         />
       </g>
 
       {/* Female slot on top; flat left + bottom; male knob on right */}
-      <g id='puzzle-piece-bottom-left' className='loader-puzzle-bl'>
+      <g id="puzzle-piece-bottom-left" className="loader-puzzle-bl">
         <path
-          d='
+          d="
             M 48 50
             C 52 50 52 54.8 55 54.8
             C 58 54.8 58 50 62 50
@@ -101,19 +101,19 @@ export function StoryPuzzleLoader() {
             L 40 50
             L 48 50
             Z
-          '
+          "
           fill={BLUE}
           stroke={INK}
           strokeWidth={STROKE}
-          strokeLinejoin='round'
-          strokeLinecap='round'
+          strokeLinejoin="round"
+          strokeLinecap="round"
         />
       </g>
 
       {/* Female slot on top + left; flat right + bottom */}
-      <g id='puzzle-piece-bottom-right' className='loader-puzzle-br'>
+      <g id="puzzle-piece-bottom-right" className="loader-puzzle-br">
         <path
-          d='
+          d="
             M 70 50
             L 78 50
             C 81 50 81 54.8 84 54.8
@@ -127,12 +127,12 @@ export function StoryPuzzleLoader() {
             C 79 59.2 70 59.2 70 56
             L 70 50
             Z
-          '
+          "
           fill={SAGE}
           stroke={INK}
           strokeWidth={STROKE}
-          strokeLinejoin='round'
-          strokeLinecap='round'
+          strokeLinejoin="round"
+          strokeLinecap="round"
         />
       </g>
     </svg>
