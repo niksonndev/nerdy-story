@@ -13,12 +13,13 @@ export function StoryReader() {
     pageId,
     beatSession,
     wordsLearned,
-    learnedWords,
+    learnedWordIds,
     resolvedWordIds,
     canAdvance,
     isLastPage,
     showEndingBeat,
     endingsExplored,
+    exploredEndingIds,
     endingView,
     activeWordId,
     activeComprehensionId,
@@ -38,6 +39,7 @@ export function StoryReader() {
     closeComprehensionChallenge,
     continueComprehension,
     handleReadAgain,
+    handleDiscoverAlternateEnding,
     handleReadChapter2,
     setExplanation,
   } = useStoryReader();
@@ -48,10 +50,12 @@ export function StoryReader() {
         <EndingBeat
           key={`${pageId}-${beatSession}`}
           wordsLearned={wordsLearned}
-          learnedWords={learnedWords}
+          learnedWordIds={learnedWordIds}
           endingsExplored={endingsExplored}
+          exploredEndingIds={exploredEndingIds}
           view={endingView}
           onReadAgain={handleReadAgain}
+          onDiscoverAlternateEnding={handleDiscoverAlternateEnding}
           onReadChapter2={handleReadChapter2}
         />
       ) : (

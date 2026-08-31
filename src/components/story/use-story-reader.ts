@@ -267,6 +267,12 @@ export function useStoryReader() {
     dispatchChallenge({ type: "reset" });
   }
 
+  function handleDiscoverAlternateEnding() {
+    pendingAdvanceId.current = null;
+    dispatchSession({ type: "jumpToBranch" });
+    dispatchChallenge({ type: "reset" });
+  }
+
   function handleReadChapter2() {
     dispatchSession({ type: "setEndingView", view: "chapter2" });
   }
@@ -316,11 +322,13 @@ export function useStoryReader() {
     beatSession,
     wordsLearned,
     learnedWords,
+    learnedWordIds,
     resolvedWordIds,
     canAdvance,
     isLastPage,
     showEndingBeat,
     endingsExplored: endingsExploredCount(exploredEndingIds),
+    exploredEndingIds,
     endingView,
     activeWordId,
     activeComprehensionId,
@@ -340,6 +348,7 @@ export function useStoryReader() {
     closeComprehensionChallenge,
     continueComprehension,
     handleReadAgain,
+    handleDiscoverAlternateEnding,
     handleReadChapter2,
     setExplanation,
   };

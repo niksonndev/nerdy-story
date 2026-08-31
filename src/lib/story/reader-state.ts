@@ -6,6 +6,11 @@ export const ENDING_PAGE_IDS = ["page-7a", "page-7b"] as const;
 
 export type EndingPageId = (typeof ENDING_PAGE_IDS)[number];
 
+export const BRANCH_PAGE_ID = "page-5";
+
+const PATH_SPECIFIC_WORD_IDS = ["lullaby", "shimmered"] as const;
+const PATH_SPECIFIC_COMPREHENSION_IDS = ["cozy-nap", "rainy-surprise"] as const;
+
 export const ENDING_MYSTERY_WORD: Record<EndingPageId, string> = {
   "page-7a": "lullaby",
   "page-7b": "shimmered",
@@ -50,7 +55,8 @@ export type StorySessionAction =
       exploredEndingIds: string[];
       endingView: EndingBeatView;
     }
-  | { type: "readAgain" };
+  | { type: "readAgain" }
+  | { type: "jumpToBranch" };
 
 function appendUnique(ids: string[], id: string): string[] {
   return ids.includes(id) ? ids : [...ids, id];
@@ -116,6 +122,25 @@ export function storySessionReducer(
     case "readAgain":
       return {
         ...initialStorySession,
+        beatSession: state.beatSession + 1,
+      };
+    case "jumpToBranch":
+      return {
+        ...state,
+        pageId: BRANCH_PAGE_ID,
+        endingView: "beat",
+        resolvedWordIds: state.resolvedWordIds.filter(
+          (id) =>
+            !PATH_SPECIFIC_WORD_IDS.includes(
+              id as (typeof PATH_SPECIFIC_WORD_IDS)[number],
+            ),
+        ),
+        resolvedComprehensionIds: state.resolvedComprehensionIds.filter(
+          (id) =>
+            !PATH_SPECIFIC_COMPREHENSION_IDS.includes(
+              id as (typeof PATH_SPECIFIC_COMPREHENSION_IDS)[number],
+            ),
+        ),
         beatSession: state.beatSession + 1,
       };
   }

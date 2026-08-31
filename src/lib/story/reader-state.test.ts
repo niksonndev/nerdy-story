@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BRANCH_PAGE_ID,
   challengeUiReducer,
   initialChallengeUi,
+  initialStorySession,
+  storySessionReducer,
 } from "@/lib/story/reader-state";
 
 describe("challengeUiReducer", () => {
@@ -163,5 +166,29 @@ describe("challengeUiReducer", () => {
     expect(state.attempts).toBe(0);
     expect(state.missReason).toBeNull();
     expect(state.hintText).toBeNull();
+  });
+});
+
+describe("storySessionReducer", () => {
+  it("jumpToBranch preserves learned words and explored endings while clearing path-specific progress", () => {
+    const state = {
+      ...initialStorySession,
+      pageId: "page-7a",
+      learnedWordIds: ["shelter", "snug", "lullaby"],
+      exploredEndingIds: ["page-7a"],
+      resolvedWordIds: ["shelter", "snug", "lullaby"],
+      resolvedComprehensionIds: ["find-shelter", "cozy-nap"],
+      beatSession: 2,
+    };
+
+    const next = storySessionReducer(state, { type: "jumpToBranch" });
+
+    expect(next.pageId).toBe(BRANCH_PAGE_ID);
+    expect(next.endingView).toBe("beat");
+    expect(next.learnedWordIds).toEqual(["shelter", "snug", "lullaby"]);
+    expect(next.exploredEndingIds).toEqual(["page-7a"]);
+    expect(next.resolvedWordIds).toEqual(["shelter", "snug"]);
+    expect(next.resolvedComprehensionIds).toEqual(["find-shelter"]);
+    expect(next.beatSession).toBe(3);
   });
 });
