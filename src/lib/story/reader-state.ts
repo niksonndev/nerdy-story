@@ -8,8 +8,30 @@ export type EndingPageId = (typeof ENDING_PAGE_IDS)[number];
 
 export const BRANCH_PAGE_ID = "page-5";
 
+const PATH_PAGE_IDS = ["page-6a", "page-6b"] as const;
+
 const PATH_SPECIFIC_WORD_IDS = ["lullaby", "shimmered"] as const;
 const PATH_SPECIFIC_COMPREHENSION_IDS = ["cozy-nap", "rainy-surprise"] as const;
+
+function withoutPathSpecificProgress(state: StorySessionState): Pick<
+  StorySessionState,
+  "resolvedWordIds" | "resolvedComprehensionIds"
+> {
+  return {
+    resolvedWordIds: state.resolvedWordIds.filter(
+      (id) =>
+        !PATH_SPECIFIC_WORD_IDS.includes(
+          id as (typeof PATH_SPECIFIC_WORD_IDS)[number],
+        ),
+    ),
+    resolvedComprehensionIds: state.resolvedComprehensionIds.filter(
+      (id) =>
+        !PATH_SPECIFIC_COMPREHENSION_IDS.includes(
+          id as (typeof PATH_SPECIFIC_COMPREHENSION_IDS)[number],
+        ),
+    ),
+  };
+}
 
 export const ENDING_MYSTERY_WORD: Record<EndingPageId, string> = {
   "page-7a": "lullaby",
@@ -23,6 +45,7 @@ export const DEFAULT_LEARNED_WORD_IDS: Record<EndingPageId, string[]> = {
 
 export type StorySessionState = {
   pageId: string;
+  pageHistory: string[];
   learnedWordIds: string[];
   exploredEndingIds: string[];
   endingView: EndingBeatView;
@@ -33,6 +56,7 @@ export type StorySessionState = {
 
 export const initialStorySession: StorySessionState = {
   pageId: STORY_START_ID,
+  pageHistory: [],
   learnedWordIds: [],
   exploredEndingIds: [],
   endingView: "beat",
@@ -43,6 +67,7 @@ export const initialStorySession: StorySessionState = {
 
 export type StorySessionAction =
   | { type: "goToPage"; pageId: string }
+  | { type: "goToPreviousPage" }
   | { type: "resolveWord"; wordId: string }
   | { type: "acceptWord"; wordId: string }
   | { type: "resolveComprehension"; challengeId: string }
@@ -67,8 +92,27 @@ export function storySessionReducer(
   action: StorySessionAction,
 ): StorySessionState {
   switch (action.type) {
-    case "goToPage":
-      return { ...state, pageId: action.pageId };
+    case "goToPage": {
+      const leavingBranchForPath =
+        state.pageId === BRANCH_PAGE_ID &&
+        PATH_PAGE_IDS.includes(
+          action.pageId as (typeof PATH_PAGE_IDS)[number],
+        );
+      return {
+        ...state,
+        ...(leavingBranchForPath
+          ? withoutPathSpecificProgress(state)
+          : {}),
+        pageHistory: [...state.pageHistory, state.pageId],
+        pageId: action.pageId,
+      };
+    }
+    case "goToPreviousPage": {
+      if (state.pageHistory.length === 0) return state;
+      const pageHistory = state.pageHistory.slice(0, -1);
+      const pageId = state.pageHistory[state.pageHistory.length - 1]!;
+      return { ...state, pageId, pageHistory };
+    }
     case "resolveWord":
       return {
         ...state,
@@ -108,6 +152,7 @@ export function storySessionReducer(
       return {
         ...state,
         pageId: action.pageId,
+        pageHistory: [],
         learnedWordIds: action.learnedWordIds,
         exploredEndingIds: action.exploredEndingIds,
         resolvedWordIds: [ENDING_MYSTERY_WORD[action.pageId]],
@@ -128,19 +173,9 @@ export function storySessionReducer(
       return {
         ...state,
         pageId: BRANCH_PAGE_ID,
+        pageHistory: [],
         endingView: "beat",
-        resolvedWordIds: state.resolvedWordIds.filter(
-          (id) =>
-            !PATH_SPECIFIC_WORD_IDS.includes(
-              id as (typeof PATH_SPECIFIC_WORD_IDS)[number],
-            ),
-        ),
-        resolvedComprehensionIds: state.resolvedComprehensionIds.filter(
-          (id) =>
-            !PATH_SPECIFIC_COMPREHENSION_IDS.includes(
-              id as (typeof PATH_SPECIFIC_COMPREHENSION_IDS)[number],
-            ),
-        ),
+        ...withoutPathSpecificProgress(state),
         beatSession: state.beatSession + 1,
       };
   }

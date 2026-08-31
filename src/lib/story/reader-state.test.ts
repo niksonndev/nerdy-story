@@ -174,6 +174,7 @@ describe("storySessionReducer", () => {
     const state = {
       ...initialStorySession,
       pageId: "page-7a",
+      pageHistory: ["page-1", "page-5", "page-6a"],
       learnedWordIds: ["shelter", "snug", "lullaby"],
       exploredEndingIds: ["page-7a"],
       resolvedWordIds: ["shelter", "snug", "lullaby"],
@@ -184,11 +185,143 @@ describe("storySessionReducer", () => {
     const next = storySessionReducer(state, { type: "jumpToBranch" });
 
     expect(next.pageId).toBe(BRANCH_PAGE_ID);
+    expect(next.pageHistory).toEqual([]);
     expect(next.endingView).toBe("beat");
     expect(next.learnedWordIds).toEqual(["shelter", "snug", "lullaby"]);
     expect(next.exploredEndingIds).toEqual(["page-7a"]);
     expect(next.resolvedWordIds).toEqual(["shelter", "snug"]);
     expect(next.resolvedComprehensionIds).toEqual(["find-shelter"]);
     expect(next.beatSession).toBe(3);
+  });
+
+  it("goToPage appends the prior page to pageHistory", () => {
+    const next = storySessionReducer(initialStorySession, {
+      type: "goToPage",
+      pageId: "page-2",
+    });
+
+    expect(next.pageId).toBe("page-2");
+    expect(next.pageHistory).toEqual(["page-1"]);
+  });
+
+  it("goToPreviousPage restores the prior page and shrinks history", () => {
+    let state = storySessionReducer(initialStorySession, {
+      type: "goToPage",
+      pageId: "page-2",
+    });
+    state = storySessionReducer(state, { type: "goToPage", pageId: "page-3" });
+
+    expect(state.pageId).toBe("page-3");
+    expect(state.pageHistory).toEqual(["page-1", "page-2"]);
+
+    state = storySessionReducer(state, { type: "goToPreviousPage" });
+
+    expect(state.pageId).toBe("page-2");
+    expect(state.pageHistory).toEqual(["page-1"]);
+  });
+
+  it("goToPreviousPage is a no-op when history is empty", () => {
+    const next = storySessionReducer(initialStorySession, {
+      type: "goToPreviousPage",
+    });
+
+    expect(next).toEqual(initialStorySession);
+  });
+
+  it("readAgain clears pageHistory", () => {
+    let state = storySessionReducer(initialStorySession, {
+      type: "goToPage",
+      pageId: "page-2",
+    });
+    state = storySessionReducer(state, { type: "goToPage", pageId: "page-3" });
+
+    const next = storySessionReducer(state, { type: "readAgain" });
+
+    expect(next.pageId).toBe("page-1");
+    expect(next.pageHistory).toEqual([]);
+    expect(next.beatSession).toBe(1);
+  });
+
+  it("walking back from a branch path restores earlier pages via history", () => {
+    let state = initialStorySession;
+    for (const pageId of [
+      "page-2",
+      "page-3",
+      "page-4",
+      "page-5",
+      "page-6a",
+    ]) {
+      state = storySessionReducer(state, { type: "goToPage", pageId });
+    }
+
+    expect(state.pageId).toBe("page-6a");
+    expect(state.pageHistory).toEqual([
+      "page-1",
+      "page-2",
+      "page-3",
+      "page-4",
+      "page-5",
+    ]);
+
+    state = storySessionReducer(state, { type: "goToPreviousPage" });
+    expect(state.pageId).toBe("page-5");
+
+    state = storySessionReducer(state, { type: "goToPreviousPage" });
+    expect(state.pageId).toBe("page-4");
+
+    state = storySessionReducer(state, { type: "goToPreviousPage" });
+    expect(state.pageId).toBe("page-3");
+    expect(state.pageHistory).toEqual(["page-1", "page-2"]);
+  });
+
+  it("leaving page-5 for a path clears path-specific progress but keeps shared progress", () => {
+    const state = {
+      ...initialStorySession,
+      pageId: BRANCH_PAGE_ID,
+      pageHistory: ["page-1", "page-2", "page-3", "page-4"],
+      learnedWordIds: ["shelter", "snug", "lullaby"],
+      exploredEndingIds: ["page-7a"],
+      resolvedWordIds: ["shelter", "snug", "lullaby"],
+      resolvedComprehensionIds: ["find-shelter", "cozy-nap"],
+    };
+
+    const next = storySessionReducer(state, {
+      type: "goToPage",
+      pageId: "page-6b",
+    });
+
+    expect(next.pageId).toBe("page-6b");
+    expect(next.pageHistory).toEqual([
+      "page-1",
+      "page-2",
+      "page-3",
+      "page-4",
+      "page-5",
+    ]);
+    expect(next.resolvedWordIds).toEqual(["shelter", "snug"]);
+    expect(next.resolvedComprehensionIds).toEqual(["find-shelter"]);
+    expect(next.learnedWordIds).toEqual(["shelter", "snug", "lullaby"]);
+    expect(next.exploredEndingIds).toEqual(["page-7a"]);
+  });
+
+  it("goToPage between non-branch pages does not clear path-specific progress", () => {
+    const state = {
+      ...initialStorySession,
+      pageId: "page-6a",
+      pageHistory: ["page-5"],
+      resolvedWordIds: ["shelter", "snug", "lullaby"],
+      resolvedComprehensionIds: ["find-shelter", "cozy-nap"],
+    };
+
+    const next = storySessionReducer(state, {
+      type: "goToPage",
+      pageId: "page-7a",
+    });
+
+    expect(next.resolvedWordIds).toEqual(["shelter", "snug", "lullaby"]);
+    expect(next.resolvedComprehensionIds).toEqual([
+      "find-shelter",
+      "cozy-nap",
+    ]);
   });
 });
