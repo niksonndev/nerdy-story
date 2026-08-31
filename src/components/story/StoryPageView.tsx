@@ -107,7 +107,7 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
           className={cn(
             "relative z-10 flex w-full flex-none flex-col",
             // Tablet: centered story card (~600–700px)
-            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
+            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-150 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
             // Desktop: wider book card (~800–900px)
             "lg:max-w-225",
             "origin-center will-change-transform",
