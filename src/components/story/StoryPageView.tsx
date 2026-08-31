@@ -21,9 +21,11 @@ type StoryPageViewProps = {
   wordsLearned: number;
   resolvedWordIds: string[];
   canAdvance: boolean;
+  canGoBack: boolean;
   isLastPage: boolean;
   onMysteryClick: (wordId: string) => void;
   onChoosePath: (nextPageId: string) => void;
+  onPreviousPage: () => void;
   /** Return false to block the page turn (e.g. open comprehension first). */
   onBeforeNextPage?: (nextPageId: string) => boolean;
 };
@@ -33,6 +35,7 @@ export type StoryPageViewHandle = {
 };
 
 type PageTurnPhase = "idle" | "exit" | "enter";
+type PageTurnDirection = "forward" | "back";
 
 const PAGE_TURN_MS = 350;
 
@@ -43,16 +46,26 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
       wordsLearned,
       resolvedWordIds,
       canAdvance,
+      canGoBack,
       isLastPage,
       onMysteryClick,
       onChoosePath,
+      onPreviousPage,
       onBeforeNextPage,
     },
     ref,
   ) {
     const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
+    const [turnDirection, setTurnDirection] =
+      useState<PageTurnDirection>("forward");
     const pendingPageId = useRef<string | null>(null);
+    const pendingRetreat = useRef(false);
     const advancePage = useEffectEvent(() => {
+      if (pendingRetreat.current) {
+        pendingRetreat.current = false;
+        onPreviousPage();
+        return;
+      }
       const nextId = pendingPageId.current;
       pendingPageId.current = null;
       if (nextId) onChoosePath(nextId);
@@ -77,7 +90,17 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
 
     function requestAdvance(nextPageId: string) {
       if (turnPhase !== "idle" || !canAdvance) return;
+      pendingRetreat.current = false;
       pendingPageId.current = nextPageId;
+      setTurnDirection("forward");
+      setTurnPhase("exit");
+    }
+
+    function requestRetreat() {
+      if (turnPhase !== "idle" || !canGoBack) return;
+      pendingPageId.current = null;
+      pendingRetreat.current = true;
+      setTurnDirection("back");
       setTurnPhase("exit");
     }
 
@@ -94,6 +117,7 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
     }
 
     const progressionReady = canAdvance && turnPhase === "idle";
+    const previousReady = canGoBack && turnPhase === "idle";
 
     return (
       <div className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden">
@@ -107,14 +131,22 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
           className={cn(
             "relative z-10 flex w-full flex-none flex-col",
             // Tablet: centered story card (~600–700px)
-            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-150 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
+            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
             // Desktop: wider book card (~800–900px)
             "lg:max-w-225",
             "origin-center will-change-transform",
             turnPhase === "exit" &&
+              turnDirection === "forward" &&
               "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
+            turnPhase === "exit" &&
+              turnDirection === "back" &&
+              "translate-x-[12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
             turnPhase === "enter" &&
+              turnDirection === "forward" &&
               "translate-x-[12%] opacity-0 transition-none",
+            turnPhase === "enter" &&
+              turnDirection === "back" &&
+              "translate-x-[-12%] opacity-0 transition-none",
             turnPhase === "idle" &&
               "translate-x-0 scale-100 opacity-100 transition-[opacity,transform] duration-350 ease-out",
           )}
@@ -166,9 +198,12 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
                 page={page}
                 isLastPage={isLastPage}
                 canAdvance={progressionReady}
+                canGoBack={canGoBack}
+                previousDisabled={!previousReady}
                 onNextPage={handleNextPage}
+                onPreviousPage={requestRetreat}
                 onChoosePath={requestAdvance}
-                className="relative z-10 mt-6 flex w-full sm:mt-auto sm:justify-end sm:pt-8"
+                className="relative z-10 mt-6 flex w-full sm:mt-auto sm:pt-8"
               />
             </div>
           </div>
@@ -182,37 +217,65 @@ function PageProgression({
   page,
   isLastPage,
   canAdvance,
+  canGoBack,
+  previousDisabled,
   onNextPage,
+  onPreviousPage,
   onChoosePath,
   className,
 }: {
   page: StoryPage;
   isLastPage: boolean;
   canAdvance: boolean;
+  canGoBack: boolean;
+  previousDisabled: boolean;
   onNextPage: () => void;
+  onPreviousPage: () => void;
   onChoosePath: (nextPageId: string) => void;
   className?: string;
 }) {
+  const previousButton = canGoBack ? (
+    <Button
+      size="kid"
+      variant="outline"
+      className="w-full min-h-14 sm:w-auto"
+      onClick={onPreviousPage}
+      disabled={previousDisabled}
+      aria-label="Previous Page"
+    >
+      Previous Page
+    </Button>
+  ) : null;
+
   if (page.choice) {
     return (
-      <BranchChoice
-        choice={page.choice}
-        disabled={!canAdvance}
-        onChoose={onChoosePath}
-        className={className}
-      />
+      <div className={cn("flex w-full flex-col gap-3", className)}>
+        {previousButton}
+        <BranchChoice
+          choice={page.choice}
+          disabled={!canAdvance}
+          onChoose={onChoosePath}
+        />
+      </div>
     );
   }
 
   if (isLastPage) {
-    return null;
+    if (!previousButton) return null;
+    return <div className={className}>{previousButton}</div>;
   }
 
   return (
-    <div className={className}>
+    <div
+      className={cn(
+        "flex w-full flex-col gap-3 sm:flex-row sm:justify-between",
+        className,
+      )}
+    >
+      {previousButton ?? <span className="hidden sm:block" />}
       <Button
         size="kid"
-        className="w-full min-h-14 sm:w-auto"
+        className="w-full min-h-14 sm:w-auto sm:ml-auto"
         onClick={onNextPage}
         disabled={!canAdvance}
         aria-label="Next Page"

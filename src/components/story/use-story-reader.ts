@@ -57,6 +57,7 @@ export function useStoryReader() {
 
   const {
     pageId,
+    pageHistory,
     learnedWordIds,
     exploredEndingIds,
     endingView,
@@ -84,6 +85,10 @@ export function useStoryReader() {
   const activeWordId = challengeKind === "vocab" ? challengeId : null;
   const activeComprehensionId =
     challengeKind === "comprehension" ? challengeId : null;
+  const canGoBack =
+    pageHistory.length > 0 &&
+    activeWordId === null &&
+    activeComprehensionId === null;
   const showEndingBeat =
     isLastPage &&
     canAdvance &&
@@ -248,6 +253,12 @@ export function useStoryReader() {
     dispatchSession({ type: "goToPage", pageId: nextPageId });
   }
 
+  function goToPreviousPage() {
+    if (!canGoBack) return;
+    pendingAdvanceId.current = null;
+    dispatchSession({ type: "goToPreviousPage" });
+  }
+
   function handleBeforeNextPage(nextPageId: string): boolean {
     const comprehensionId = page.comprehensionId;
     if (
@@ -325,6 +336,7 @@ export function useStoryReader() {
     learnedWordIds,
     resolvedWordIds,
     canAdvance,
+    canGoBack,
     isLastPage,
     showEndingBeat,
     endingsExplored: endingsExploredCount(exploredEndingIds),
@@ -341,6 +353,7 @@ export function useStoryReader() {
     acceptedReason,
     openVocabChallenge,
     goToPage,
+    goToPreviousPage,
     handleBeforeNextPage,
     handleVocabCheck,
     handleComprehensionCheck,

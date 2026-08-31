@@ -16,6 +16,7 @@ export function StoryReader() {
     learnedWordIds,
     resolvedWordIds,
     canAdvance,
+    canGoBack,
     isLastPage,
     showEndingBeat,
     endingsExplored,
@@ -32,6 +33,7 @@ export function StoryReader() {
     acceptedReason,
     openVocabChallenge,
     goToPage,
+    goToPreviousPage,
     handleBeforeNextPage,
     handleVocabCheck,
     handleComprehensionCheck,
@@ -66,9 +68,11 @@ export function StoryReader() {
             wordsLearned={wordsLearned}
             resolvedWordIds={resolvedWordIds}
             canAdvance={canAdvance}
+            canGoBack={canGoBack}
             isLastPage={isLastPage}
             onMysteryClick={openVocabChallenge}
             onChoosePath={goToPage}
+            onPreviousPage={goToPreviousPage}
             onBeforeNextPage={handleBeforeNextPage}
           />
 
