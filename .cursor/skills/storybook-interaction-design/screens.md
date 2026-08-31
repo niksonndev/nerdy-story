@@ -12,28 +12,29 @@ StoryPage (read; mystery word highlighted)
 StoryPage → NextPage
   → if unresolved comprehension on this page → ComprehensionChallenge overlay (does not turn page yet)
   → else → next story page
+StoryPage → PreviousPage → prior page in visit history (no vocab gate; blocked while overlay open)
 ComprehensionChallenge → GradingWait → WhyFeedback
   accepted → success why; Keep going → close + auto-advance to next page (no words-learned bump)
   rejected (retries left) → stay; Try another idea + reason + hint
   grade HTTP failed (retries left) → burn attempt; fixed reason + story hint
   retry limit → AnswerReveal → Got it → close + auto-advance
-StoryPage → BranchChoice → (path continues)
+StoryPage → BranchChoice → (path continues; re-choice clears path-specific progress)
 StoryPage → ClosingBeat
 ```
 
 ## Story page
 
-**Job:** Read this page. Primary action is **Next Page** when progression is allowed.
+**Job:** Read this page. Primary action is **Next Page** when progression is allowed. Secondary action is **Previous Page** when visit history exists.
 
 **Mystery words:** Visually highlighted in the story text. Encountering one opens the vocab challenge overlay; the story page remains underneath.
 
-**After a vocab challenge:** Overlay closes; child is back on this same page. Next Page is available once that page’s mystery words are resolved.
+**After a vocab challenge:** Overlay closes; child is back on this same page. Next Page is available once that page’s mystery words are resolved. Previous Page does not require vocab resolution.
 
 **Comprehension:** Not opened on page enter. First **Next Page** press opens the comprehension overlay when the page has an unresolved `comprehensionId`. After resolve, Keep going / Got it advances the story.
 
-**Copy:** Story text is pre-written. Progression chrome is **Next Page** — not “Continue”, “Next”, or “Skip”.
+**Copy:** Story text is pre-written. Progression chrome is **Next Page** / **Previous Page** — not “Continue”, “Next”, “Back”, or “Skip”.
 
-**Do not:** Multiple competing CTAs. Do not auto-open comprehension on page load. Do not auto-advance from vocab overlays.
+**Do not:** Multiple competing primary CTAs. Do not auto-open comprehension on page load. Do not auto-advance from vocab overlays. Do not show Previous Page on the first page or while a challenge overlay is open.
 
 ## Vocab challenge
 
@@ -105,7 +106,9 @@ StoryPage → ClosingBeat
 
 **Job:** Pick a story fork — “what if I’d chosen differently?” Both paths equally valid. Not a comprehension test.
 
-**Primary:** Two equal-weight choice controls (≥56px height, generous width). Short prompt above (“What do you do?” / story-appropriate).
+**Primary:** Two equal-weight choice controls (≥56px height, generous width). Short prompt above (“What do you do?” / story-appropriate). **Previous Page** may appear above the choices when history exists (secondary).
+
+**Path re-choice:** If the child returns via Previous Page (or Discover alternate ending) and picks a path again, clear path-specific vocab/comprehension progress so that path starts clean. Keep shared progress, words learned, and explored endings.
 
 **Copy:** Story options, not quiz stems.
 
