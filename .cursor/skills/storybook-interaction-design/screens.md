@@ -32,7 +32,9 @@ StoryPage → ClosingBeat
 
 **Comprehension:** Not opened on page enter. First **Next Page** press opens the comprehension overlay when the page has an unresolved `comprehensionId`. After resolve, Keep going / Got it advances the story.
 
-**Copy:** Story text is pre-written. Progression chrome is **Next Page** / **Previous Page** — not “Continue”, “Next”, “Back”, or “Skip”.
+**Previous placement (reading pages):** Mobile — split bottom bar pinned to the bottom of the viewport: ghost ← (~25%) + primary **Next Page** (~75%). sm+ — outline **Previous Page** + **Next Page** in the bottom row. Decision pages: see Branch choice (Back floats on the illustration, not in the text card).
+
+**Copy:** Story text is pre-written. Progression chrome is **Next Page** / **Previous Page** — not “Continue”, “Next”, or “Skip”. **← Back** is allowed only as quiet decision-page chrome (not a primary CTA).
 
 **Do not:** Multiple competing primary CTAs. Do not auto-open comprehension on page load. Do not auto-advance from vocab overlays. Do not show Previous Page on the first page or while a challenge overlay is open.
 
@@ -106,13 +108,15 @@ StoryPage → ClosingBeat
 
 **Job:** Pick a story fork — “what if I’d chosen differently?” Both paths equally valid. Not a comprehension test.
 
-**Primary:** Two equal-weight choice controls (≥56px height, generous width). Short prompt above (“What do you do?” / story-appropriate). **Previous Page** may appear above the choices when history exists (secondary).
+**Primary:** Two equal-weight choice controls (≥56px height, generous width). Short prompt above (“What do you do?” / story-appropriate). Do **not** put Previous in the footer above the choices.
 
-**Path re-choice:** If the child returns via Previous Page (or Discover alternate ending) and picks a path again, clear path-specific vocab/comprehension progress so that path starts clean. Keep shared progress, words learned, and explored endings.
+**Back chrome (when history exists):** Subtle control floating top-left over the illustration (mobile ← chevron; sm+ **← Back**). Keeps the text card free for story + choices. Secondary only; must not compete with the branch CTAs.
 
-**Copy:** Story options, not quiz stems.
+**Path re-choice:** If the child returns via Previous/Back (or Discover alternate ending) and picks a path again, clear path-specific vocab/comprehension progress so that path starts clean. Keep shared progress, words learned, and explored endings.
 
-**Do not:** Gating on “right” choice, more than two options, tiny text links.
+**Copy:** Story options, not quiz stems. Quiet **← Back** for decision chrome only.
+
+**Do not:** Gating on “right” choice, more than two options, full-width Previous stacked above the branch CTAs.
 
 ## Closing beat
 
