@@ -7,8 +7,10 @@ import {
   useImperativeHandle,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
 
 import { BranchChoice } from "@/components/story/BranchChoice";
@@ -118,10 +120,27 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
 
     const progressionReady = canAdvance && turnPhase === "idle";
     const previousReady = canGoBack && turnPhase === "idle";
+    const isDecision = Boolean(page.choice);
+    const showDecisionBack = isDecision && canGoBack;
+    const previousDisabled = !previousReady;
 
     return (
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden">
+      <div
+        className={cn(
+          "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
+          // Reading pages: fill the phone viewport so the split bar can sit at the bottom
+          !isDecision && "max-sm:h-dvh max-sm:overflow-y-hidden",
+        )}
+      >
         <SceneAtmosphere />
+
+        {/* Mobile: glass chip floats top-center over the scene (stable across page turns) */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-5 pt-[max(0.75rem,env(safe-area-inset-top))] sm:hidden">
+          <WordsLearned
+            count={wordsLearned}
+            className="pointer-events-auto bg-card/55 shadow-sm ring-1 ring-foreground/10 backdrop-blur-md"
+          />
+        </div>
 
         <div className="relative z-10 hidden justify-center px-5 pt-4 sm:flex sm:pt-6">
           <WordsLearned count={wordsLearned} />
@@ -129,10 +148,10 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
 
         <article
           className={cn(
-            "relative z-10 flex w-full flex-none flex-col",
-            // Tablet: centered story card (~600–700px)
-            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:overflow-hidden sm:rounded-3xl sm:bg-card",
-            // Desktop: wider book card (~800–900px)
+            "relative z-10 flex w-full flex-col",
+            isDecision ? "flex-none" : "min-h-0 max-sm:flex-1",
+            // Tablet: narrower stacked book card (~700px); desktop widens (~900px)
+            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
             "lg:max-w-225",
             "origin-center will-change-transform",
             turnPhase === "exit" &&
@@ -154,44 +173,68 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
           <div
             className={cn(
               "flex flex-col",
-              // Tablet: image | text side-by-side; items-start keeps image sized by aspect-ratio
-              "sm:flex-row sm:items-start",
-              // Desktop: stacked banner → text
-              "lg:flex-col",
+              !isDecision && "min-h-0 max-sm:flex-1",
             )}
           >
-            <SceneImage src={page.image} alt={page.title} />
+            <SceneImage
+              src={page.image}
+              alt={page.title}
+              backControl={
+                showDecisionBack ? (
+                  <>
+                    <PreviousControl
+                      variant="ghostIcon"
+                      disabled={previousDisabled}
+                      onClick={requestRetreat}
+                      className="absolute top-3 left-3 z-20 sm:hidden"
+                    />
+                    <PreviousControl
+                      variant="backLink"
+                      disabled={previousDisabled}
+                      onClick={requestRetreat}
+                      className="absolute top-3 left-3 z-20 hidden sm:inline-flex"
+                    />
+                  </>
+                ) : null
+              }
+            />
 
             <div
               className={cn(
-                "flex min-w-0 flex-col px-5 pb-8 pt-6",
-                "sm:flex-1 sm:px-6 sm:pb-6 sm:pt-6",
-                "lg:flex-none lg:px-10 lg:pb-8 lg:pt-8",
+                "flex min-w-0 flex-col px-5 pt-6",
+                !isDecision && "min-h-0 max-sm:flex-1 max-sm:pb-0",
+                isDecision && "pb-8",
+                "sm:flex-none sm:px-10 sm:pb-8 sm:pt-8",
               )}
             >
-              <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
-                {page.title}
-              </h1>
+              <div
+                className={cn(
+                  !isDecision &&
+                    "flex flex-col max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto",
+                )}
+              >
+                <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
+                  {page.title}
+                </h1>
 
-              <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
-                {page.segments.map((segment, index) => {
-                  if (segment.type === "mystery") {
-                    const isResolved = resolvedWordIds.includes(segment.wordId);
-                    return (
-                      <MysteryWord
-                        key={index}
-                        label={segment.content}
-                        resolved={isResolved}
-                        onClick={() => onMysteryClick(segment.wordId)}
-                      />
-                    );
-                  }
-                  return <span key={index}>{segment.content}</span>;
-                })}
-              </p>
-
-              <div className="relative z-10 mt-8 self-center sm:hidden">
-                <WordsLearned count={wordsLearned} />
+                <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
+                  {page.segments.map((segment, index) => {
+                    if (segment.type === "mystery") {
+                      const isResolved = resolvedWordIds.includes(
+                        segment.wordId,
+                      );
+                      return (
+                        <MysteryWord
+                          key={index}
+                          label={segment.content}
+                          resolved={isResolved}
+                          onClick={() => onMysteryClick(segment.wordId)}
+                        />
+                      );
+                    }
+                    return <span key={index}>{segment.content}</span>;
+                  })}
+                </p>
               </div>
 
               <PageProgression
@@ -199,11 +242,16 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
                 isLastPage={isLastPage}
                 canAdvance={progressionReady}
                 canGoBack={canGoBack}
-                previousDisabled={!previousReady}
+                previousDisabled={previousDisabled}
                 onNextPage={handleNextPage}
                 onPreviousPage={requestRetreat}
                 onChoosePath={requestAdvance}
-                className="relative z-10 mt-6 flex w-full sm:mt-auto sm:pt-8"
+                className={cn(
+                  "relative z-10 mt-6 flex w-full",
+                  !isDecision &&
+                    "max-sm:mt-auto max-sm:shrink-0 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-4",
+                  "sm:mt-auto sm:pt-8",
+                )}
               />
             </div>
           </div>
@@ -212,6 +260,71 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
     );
   },
 );
+
+function PreviousControl({
+  variant,
+  disabled,
+  onClick,
+  className,
+}: {
+  variant: "ghostIcon" | "outline" | "backLink";
+  disabled: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  if (variant === "ghostIcon") {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "size-14 shrink-0 rounded-2xl bg-card/80 text-foreground shadow-sm backdrop-blur-sm",
+          "hover:bg-card/90",
+          className,
+        )}
+        onClick={onClick}
+        disabled={disabled}
+        aria-label="Previous Page"
+      >
+        <ChevronLeft className="size-6" aria-hidden />
+      </Button>
+    );
+  }
+
+  if (variant === "backLink") {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        className={cn(
+          "h-11 w-fit gap-1 rounded-2xl bg-card/80 px-3 font-heading text-base font-semibold text-foreground shadow-sm backdrop-blur-sm",
+          "hover:bg-card/90 hover:text-foreground",
+          className,
+        )}
+        onClick={onClick}
+        disabled={disabled}
+        aria-label="Previous Page"
+      >
+        <ChevronLeft className="size-5" aria-hidden />
+        Back
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      size="kid"
+      variant="outline"
+      className={cn("min-h-14 w-auto", className)}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label="Previous Page"
+    >
+      Previous Page
+    </Button>
+  );
+}
 
 function PageProgression({
   page,
@@ -234,23 +347,9 @@ function PageProgression({
   onChoosePath: (nextPageId: string) => void;
   className?: string;
 }) {
-  const previousButton = canGoBack ? (
-    <Button
-      size="kid"
-      variant="outline"
-      className="w-full min-h-14 sm:w-auto"
-      onClick={onPreviousPage}
-      disabled={previousDisabled}
-      aria-label="Previous Page"
-    >
-      Previous Page
-    </Button>
-  ) : null;
-
   if (page.choice) {
     return (
       <div className={cn("flex w-full flex-col gap-3", className)}>
-        {previousButton}
         <BranchChoice
           choice={page.choice}
           disabled={!canAdvance}
@@ -261,21 +360,54 @@ function PageProgression({
   }
 
   if (isLastPage) {
-    if (!previousButton) return null;
-    return <div className={className}>{previousButton}</div>;
+    if (!canGoBack) return null;
+    return (
+      <div className={cn("flex w-full items-center", className)}>
+        <PreviousControl
+          variant="ghostIcon"
+          disabled={previousDisabled}
+          onClick={onPreviousPage}
+          className="sm:hidden"
+        />
+        <PreviousControl
+          variant="outline"
+          disabled={previousDisabled}
+          onClick={onPreviousPage}
+          className="hidden sm:inline-flex"
+        />
+      </div>
+    );
   }
 
   return (
     <div
       className={cn(
-        "flex w-full flex-col gap-3 sm:flex-row sm:justify-between",
+        "flex w-full flex-row items-center gap-3",
+        "sm:justify-between",
         className,
       )}
     >
-      {previousButton ?? <span className="hidden sm:block" />}
+      {canGoBack ? (
+        <>
+          <PreviousControl
+            variant="ghostIcon"
+            disabled={previousDisabled}
+            onClick={onPreviousPage}
+            className="sm:hidden"
+          />
+          <PreviousControl
+            variant="outline"
+            disabled={previousDisabled}
+            onClick={onPreviousPage}
+            className="hidden sm:inline-flex"
+          />
+        </>
+      ) : (
+        <span className="hidden sm:block" />
+      )}
       <Button
         size="kid"
-        className="w-full min-h-14 sm:w-auto sm:ml-auto"
+        className="min-h-14 flex-1 sm:ml-auto sm:w-auto sm:flex-none"
         onClick={onNextPage}
         disabled={!canAdvance}
         aria-label="Next Page"
@@ -287,7 +419,15 @@ function PageProgression({
 }
 
 /** Scene block — aspect-ratio per responsive-layout; crops via object-cover. */
-function SceneImage({ src, alt }: { src?: string; alt: string }) {
+function SceneImage({
+  src,
+  alt,
+  backControl,
+}: {
+  src?: string;
+  alt: string;
+  backControl?: ReactNode;
+}) {
   return (
     <div
       className={cn(
@@ -295,10 +435,8 @@ function SceneImage({ src, alt }: { src?: string; alt: string }) {
         // Mobile only: 4/5, capped so title stays above the fold (max-sm avoids
         // fighting sm:max-h-none specificity with the arbitrary max-h value)
         "aspect-4/5 max-sm:max-h-[32vh]",
-        // Tablet: 1/1 left column — height from aspect-ratio, not stretched to text
-        "sm:aspect-square sm:h-auto sm:w-1/2 sm:self-start",
-        // Desktop: 3/1 banner strip at top of book card
-        "lg:aspect-3/1 lg:w-full",
+        // Tablet+desktop: 3/1 banner strip at top of book card
+        "sm:aspect-3/1 sm:h-auto sm:w-full",
       )}
     >
       {src ? (
@@ -307,10 +445,11 @@ function SceneImage({ src, alt }: { src?: string; alt: string }) {
           alt={alt}
           fill
           className="object-cover"
-          sizes="(min-width: 1024px) 900px, (min-width: 640px) 350px, 100vw"
+          sizes="(min-width: 640px) 900px, 100vw"
           priority
         />
       ) : null}
+      {backControl}
     </div>
   );
 }
