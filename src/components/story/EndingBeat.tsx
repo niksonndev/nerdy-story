@@ -32,6 +32,19 @@ const COLORING_MS = 1400;
 const ENDING_ACTION_BUTTON_CLASS =
   "w-full min-h-14 text-xl sm:text-2xl";
 
+const ENDING_PRIMARY_ACTION_BUTTON_CLASS = cn(
+  ENDING_ACTION_BUTTON_CLASS,
+  "order-1 lg:order-2 lg:w-auto lg:flex-none",
+);
+
+const ENDING_SECONDARY_ACTION_BUTTON_CLASS = cn(
+  ENDING_ACTION_BUTTON_CLASS,
+  "order-2 lg:order-1",
+  "text-muted-foreground hover:text-foreground",
+  "max-lg:bg-white/80 max-lg:hover:bg-white/90",
+  "lg:w-auto lg:min-h-11 lg:flex-none lg:bg-transparent lg:px-5 lg:text-xl lg:underline-offset-4 lg:hover:underline",
+);
+
 const ENDING_LABELS: Record<(typeof ENDING_PAGE_IDS)[number], string> = {
   "page-7a": "Ending 1",
   "page-7b": "Ending 2",
@@ -401,21 +414,22 @@ function CelebrationActions({
         "max-sm:pt-4",
         "pb-[max(2rem,env(safe-area-inset-bottom))]",
         "sm:mt-6 sm:pt-0 sm:pb-0",
+        "lg:flex-row lg:items-center lg:justify-between lg:gap-4",
       )}
     >
       {bothEndings ? (
         <>
           <Button
             size="kid"
-            className={ENDING_ACTION_BUTTON_CLASS}
+            className={ENDING_PRIMARY_ACTION_BUTTON_CLASS}
             onClick={onReadChapter2}
           >
             <span aria-hidden>{"\u2728"}</span> Explore the next chapter
           </Button>
           <Button
             size="kid"
-            variant="outline"
-            className={cn(ENDING_ACTION_BUTTON_CLASS, "border-foreground/25")}
+            variant="ghost"
+            className={ENDING_SECONDARY_ACTION_BUTTON_CLASS}
             onClick={onReadAgain}
           >
             Read the chapter again
@@ -425,15 +439,15 @@ function CelebrationActions({
         <>
           <Button
             size="kid"
-            className={ENDING_ACTION_BUTTON_CLASS}
+            className={ENDING_PRIMARY_ACTION_BUTTON_CLASS}
             onClick={onDiscoverAlternateEnding}
           >
             Discover Another Ending {"\u26A1"}
           </Button>
           <Button
             size="kid"
-            variant="outline"
-            className={cn(ENDING_ACTION_BUTTON_CLASS, "border-foreground/25")}
+            variant="ghost"
+            className={ENDING_SECONDARY_ACTION_BUTTON_CLASS}
             onClick={onContinueToChapter2}
           >
             Continue to Chapter 2 {"\u2192"}
