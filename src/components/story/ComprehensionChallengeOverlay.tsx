@@ -124,7 +124,13 @@ function PromptState({
   onCheck: () => void;
 }) {
   return (
-    <div>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (value.trim().length === 0) return;
+        onCheck();
+      }}
+    >
       <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic">
         Story question
       </p>
@@ -150,20 +156,26 @@ function PromptState({
         ref={inputRef}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey && value.trim()) {
+            event.preventDefault();
+            onCheck();
+          }
+        }}
         rows={3}
         placeholder="Type your idea here..."
         className="mt-4 w-full resize-none rounded-2xl border-2 border-border bg-background p-4 text-lg text-foreground outline-none placeholder:text-muted-foreground focus:border-magic"
       />
 
       <Button
+        type="submit"
         size="kid"
         className="mt-4 w-full"
-        onClick={onCheck}
         disabled={value.trim().length === 0}
       >
         Check
       </Button>
-    </div>
+    </form>
   );
 }
 
