@@ -29,8 +29,8 @@ with `aspect-ratio` changing per breakpoint — no separate image files per
 breakpoint.
 
 - Mobile: `aspect-ratio: 4/5`, full-bleed block above the text
-- Tablet: `aspect-ratio: 1/1`, left column beside the text
-- Desktop: `aspect-ratio: 3/1`, banner strip above the text, inside the book card
+- Tablet + desktop (`sm:` / 640px+): `aspect-ratio: 3/1`, banner strip above
+  the text, inside the book card
 
 ## Layout per breakpoint
 
@@ -38,22 +38,29 @@ breakpoint.
 - Full-screen single column, edge-to-edge
 - Image container per "Image container rule" above, full-bleed width
 - Text below image, comfortable reading width, generous padding
-- "Next Page" button: full-width or near-full-width, fixed near bottom
+- Reading progression: split bottom bar pinned to the bottom of the
+  viewport — ghost ← (~25%) when history exists + primary **Next Page**
+  (~75% / flex-1); story text scrolls above if needed. Decision pages: no
+  footer Previous; ← chevron floats top-left over the illustration
 - Mystery-word modal: full-screen takeover (not a floating card)
-- Touch targets: ≥56px tall (per storybook-interaction-design)
+- Touch targets: ≥56px tall for primary CTAs; secondary back ≥44px
+  (per storybook-interaction-design)
 
 ### Tablet (640–1023px)
-- Story card: centered, max-width ~600–700px, background visible around edges
-- Two-column layout: image container (per rule above) as left column,
-  text as right column
+- Same stacked book-card layout as desktop: centered card, max-width
+  ~600–700px (`max-w-175`), banner image on top, text below
 - Modal: centered card, no longer full-screen, ~70–80% width, rounded corners
-- Button: auto-width, centered or bottom-right of card
+- Reading: outline **Previous Page** + auto-width **Next Page** in the card
+  bottom row. Decision: **← Back** floats top-left over the illustration
+  (text card stays free for story + choices)
 
 ### Desktop (1024px+)
-- Story presented as a fixed-width "book" card (~800–900px), centered on
-  a distinct page background — not full-bleed text on a wide viewport
-- Image container (per rule above) as a banner strip at the top of the card
+- Same stacked layout as tablet, wider book card (~800–900px / `max-w-225`),
+  centered on a distinct page background — not full-bleed text on a wide viewport
+- Image container per "Image container rule" above as the banner strip
 - Modal: centered card, fixed max-width (~480px), page dims/blurs behind it
+- Reading / decision Previous placement same as tablet (bottom-row outline
+  Previous; decision **← Back** floating on the illustration)
 - Hover states become relevant (button hover, word-hint hover) — mobile/tablet
   don't need hover, only tap feedback
 
