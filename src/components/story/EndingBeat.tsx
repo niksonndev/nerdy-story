@@ -293,11 +293,6 @@ function CelebrationHeader({ bothEndings }: { bothEndings: boolean }) {
       <p className="mt-2 font-heading text-xl font-semibold text-magic sm:text-2xl">
         {bothEndings ? "You found both endings!" : "You found one ending!"}
       </p>
-      {!bothEndings ? (
-        <p className="mt-2 text-lg text-foreground/85 sm:text-xl">
-          What happens if you choose the other path?
-        </p>
-      ) : null}
     </header>
   );
 }
@@ -419,7 +414,7 @@ function CelebrationActions({
           <Button
             size="kid"
             variant="outline"
-            className="w-full min-h-14"
+            className="w-full min-h-14 border-foreground/25"
             onClick={onReadAgain}
           >
             Read the chapter again
@@ -437,7 +432,7 @@ function CelebrationActions({
           <Button
             size="kid"
             variant="outline"
-            className="w-full min-h-14"
+            className="w-full min-h-14 border-foreground/25"
             onClick={onContinueToChapter2}
           >
             Continue to Chapter 2 {"\u2192"}
@@ -746,7 +741,7 @@ function Chapter2Stub({ onReadAgain }: { onReadAgain: () => void }) {
         <Button
           size="kid"
           variant="outline"
-          className="w-full min-h-14 sm:w-auto sm:self-center"
+          className="w-full min-h-14 border-foreground/25 sm:w-auto sm:self-center"
           onClick={onReadAgain}
         >
           Read the chapter again
