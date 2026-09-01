@@ -192,6 +192,13 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
 
 const STORY_IMAGE = "/images/story/mia-and-the-hidden-sloth";
 
+export const STORY_META = {
+  id: "mia-and-the-hidden-sloth",
+  title: "Mia and the Hidden Sloth",
+  coverImage: `${STORY_IMAGE}/cover.jpeg`,
+  protagonistName: "Mia",
+} as const;
+
 export const storyPages: StoryPage[] = [
   {
     id: "page-1",
