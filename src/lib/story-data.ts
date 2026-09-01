@@ -2,6 +2,8 @@ export type MysteryWord = {
   id: string;
   word: string;
   targetDefinition: string;
+  /** Short kid-facing idea for local miss-reason copy. */
+  coreIdea: string;
   /** Synonyms / short phrases kids may type; used by local grade fallback. */
   acceptKeywords?: string[];
   hints: string[];
@@ -15,6 +17,8 @@ export type ComprehensionChallenge = {
   /** Explicit excerpt for the grader (not scraped from page layout). */
   passage: string;
   expectedUnderstanding: string;
+  /** Short kid-facing idea for local miss-reason copy. */
+  coreIdea: string;
   /** Synonyms / short phrases kids may type; used by local grade fallback. */
   acceptKeywords?: string[];
   /** 2 tiers — server local miss + client HTTP-fail path. */
@@ -58,6 +62,7 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "canopy",
     targetDefinition:
       "The roof-like layer formed by the tops of tall rainforest trees.",
+    coreIdea: "treetops high in the forest",
     acceptKeywords: [
       "treetops",
       "top of the trees",
@@ -76,6 +81,7 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "cautious",
     targetDefinition:
       "Being careful to avoid danger or mistakes.",
+    coreIdea: "being careful and watching out",
     acceptKeywords: [
       "careful",
       "not rushing",
@@ -94,6 +100,7 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "camouflage",
     targetDefinition:
       "Colors or patterns that help an animal blend in and hide.",
+    coreIdea: "blending in and hiding",
     acceptKeywords: [
       "blending in",
       "hiding by matching colors",
@@ -111,6 +118,7 @@ export const mysteryWords: Record<string, MysteryWord> = {
     word: "nocturnal",
     targetDefinition:
       "Active mostly at night and resting during the day.",
+    coreIdea: "being active at night",
     acceptKeywords: [
       "awake at night",
       "sleeps in the day",
@@ -133,6 +141,7 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "Grandpa Elias crouched by a low branch and pointed at some scratched bark and a few strands of greenish fur caught in the wood. 'Sloths move so slowly that algae grows right in their fur,' he said. 'This bark was scraped recently — a sloth passed through here, not long ago.'",
     expectedUnderstanding:
       "The child should connect the scraped bark and greenish fur to evidence that a sloth had recently been in that spot — reasoning from clues, not guessing.",
+    coreIdea: "clues on the branch",
     acceptKeywords: [
       "scraped bark",
       "green fur",
@@ -154,6 +163,7 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "The trail split in two, and the paw prints grew fainter with every step. Mia stayed cautious, moving slowly under the canopy so she wouldn't crash through the underbrush and scare anything away. Twice she nearly followed the wrong trail before spotting a fresh scrape on a tree that pointed her the right way.",
     expectedUnderstanding:
       "The child should recognize that the trail became unclear/faint and Mia almost took a wrong path, showing that going without help required extra care and could easily have led her astray.",
+    coreIdea: "why the faint tracks were risky",
     acceptKeywords: [
       "faint tracks",
       "almost lost trail",
@@ -175,6 +185,7 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "The ranger checked her notes and smiled. 'You won't see much movement from a sloth at midday — they rest then. Come back near dusk, and climb the observation platform. That's when they start moving to feed.' Mia and Grandpa Elias thanked her and decided to wait it out at the platform.",
     expectedUnderstanding:
       "The child should identify that the ranger explained sloths are more active later in the day (near dusk) rather than at midday, and that this timing knowledge is why they waited at the platform.",
+    coreIdea: "when sloths are active",
     acceptKeywords: [
       "wait until dusk",
       "sloths active later",
