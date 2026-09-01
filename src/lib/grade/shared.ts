@@ -2,7 +2,9 @@ import {
   NoObjectGeneratedError,
   NoOutputGeneratedError,
 } from "ai";
-import { z } from "zod";
+
+import { priorAttemptSchema } from "@/lib/grade/child-input";
+import type { z } from "zod";
 
 /** Primary + Gateway failover — educational prompt is independent of these IDs. */
 export const GRADE_PRIMARY_MODEL = "openai/gpt-oss-120b";
@@ -14,13 +16,9 @@ export const GRADE_FALLBACK_MODELS = [
 export const GRADE_MAX_OUTPUT_TOKENS = 1024;
 export const GRADE_TEMPERATURE = 0.1;
 
-export const gradeAttemptSchema = z.object({
-  explanation: z.string(),
-  reason: z.string(),
-  hint: z.string().nullable(),
-});
+export const gradeAttemptSchema = priorAttemptSchema;
 
-export type GradeAttempt = z.infer<typeof gradeAttemptSchema>;
+export type GradeAttempt = z.infer<typeof priorAttemptSchema>;
 
 /** Vocabulary grade request shape (schema lives in vocabulary.ts). */
 export type GradeRequest = {
