@@ -95,3 +95,56 @@ export function hintForAttempt(
   if (hints.length === 0) return null;
   return hints[Math.min(priorAttemptCount, hints.length - 1)] ?? null;
 }
+
+const CHILD_IDEA_FALLBACK = "what you said";
+
+const MEANINGLESS_TOKENS = new Set([
+  "dunno",
+  "idk",
+  "maybe",
+  "no",
+  "nothing",
+  "yes",
+]);
+
+export type LocalMissReasonOptions =
+  | { kind: "vocab"; word: string; coreIdea: string; answer: string }
+  | { kind: "comprehension"; coreIdea: string; answer: string };
+
+function capitalizeWord(word: string): string {
+  if (word.length === 0) return word;
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/** Pick a kid-facing phrase from the child's answer for local miss-reason copy. */
+export function extractChildIdea(answer: string, coreIdea: string): string {
+  const answerTokens = normalizeTokens(answer);
+  const coreIdeaTokens = contentTokens(coreIdea);
+  const remaining = answerTokens.filter(
+    (token) =>
+      !coreIdeaTokens.has(token) && !MEANINGLESS_TOKENS.has(token),
+  );
+
+  if (remaining.length === 0) {
+    return CHILD_IDEA_FALLBACK;
+  }
+
+  let best = remaining[0]!;
+  for (const token of remaining.slice(1)) {
+    if (token.length >= best.length) {
+      best = token;
+    }
+  }
+  return best;
+}
+
+/** Build MVP miss-reason copy for server local grading fallback. */
+export function buildLocalMissReason(options: LocalMissReasonOptions): string {
+  const childIdea = extractChildIdea(options.answer, options.coreIdea);
+
+  if (options.kind === "vocab") {
+    return `${capitalizeWord(options.word)} is about ${options.coreIdea}, not exactly about ${childIdea}.`;
+  }
+
+  return `This part is about ${options.coreIdea}, not exactly about ${childIdea}.`;
+}
