@@ -172,7 +172,7 @@ describe("gradeVocabularyLocally", () => {
     expect(result).toEqual({
       correct: false,
       reason:
-        "That does not quite match the meaning. Try another way to say it.",
+        "Canopy is about treetops high in the forest, not exactly about fruit.",
       hint: mysteryWords.canopy.hints[0],
     });
   });

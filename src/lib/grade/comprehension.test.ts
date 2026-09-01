@@ -163,7 +163,7 @@ describe("gradeComprehensionLocally", () => {
     expect(result).toEqual({
       correct: false,
       reason:
-        "That does not quite match this part of the story. Try another way to say it.",
+        "This part is about clues on the branch, not exactly about bananas.",
       hint: comprehensionChallenges["track-clues"].hints[0],
     });
   });

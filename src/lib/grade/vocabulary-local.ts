@@ -4,6 +4,7 @@ import {
   type GradeResult,
 } from "@/lib/grade/shared";
 import {
+  buildLocalMissReason,
   hasContentOverlap,
   hintForAttempt,
   matchesAcceptKeywords,
@@ -42,7 +43,12 @@ export function gradeVocabularyLocally(request: GradeRequest): GradeResult {
 
   return {
     correct: false,
-    reason: "That does not quite match the meaning. Try another way to say it.",
+    reason: buildLocalMissReason({
+      kind: "vocab",
+      word: word.word,
+      coreIdea: word.coreIdea,
+      answer: explanation,
+    }),
     hint: hintForAttempt(word.hints, priorCount),
   };
 }

@@ -4,6 +4,7 @@ import {
   type GradeResult,
 } from "@/lib/grade/shared";
 import {
+  buildLocalMissReason,
   hasContentOverlap,
   hintForAttempt,
   matchesAcceptKeywords,
@@ -50,8 +51,11 @@ export function gradeComprehensionLocally(
 
   return {
     correct: false,
-    reason:
-      "That does not quite match this part of the story. Try another way to say it.",
+    reason: buildLocalMissReason({
+      kind: "comprehension",
+      coreIdea: challenge.coreIdea,
+      answer,
+    }),
     hint: hintForAttempt(challenge.hints, priorCount),
   };
 }
