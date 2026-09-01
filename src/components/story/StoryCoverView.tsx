@@ -45,8 +45,6 @@ export function StoryCoverView({
         "max-sm:h-dvh",
       )}
     >
-      <SceneAtmosphere />
-
       <article
         className={cn(
           "relative z-10 flex w-full flex-col",
@@ -130,9 +128,7 @@ export function StoryCoverView({
                     >
                       1
                     </span>
-                    <span>
-                      Tap highlighted words to unlock their secrets
-                    </span>
+                    <span>Tap highlighted words to unlock their secrets</span>
                   </li>
                   <li className="flex gap-3">
                     <span
@@ -170,29 +166,6 @@ export function StoryCoverView({
           </motion.div>
         </div>
       </article>
-    </div>
-  );
-}
-
-function SceneAtmosphere() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-    >
-      <div className="absolute inset-0 bg-linear-to-b from-magic/5 via-transparent to-reward/10" />
-      <svg
-        className="absolute -bottom-2 left-0 h-40 w-full text-magic/20"
-        viewBox="0 0 400 120"
-        preserveAspectRatio="none"
-        fill="currentColor"
-      >
-        <path d="M0 120 L40 60 L80 120 Z" />
-        <path d="M60 120 L110 40 L160 120 Z" />
-        <path d="M150 120 L200 55 L250 120 Z" />
-        <path d="M240 120 L300 35 L360 120 Z" />
-        <path d="M330 120 L370 65 L400 120 Z" />
-      </svg>
     </div>
   );
 }

@@ -91,8 +91,6 @@ export function EndingBeat({
         "sm:items-center sm:justify-center sm:py-8",
       )}
     >
-      <SceneAtmosphere />
-
       <article
         aria-label="Story complete"
         className={cn(
@@ -766,28 +764,5 @@ function Chapter2Stub({ onReadAgain }: { onReadAgain: () => void }) {
         </Button>
       </footer>
     </motion.div>
-  );
-}
-
-function SceneAtmosphere() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 hidden overflow-hidden sm:block"
-    >
-      <div className="absolute inset-0 bg-linear-to-b from-magic/5 via-transparent to-reward/10" />
-      <svg
-        className="absolute -bottom-2 left-0 h-[clamp(5rem,15dvh,11.25rem)] w-full text-magic/20 sm:h-40"
-        viewBox="0 0 400 120"
-        preserveAspectRatio="none"
-        fill="currentColor"
-      >
-        <path d="M0 120 L40 60 L80 120 Z" />
-        <path d="M60 120 L110 40 L160 120 Z" />
-        <path d="M150 120 L200 55 L250 120 Z" />
-        <path d="M240 120 L300 35 L360 120 Z" />
-        <path d="M330 120 L370 65 L400 120 Z" />
-      </svg>
-    </div>
   );
 }

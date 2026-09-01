@@ -132,8 +132,6 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
           !isDecision && "max-sm:h-dvh max-sm:overflow-y-hidden",
         )}
       >
-        <SceneAtmosphere />
-
         {/* Mobile: glass chip floats top-center over the scene (stable across page turns) */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-5 pt-[max(0.75rem,env(safe-area-inset-top))] sm:hidden">
           <WordsLearned
@@ -509,30 +507,6 @@ function WordsLearned({
           </motion.span>
         </AnimatePresence>
       </div>
-    </div>
-  );
-}
-
-function SceneAtmosphere() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-    >
-      <div className="absolute inset-0 bg-linear-to-b from-magic/5 via-transparent to-reward/10" />
-      {/* Jagged forest/mountain skyline — five overlapping triangles along the bottom edge */}
-      <svg
-        className="absolute -bottom-2 left-0 h-40 w-full text-magic/20"
-        viewBox="0 0 400 120"
-        preserveAspectRatio="none"
-        fill="currentColor"
-      >
-        <path d="M0 120 L40 60 L80 120 Z" />
-        <path d="M60 120 L110 40 L160 120 Z" />
-        <path d="M150 120 L200 55 L250 120 Z" />
-        <path d="M240 120 L300 35 L360 120 Z" />
-        <path d="M330 120 L370 65 L400 120 Z" />
-      </svg>
     </div>
   );
 }

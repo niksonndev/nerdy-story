@@ -23,14 +23,18 @@ these breakpoints rather than defining their own.
 - Tablet: 640px–1023px
 - Desktop: 1024px+
 
-## Image container rule (applies to story page)
-One image asset per page. The container crops it via `object-fit: cover`,
+## Image container rule
+One image asset per screen. The container crops it via `object-fit: cover`,
 with `aspect-ratio` changing per breakpoint — no separate image files per
-breakpoint.
+breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
 
-- Mobile: `aspect-ratio: 4/5`, full-bleed block above the text
-- Tablet + desktop (`sm:` / 640px+): `aspect-ratio: 3/1`, banner strip above
-  the text, inside the book card
+- Mobile: `aspect-ratio: 4/5`, full-bleed block above the text (`max-sm:` only —
+  does not apply at tablet/desktop)
+- Tablet + desktop **story pages** (`sm:` / 640px+): `aspect-ratio: 7/3`
+  banner strip with `object-cover` (~24% vertical crop on ~16:9 landscape assets)
+- Tablet + desktop **cover** (`sm:` / 640px+): fixed-height box
+  `h: min(50vh, 480px)` with `object-contain` — full portrait artwork,
+  letterboxed on the sides; no crop
 
 ## Layout per breakpoint
 
@@ -57,7 +61,7 @@ breakpoint.
 ### Desktop (1024px+)
 - Same stacked layout as tablet, wider book card (~800–900px / `max-w-225`),
   centered on a distinct page background — not full-bleed text on a wide viewport
-- Image container per "Image container rule" above as the banner strip
+- Image container per "Image container rule" above (7/3 page banner or contained cover)
 - Modal: centered card, fixed max-width (~480px), page dims/blurs behind it
 - Reading / decision Previous placement same as tablet (bottom-row outline
   Previous; decision **← Back** floating on the illustration)
