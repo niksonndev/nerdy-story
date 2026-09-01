@@ -32,9 +32,11 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
   does not apply at tablet/desktop)
 - Tablet + desktop **story pages** (`sm:` / 640px+): `aspect-ratio: 7/3`
   banner strip with `object-cover` (~24% vertical crop on ~16:9 landscape assets)
-- Tablet + desktop **cover** (`sm:` / 640px+): fixed-height box
-  `h: min(50vh, 480px)` with `object-contain` — full portrait artwork,
-  letterboxed on the sides; no crop
+- Tablet **cover** (`sm:`–`lg:` / 640–1023px): `aspect-ratio: 3/1` banner strip
+  with `object-cover` (stacked above text)
+- Desktop **cover** (`lg:` / 1024px+): left column ~58% width,
+  `aspect-ratio: 4/5` (height driven by image frame), `max-height: 85dvh`,
+  `object-cover` — portrait artwork fills the column; no letterboxing
 
 ## Layout per breakpoint
 
@@ -59,8 +61,13 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
   (text card stays free for story + choices)
 
 ### Desktop (1024px+)
-- Same stacked layout as tablet, wider book card (~800–900px / `max-w-225`),
-  centered on a distinct page background — not full-bleed text on a wide viewport
+- **Cover:** side-by-side book spread inside a wider card (~1200px / `max-w-300`),
+  vertically centered in the viewport — portrait cover art on the left (~58%,
+  `aspect-ratio: 4/5` sets card height), title + quick tips + **Start Reading** on
+  the right (~42%); CTA left-aligned in the text column
+- **Story pages:** same stacked layout as tablet, wider book card (~800–900px /
+  `max-w-225`), centered on a distinct page background — not full-bleed text on a
+  wide viewport
 - Image container per "Image container rule" above (7/3 page banner or contained cover)
 - Modal: centered card, fixed max-width (~480px), page dims/blurs behind it
 - Reading / decision Previous placement same as tablet (bottom-row outline

@@ -43,6 +43,7 @@ export function StoryCoverView({
         "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
         isTransitioning && "pointer-events-none",
         "max-sm:h-dvh",
+        "lg:justify-center lg:py-8",
       )}
     >
       <article
@@ -50,10 +51,10 @@ export function StoryCoverView({
           "relative z-10 flex w-full flex-col",
           "min-h-0 max-sm:flex-1",
           "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
-          "lg:max-w-225",
+          "lg:my-auto lg:mt-0 lg:max-w-300",
         )}
       >
-        <div className="flex min-h-0 flex-col max-sm:flex-1">
+        <div className="flex min-h-0 flex-col max-sm:flex-1 lg:flex-row lg:items-stretch">
           <motion.div
             className={cn(
               "overflow-hidden bg-magic/10",
@@ -63,6 +64,7 @@ export function StoryCoverView({
                     "relative w-full shrink-0 self-start",
                     "aspect-4/5 max-sm:max-h-[40vh]",
                     "sm:aspect-3/1 sm:h-auto sm:w-full",
+                    "lg:aspect-4/5 lg:w-[58%] lg:max-h-[85dvh] lg:max-w-none lg:self-auto",
                   ),
             )}
             style={isTransitioning ? { perspective: 1200 } : undefined}
@@ -91,7 +93,7 @@ export function StoryCoverView({
                 alt={STORY_META.title}
                 fill
                 className="object-cover"
-                sizes="(min-width: 640px) 900px, 100vw"
+                sizes="(min-width: 1024px) 700px, (min-width: 640px) 900px, 100vw"
                 priority
               />
             </motion.div>
@@ -102,6 +104,7 @@ export function StoryCoverView({
               "flex min-w-0 flex-col px-5 pt-6",
               "min-h-0 max-sm:flex-1 max-sm:pb-0",
               "sm:flex-none sm:px-10 sm:pb-8 sm:pt-8",
+              "lg:flex-1 lg:self-stretch lg:justify-between lg:px-8 lg:py-10",
             )}
             initial={false}
             animate={{ opacity: isTransitioning ? 0 : 1 }}
@@ -151,11 +154,12 @@ export function StoryCoverView({
                 "relative z-10 mt-6 flex w-full",
                 "max-sm:mt-auto max-sm:shrink-0 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-4",
                 "sm:mt-auto sm:pt-8",
+                "lg:pt-8",
               )}
             >
               <Button
                 size="kid"
-                className="min-h-14 w-full sm:mx-auto sm:w-auto"
+                className="min-h-14 w-full sm:mx-auto sm:w-auto lg:mx-0"
                 onClick={onStartReading}
                 disabled={isTransitioning}
                 aria-label="Start Reading"
