@@ -739,8 +739,8 @@ function Chapter2Stub({ onReadAgain }: { onReadAgain: () => void }) {
           )}
         >
           <p className="mx-auto max-w-md text-lg leading-relaxed text-foreground/90 sm:text-2xl">
-            Pip&apos;s next adventure is ready. More rainy woods, more words to
-            discover — coming soon!
+            Mia&apos;s next adventure is ready. More rainforest trails, more
+            words to discover — coming soon!
           </p>
         </section>
       </div>
