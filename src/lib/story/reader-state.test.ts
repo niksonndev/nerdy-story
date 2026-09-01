@@ -246,6 +246,31 @@ describe("storySessionReducer", () => {
     expect(next.beatSession).toBe(1);
   });
 
+  it("startReading marks the session as started", () => {
+    const next = storySessionReducer(initialStorySession, {
+      type: "startReading",
+    });
+
+    expect(next.hasStarted).toBe(true);
+    expect(next.pageId).toBe("page-1");
+  });
+
+  it("readAgain preserves hasStarted so replay skips the cover", () => {
+    let state = storySessionReducer(initialStorySession, {
+      type: "startReading",
+    });
+    state = storySessionReducer(state, {
+      type: "goToPage",
+      pageId: "page-2",
+    });
+
+    const next = storySessionReducer(state, { type: "readAgain" });
+
+    expect(next.hasStarted).toBe(true);
+    expect(next.pageId).toBe("page-1");
+    expect(next.pageHistory).toEqual([]);
+  });
+
   it("walking back from a branch path restores earlier pages via history", () => {
     let state = initialStorySession;
     for (const pageId of [

@@ -55,6 +55,7 @@ export type StorySessionState = {
   beatSession: number;
   resolvedWordIds: string[];
   resolvedComprehensionIds: string[];
+  hasStarted: boolean;
 };
 
 export const initialStorySession: StorySessionState = {
@@ -66,6 +67,7 @@ export const initialStorySession: StorySessionState = {
   beatSession: 0,
   resolvedWordIds: [],
   resolvedComprehensionIds: [],
+  hasStarted: false,
 };
 
 export type StorySessionAction =
@@ -84,6 +86,7 @@ export type StorySessionAction =
       endingView: EndingBeatView;
     }
   | { type: "readAgain" }
+  | { type: "startReading" }
   | { type: "jumpToBranch" };
 
 function appendUnique(ids: string[], id: string): string[] {
@@ -170,8 +173,11 @@ export function storySessionReducer(
     case "readAgain":
       return {
         ...initialStorySession,
+        hasStarted: true,
         beatSession: state.beatSession + 1,
       };
+    case "startReading":
+      return { ...state, hasStarted: true };
     case "jumpToBranch":
       return {
         ...state,
