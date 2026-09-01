@@ -53,230 +53,218 @@ export const MAX_ATTEMPTS = 3;
 export const STORY_START_ID = "page-1";
 
 export const mysteryWords: Record<string, MysteryWord> = {
-  shelter: {
-    id: "shelter",
-    word: "shelter",
+  canopy: {
+    id: "canopy",
+    word: "canopy",
     targetDefinition:
-      "A shelter is a safe, covered place that keeps you protected from rain, wind, cold, or danger.",
+      "The roof-like layer formed by the tops of tall rainforest trees.",
     acceptKeywords: [
-      "safe place",
-      "covered place",
-      "stay dry",
-      "protected",
-      "roof",
-      "hide",
+      "treetops",
+      "top of the trees",
+      "leaves up high",
+      "tree ceiling",
     ],
     hints: [
-      "Think about where you would go to stay dry when it starts to rain.",
-      "It is a place with a roof or cover that keeps you safe and protected.",
+      "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
+      "It's like a leafy roof way above your head, where lots of animals live.",
     ],
     meaningReveal:
-      "A shelter is a safe, covered spot that keeps you protected from rain, wind, or cold — like a cozy cave, a little hut, or under a big leaf.",
+      "The canopy is the leafy 'roof' made by the tallest trees in the rainforest — many animals, like sloths, spend their whole lives up there.",
   },
-  snug: {
-    id: "snug",
-    word: "snug",
+  cautious: {
+    id: "cautious",
+    word: "cautious",
     targetDefinition:
-      "Snug means warm, cozy, and comfortably tucked in — like feeling safe and soft in a little nest.",
+      "Being careful to avoid danger or mistakes.",
     acceptKeywords: [
-      "cozy",
-      "warm",
-      "tucked",
-      "comfortable",
-      "comfy",
-      "curl up",
+      "careful",
+      "not rushing",
+      "watching out",
+      "being safe",
     ],
     hints: [
-      "Think about how it feels to curl up under a soft blanket on a rainy day.",
-      "It means warm and cozy, like you fit just right in a safe little spot.",
+      "It's how you act when you want to avoid getting hurt or making a mistake — you go slow and pay attention.",
+      "If you tiptoe around something because you're not sure it's safe, you're being this word.",
     ],
     meaningReveal:
-      "Snug means warm, cozy, and comfortably tucked in — like curling up in a soft blanket or a little nest.",
+      "Cautious means being careful and paying close attention before you act, so you don't get into trouble or danger.",
   },
-  lullaby: {
-    id: "lullaby",
-    word: "lullaby",
+  camouflage: {
+    id: "camouflage",
+    word: "camouflage",
     targetDefinition:
-      "A lullaby is a soft, gentle song that helps someone feel calm and fall asleep.",
+      "Colors or patterns that help an animal blend in and hide.",
     acceptKeywords: [
-      "sleep song",
-      "gentle song",
-      "soft song",
-      "bedtime song",
-      "asleep",
-      "sleepy",
+      "blending in",
+      "hiding by matching colors",
+      "disguise",
     ],
     hints: [
-      "Think about a quiet song someone might hum to help a baby sleep.",
-      "It is a soft, gentle song that makes you feel sleepy and calm.",
+      "It's why some animals are almost invisible against leaves, bark, or rocks.",
+      "Think of coloring that helps an animal 'disappear' into its surroundings.",
     ],
     meaningReveal:
-      "A lullaby is a soft, gentle song that helps someone feel calm and drift off to sleep.",
+      "Camouflage is a coloring or pattern that helps an animal blend into its surroundings so predators (or curious kids!) have trouble spotting it.",
   },
-  shimmered: {
-    id: "shimmered",
-    word: "shimmered",
+  nocturnal: {
+    id: "nocturnal",
+    word: "nocturnal",
     targetDefinition:
-      "Shimmered means sparkled or shone with soft, moving light — like something twinkling gently.",
+      "Active mostly at night and resting during the day.",
     acceptKeywords: [
-      "sparkled",
-      "sparkle",
-      "twinkled",
-      "twinkle",
-      "shone",
-      "glittered",
+      "awake at night",
+      "sleeps in the day",
+      "night animal",
     ],
     hints: [
-      "Think about how a puddle looks when sunlight dances on top of it.",
-      "It means sparkled or shone with a soft, twinkly light.",
+      "Some animals do most of their moving around after the sun goes down — this word describes them.",
+      "It's the opposite of being active during the daytime.",
     ],
     meaningReveal:
-      "Shimmered means sparkled or shone with soft, moving light — like a puddle twinkling in the sun.",
+      "Nocturnal animals are most active at night and rest during the day — many rainforest creatures live on this night schedule.",
   },
 };
 
 export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
-  "find-shelter": {
-    id: "find-shelter",
-    question: "Why does Pip need to find a shelter?",
+  "track-clues": {
+    id: "track-clues",
+    question: "How did Mia and Grandpa Elias know a sloth had been nearby?",
     passage:
-      "Pip the little raccoon was walking home through the woods when fat raindrops began to fall. Plip! Plop! The sky went gray, and the path turned to mud under her paws. Pip pulled her tiny hat down tight. \"I need to find a shelter,\" she said, \"somewhere safe and dry until the storm blows past.\"",
+      "Grandpa Elias crouched by a low branch and pointed at some scratched bark and a few strands of greenish fur caught in the wood. 'Sloths move so slowly that algae grows right in their fur,' he said. 'This bark was scraped recently — a sloth passed through here, not long ago.'",
     expectedUnderstanding:
-      "Pip needs a shelter because it is raining hard and she wants a safe, dry place to wait out the storm.",
+      "The child should connect the scraped bark and greenish fur to evidence that a sloth had recently been in that spot — reasoning from clues, not guessing.",
     acceptKeywords: [
-      "raining",
-      "rain",
-      "stay dry",
-      "storm",
-      "safe place",
-      "safe and dry",
+      "scraped bark",
+      "green fur",
+      "algae fur",
+      "claw marks",
+      "fur clue",
     ],
     hints: [
-      "Think about what the sky and the rain are doing to Pip.",
-      "Pip wants somewhere safe and dry until the storm goes away.",
+      "Look again at what Grandpa Elias noticed on the branch — two separate clues, not just one.",
+      "One clue was on the bark itself, the other was caught inside it.",
     ],
     answerReveal:
-      "Pip needs a shelter because the rain is falling hard, and she wants a safe, dry place to wait until the storm blows past.",
+      "They noticed scraped bark and greenish fur (with algae growing in it) caught on the branch — both signs that a sloth had recently climbed through.",
   },
-  "cozy-nap": {
-    id: "cozy-nap",
-    question: "Why does Pip stay curled up in the hollow?",
+  "tracks-choice-outcome": {
+    id: "tracks-choice-outcome",
+    question: "Why did following the tracks alone turn out to be risky at first?",
     passage:
-      "Pip yawned and curled up tighter, tail wrapped around her like a blanket. The rain outside kept singing its quiet song. Her eyes grew heavy. Soon she was drifting toward a soft little sleep in the hollow.",
+      "The trail split in two, and the paw prints grew fainter with every step. Mia stayed cautious, moving slowly under the canopy so she wouldn't crash through the underbrush and scare anything away. Twice she nearly followed the wrong trail before spotting a fresh scrape on a tree that pointed her the right way.",
     expectedUnderstanding:
-      "Pip stays curled up because she is cozy, sleepy, and comfortable resting safely in the hollow while the rain sings quietly outside.",
+      "The child should recognize that the trail became unclear/faint and Mia almost took a wrong path, showing that going without help required extra care and could easily have led her astray.",
     acceptKeywords: [
-      "cozy",
-      "sleepy",
-      "sleep",
-      "rest",
-      "hollow",
-      "comfortable",
-      "comfy",
+      "faint tracks",
+      "almost lost trail",
+      "wrong path",
+      "hard to follow",
     ],
     hints: [
-      "Think about how Pip feels after she wraps her tail around herself.",
-      "Pip is cozy and sleepy, so she stays to rest in the hollow.",
+      "Think about what happened to the prints the further Mia went.",
+      "She almost made a mistake twice — what kind of mistake?",
     ],
     answerReveal:
-      "Pip stays curled up because she feels cozy and sleepy in the safe hollow, and the quiet rain helps her rest.",
+      "The prints grew faint and the trail split, so Mia nearly went the wrong way twice before a fresh scrape mark set her straight.",
   },
-  "rainy-surprise": {
-    id: "rainy-surprise",
-    question: "What does Pip notice when she peeks outside?",
+  "guide-choice-outcome": {
+    id: "guide-choice-outcome",
+    question:
+      "What did the ranger station teach Mia and Grandpa Elias about when to look for the sloth?",
     passage:
-      "Pip crept to the edge of the hollow and peeked out. The rain had softened to a gentle drizzle, and the whole forest seemed to glow. Something beautiful was waiting just beyond the trees.",
+      "The ranger checked her notes and smiled. 'You won't see much movement from a sloth at midday — they rest then. Come back near dusk, and climb the observation platform. That's when they start moving to feed.' Mia and Grandpa Elias thanked her and decided to wait it out at the platform.",
     expectedUnderstanding:
-      "Pip notices the rain has softened to a gentle drizzle and the forest seems to glow, with something beautiful waiting beyond the trees.",
+      "The child should identify that the ranger explained sloths are more active later in the day (near dusk) rather than at midday, and that this timing knowledge is why they waited at the platform.",
     acceptKeywords: [
-      "drizzle",
-      "glow",
-      "glowing",
-      "gentler",
-      "rain softened",
-      "beautiful",
-      "soft rain",
+      "wait until dusk",
+      "sloths active later",
+      "rest at midday",
+      "come back later",
     ],
     hints: [
-      "Think about how the rain has changed since the storm.",
-      "The rain is gentler now, and the forest looks like it is glowing.",
+      "What time of day did the ranger say sloths start moving?",
+      "Think about why Mia and Grandpa Elias decided to wait instead of leaving.",
     ],
     answerReveal:
-      "Pip notices the rain has softened to a gentle drizzle, and the whole forest seems to glow — with something beautiful waiting just beyond the trees.",
+      "The ranger explained that sloths rest at midday and become active near dusk, so Mia and Grandpa Elias waited at the observation platform until then.",
   },
 };
+
+const STORY_IMAGE = "/images/story/mia-and-the-hidden-sloth";
 
 export const storyPages: StoryPage[] = [
   {
     id: "page-1",
-    title: "Pip and the Rainy Woods",
-    image: "/images/story/pip-and-the-rainy-woods/page-1.jpg",
+    title: "Into the Rainforest",
+    image: `${STORY_IMAGE}/page-1.jpeg`,
     nextPageId: "page-2",
     segments: [
       {
         type: "text",
         content:
-          "Pip the little raccoon was walking home through the woods when fat raindrops began to fall. Plip! Plop! The sky went gray, and the path turned to mud under her paws. Pip pulled her tiny hat down tight and hurried along the dripping trail.",
+          "Mia stepped off the boat and into the warm, buzzing air of the rainforest. Her grandfather, Elias — a naturalist guide who had explored this forest for thirty years — adjusted his hat and grinned. \"Ready for your first real jungle expedition?\" he asked. Mia nodded, clutching her notebook. Somewhere out there, hidden in the trees, was the animal she'd been dreaming about for weeks: a wild sloth.",
       },
     ],
   },
   {
     id: "page-2",
-    title: "Looking for Cover",
-    image: "/images/story/pip-and-the-rainy-woods/page-2.jpg",
+    title: "Up Among the Leaves",
+    image: `${STORY_IMAGE}/page-2.jpeg`,
     nextPageId: "page-3",
     segments: [
       {
         type: "text",
         content:
-          "\u201cI need to find a ",
+          "They followed a narrow path deeper into the trees. Grandpa Elias pointed upward, where the branches wove together so tightly that only thin beams of sunlight reached the ground. \"That's the ",
       },
-      { type: "mystery", wordId: "shelter", content: "shelter" },
+      { type: "mystery", wordId: "canopy", content: "canopy" },
       {
         type: "text",
         content:
-          ",\u201d Pip said, \u201csomewhere safe and dry until the storm blows past.\u201d She looked around the dripping trees, wondering where a soggy raccoon could hide.",
+          ",\" he said. \"Most of the rainforest's life happens up there, far above our heads — including the sloths.\" Mia tilted her head back, searching the green ceiling for any sign of movement.",
       },
     ],
   },
   {
     id: "page-3",
-    title: "A Hollow in the Oak",
-    image: "/images/story/pip-and-the-rainy-woods/page-3.jpg",
+    title: "The First Clue",
+    image: `${STORY_IMAGE}/page-3.jpeg`,
     nextPageId: "page-4",
-    comprehensionId: "find-shelter",
+    comprehensionId: "track-clues",
     segments: [
       {
         type: "text",
         content:
-          "Up ahead, Pip spotted an old oak tree with a round hollow near its roots. She scurried inside, shook the rain from her fur, and curled up warm and dry. Outside the storm rumbled, but Pip just smiled — she had found what she needed.",
+          "Grandpa Elias crouched by a low branch and pointed at some scratched bark and a few strands of greenish fur caught in the wood. \"Sloths move so slowly that algae grows right in their fur,\" he said. \"This bark was scraped recently — a sloth passed through here, not long ago.\" Mia's heart raced. They were close.",
       },
     ],
   },
   {
     id: "page-4",
-    title: "Listening to the Rain",
+    title: "Two Paths",
+    image: `${STORY_IMAGE}/page-4.jpeg`,
     nextPageId: "page-5",
     segments: [
       {
         type: "text",
         content:
-          "For a little while Pip just listened. Drip… drip… drip… The rain tapped the leaves like tiny drumbeats. The hollow smelled like wet wood and soft moss. Pip breathed slowly and felt the storm growing quieter.",
+          "The path ahead split in two directions. One trail followed a faint line of scratch marks and prints leading deeper into the trees. The other looped back toward a small wooden building with a faded sign: RANGER STATION. Mia glanced at the canopy overhead — sloths could be anywhere up there — then back at the two trails on the ground. Grandpa Elias looked at Mia. \"Which way do you think we should go?\"",
       },
     ],
   },
   {
     id: "page-5",
-    title: "Safe and Dry",
+    title: "Mia's Decision",
+    image: `${STORY_IMAGE}/page-5.jpeg`,
     choice: {
-      prompt: "What does Pip do?",
+      prompt: "What should Mia and Grandpa Elias do?",
       options: [
         {
-          label: "Stay curled up, warm and cozy",
+          label: "Follow the tracks themselves",
           nextPageId: "page-6a",
         },
         {
-          label: "Peek outside to see the rain",
+          label: "Ask the ranger station for help",
           nextPageId: "page-6b",
         },
       ],
@@ -285,80 +273,77 @@ export const storyPages: StoryPage[] = [
       {
         type: "text",
         content:
-          "Inside the hollow, Pip shook the last raindrops from her fur. It was warm and ",
+          "Mia thought hard. Rushing after the tracks alone felt exciting, but it also felt risky — the forest was easy to get lost in. Being ",
       },
-      { type: "mystery", wordId: "snug", content: "snug" },
+      { type: "mystery", wordId: "cautious", content: "cautious" },
       {
         type: "text",
         content:
-          ", and the storm rumbled softly outside, far away now. Pip peeked toward the little opening in the tree, where she could still see rain falling in silver lines.",
-      },
-      {
-        type: "text",
-        content:
-          " She could stay curled up here, cozy and still. Or she could take one more peek outside, just to see what the rainy forest looked like now.",
+          " might mean asking for help instead of guessing. \"We should think this through carefully before we choose,\" Grandpa Elias said gently, waiting for her answer.",
       },
     ],
   },
   {
     id: "page-6a",
-    title: "A Cozy Choice",
+    title: "Following the Trail",
+    image: `${STORY_IMAGE}/page-6a.jpeg`,
     nextPageId: "page-7a",
-    comprehensionId: "cozy-nap",
+    comprehensionId: "tracks-choice-outcome",
     segments: [
       {
         type: "text",
         content:
-          "Pip yawned and curled up tighter, tail wrapped around her like a blanket. The rain outside kept singing its quiet song. Her eyes grew heavy. Soon she was drifting toward a soft little sleep in the hollow.",
+          "The trail split in two, and the paw prints grew fainter with every step. Mia stayed cautious, moving slowly under the canopy so she wouldn't crash through the underbrush and scare anything away. Twice she nearly followed the wrong trail before spotting a fresh scrape on a tree that pointed her the right way.",
       },
     ],
   },
   {
     id: "page-6b",
-    title: "A Peek Outside",
+    title: "At the Ranger Station",
+    image: `${STORY_IMAGE}/page-6b.jpeg`,
     nextPageId: "page-7b",
-    comprehensionId: "rainy-surprise",
+    comprehensionId: "guide-choice-outcome",
     segments: [
       {
         type: "text",
         content:
-          "Pip crept to the edge of the hollow and peeked out. The rain had softened to a gentle drizzle, and the whole forest seemed to glow. Something beautiful was waiting just beyond the trees.",
+          "The ranger checked her notes and smiled. \"You won't see much movement from a sloth at midday — they rest then. Come back near dusk, and climb the observation platform. That's when they start moving to feed.\" Mia and Grandpa Elias thanked her and decided to wait it out at the platform. They stayed cautious and quiet, and Grandpa Elias pointed at the canopy above. \"That's where she'll appear,\" he whispered.",
       },
     ],
   },
   {
     id: "page-7a",
-    title: "A Cozy Nap",
-    image: "/images/story/pip-and-the-rainy-woods/page-4a.jpg",
+    title: "Spotted!",
+    image: `${STORY_IMAGE}/page-7a.jpeg`,
     segments: [
       {
         type: "text",
         content:
-          "The rain outside sounded like a soft ",
+          "Mia froze. High in a fork of branches, a shape she'd almost missed shifted slightly — gray-green fur, patterned just like the mossy bark around it. \"There!\" she whispered. Grandpa Elias smiled. \"That's ",
       },
-      { type: "mystery", wordId: "lullaby", content: "lullaby" },
+      { type: "mystery", wordId: "camouflage", content: "camouflage" },
       {
         type: "text",
         content:
-          ", and soon Pip\u2019s eyes closed all the way. When she woke, warm sunlight was pouring through the hollow. The storm was gone. Pip stretched, smiled, and padded home along a path sparkling with puddles, dry and happy the whole way.",
+          " doing its job. You have sharp eyes, Mia.\" They watched, breathless, as the sloth slowly turned its head toward them.",
       },
     ],
   },
   {
     id: "page-7b",
-    title: "A Sparkling Surprise",
-    image: "/images/story/pip-and-the-rainy-woods/page-4b.jpg",
+    title: "Waiting for Dusk",
+    image: `${STORY_IMAGE}/page-7b.jpeg`,
     segments: [
       {
         type: "text",
         content:
-          "Puddles ",
+          "As the light turned orange, Mia heard a rustle above. A sloth, unhurried and calm, began climbing toward a cluster of leaves — right on schedule. \"Most sloths are ",
       },
-      { type: "mystery", wordId: "shimmered", content: "shimmered" },
+      { type: "mystery", wordId: "nocturnal", content: "nocturnal" },
       {
         type: "text",
         content:
-          " like little mirrors, and high above the trees, a faint rainbow curled through the clouds. Pip gasped. She hadn\u2019t expected the rain to leave something so beautiful behind. She stepped out, ready to explore.",
+          ", or close to it,\" Grandpa Elias whispered. \"They come alive just as the day winds down.\" Mia grinned, watching the slow-moving shape at last.",
       },
     ],
   },
