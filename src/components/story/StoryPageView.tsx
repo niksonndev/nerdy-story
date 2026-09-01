@@ -418,7 +418,6 @@ function PageProgression({
   );
 }
 
-/** Scene block — aspect-ratio per responsive-layout; crops via object-cover. */
 function SceneImage({
   src,
   alt,
@@ -432,11 +431,8 @@ function SceneImage({
     <div
       className={cn(
         "relative w-full shrink-0 self-start overflow-hidden bg-magic/10",
-        // Mobile only: 4/5, capped so title stays above the fold (max-sm avoids
-        // fighting sm:max-h-none specificity with the arbitrary max-h value)
-        "aspect-4/5 max-sm:max-h-[40vh]",
-        // Tablet+desktop: 3/1 banner strip at top of book card
-        "sm:aspect-3/1 sm:h-auto sm:w-full",
+        "max-sm:aspect-4/5 max-sm:max-h-[40vh]",
+        "sm:aspect-7/3 sm:h-auto sm:w-full",
       )}
     >
       {src ? (
