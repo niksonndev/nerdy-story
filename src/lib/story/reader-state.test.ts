@@ -13,14 +13,15 @@ describe("challengeUiReducer", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
       kind: "vocab",
-      id: "shelter",
+      id: "canopy",
     });
 
     state = challengeUiReducer(state, {
       type: "recordFailedAttempt",
-      submitted: "a house",
-      reason: "Shelter is about a safe covered place, not exactly about a house.",
-      hint: "Think about where Pip hides from the rain.",
+      submitted: "a banana",
+      reason:
+        "Canopy is about treetops high in the forest, not exactly about fruit.",
+      hint: "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
       nextAttempts: 1,
     });
 
@@ -29,35 +30,38 @@ describe("challengeUiReducer", () => {
     expect(state.kind).toBeNull();
     expect(state.id).toBeNull();
     expect(state.missReason).toBeNull();
-    expect(state.progressById.shelter).toEqual({
+    expect(state.progressById.canopy).toEqual({
       phase: "prompt",
       explanation: "",
       attempts: 1,
       priorAttempts: [
         {
-          explanation: "a house",
+          explanation: "a banana",
           reason:
-            "Shelter is about a safe covered place, not exactly about a house.",
-          hint: "Think about where Pip hides from the rain.",
+            "Canopy is about treetops high in the forest, not exactly about fruit.",
+          hint: "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
         },
       ],
       missReason:
-        "Shelter is about a safe covered place, not exactly about a house.",
-      hintText: "Think about where Pip hides from the rain.",
+        "Canopy is about treetops high in the forest, not exactly about fruit.",
+      hintText:
+        "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
       acceptedReason: null,
     });
 
     state = challengeUiReducer(state, {
       type: "open",
       kind: "vocab",
-      id: "shelter",
+      id: "canopy",
     });
 
     expect(state.attempts).toBe(1);
     expect(state.missReason).toBe(
-      "Shelter is about a safe covered place, not exactly about a house.",
+      "Canopy is about treetops high in the forest, not exactly about fruit.",
     );
-    expect(state.hintText).toBe("Think about where Pip hides from the rain.");
+    expect(state.hintText).toBe(
+      "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
+    );
     expect(state.priorAttempts).toHaveLength(1);
   });
 
@@ -65,61 +69,61 @@ describe("challengeUiReducer", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
       kind: "vocab",
-      id: "shelter",
+      id: "canopy",
     });
 
     state = challengeUiReducer(state, {
       type: "recordFailedAttempt",
-      submitted: "a house",
-      reason: "Not quite about a house.",
-      hint: "Hint for shelter.",
+      submitted: "a banana",
+      reason: "Not quite about fruit.",
+      hint: "Hint for canopy.",
       nextAttempts: 1,
     });
 
     state = challengeUiReducer(state, {
       type: "open",
       kind: "vocab",
-      id: "snug",
+      id: "cautious",
     });
 
-    expect(state.id).toBe("snug");
+    expect(state.id).toBe("cautious");
     expect(state.attempts).toBe(0);
     expect(state.missReason).toBeNull();
-    expect(state.progressById.shelter?.attempts).toBe(1);
+    expect(state.progressById.canopy?.attempts).toBe(1);
 
     state = challengeUiReducer(state, {
       type: "recordFailedAttempt",
-      submitted: "warm",
-      reason: "Snug is about cozy and comfy.",
-      hint: "Hint for snug.",
+      submitted: "cozy blanket",
+      reason: "Cautious is about being careful, not exactly about cozy things.",
+      hint: "Hint for cautious.",
       nextAttempts: 1,
     });
 
     state = challengeUiReducer(state, {
       type: "open",
       kind: "vocab",
-      id: "shelter",
+      id: "canopy",
     });
 
-    expect(state.id).toBe("shelter");
+    expect(state.id).toBe("canopy");
     expect(state.attempts).toBe(1);
-    expect(state.missReason).toBe("Not quite about a house.");
-    expect(state.hintText).toBe("Hint for shelter.");
-    expect(state.progressById.snug?.attempts).toBe(1);
+    expect(state.missReason).toBe("Not quite about fruit.");
+    expect(state.hintText).toBe("Hint for canopy.");
+    expect(state.progressById.cautious?.attempts).toBe(1);
   });
 
   it("clears progressById on reset", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
       kind: "comprehension",
-      id: "find-shelter",
+      id: "track-clues",
     });
 
     state = challengeUiReducer(state, {
       type: "recordFailedAttempt",
-      submitted: "Pip ran away",
-      reason: "Pip looked for shelter.",
-      hint: "Where did Pip go?",
+      submitted: "they heard birds",
+      reason: "This part is about clues on the branch, not birds.",
+      hint: "Look again at what Grandpa Elias noticed on the branch.",
       nextAttempts: 1,
     });
 
@@ -136,12 +140,12 @@ describe("challengeUiReducer", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
       kind: "vocab",
-      id: "shelter",
+      id: "canopy",
     });
 
     state = challengeUiReducer(state, {
       type: "recordFailedAttempt",
-      submitted: "a house",
+      submitted: "a banana",
       reason: "Not quite.",
       hint: "Try again.",
       nextAttempts: 1,
@@ -150,7 +154,7 @@ describe("challengeUiReducer", () => {
     state = challengeUiReducer(state, {
       type: "open",
       kind: "vocab",
-      id: "shelter",
+      id: "canopy",
     });
 
     expect(state.attempts).toBe(1);
@@ -160,7 +164,7 @@ describe("challengeUiReducer", () => {
     state = challengeUiReducer(state, {
       type: "open",
       kind: "vocab",
-      id: "shelter",
+      id: "canopy",
     });
 
     expect(state.attempts).toBe(0);
@@ -175,10 +179,10 @@ describe("storySessionReducer", () => {
       ...initialStorySession,
       pageId: "page-7a",
       pageHistory: ["page-1", "page-5", "page-6a"],
-      learnedWordIds: ["shelter", "snug", "lullaby"],
+      learnedWordIds: ["canopy", "cautious", "camouflage"],
       exploredEndingIds: ["page-7a"],
-      resolvedWordIds: ["shelter", "snug", "lullaby"],
-      resolvedComprehensionIds: ["find-shelter", "cozy-nap"],
+      resolvedWordIds: ["canopy", "cautious", "camouflage"],
+      resolvedComprehensionIds: ["track-clues", "tracks-choice-outcome"],
       beatSession: 2,
     };
 
@@ -187,10 +191,10 @@ describe("storySessionReducer", () => {
     expect(next.pageId).toBe(BRANCH_PAGE_ID);
     expect(next.pageHistory).toEqual([]);
     expect(next.endingView).toBe("beat");
-    expect(next.learnedWordIds).toEqual(["shelter", "snug", "lullaby"]);
+    expect(next.learnedWordIds).toEqual(["canopy", "cautious", "camouflage"]);
     expect(next.exploredEndingIds).toEqual(["page-7a"]);
-    expect(next.resolvedWordIds).toEqual(["shelter", "snug"]);
-    expect(next.resolvedComprehensionIds).toEqual(["find-shelter"]);
+    expect(next.resolvedWordIds).toEqual(["canopy", "cautious"]);
+    expect(next.resolvedComprehensionIds).toEqual(["track-clues"]);
     expect(next.beatSession).toBe(3);
   });
 
@@ -279,10 +283,10 @@ describe("storySessionReducer", () => {
       ...initialStorySession,
       pageId: BRANCH_PAGE_ID,
       pageHistory: ["page-1", "page-2", "page-3", "page-4"],
-      learnedWordIds: ["shelter", "snug", "lullaby"],
+      learnedWordIds: ["canopy", "cautious", "camouflage"],
       exploredEndingIds: ["page-7a"],
-      resolvedWordIds: ["shelter", "snug", "lullaby"],
-      resolvedComprehensionIds: ["find-shelter", "cozy-nap"],
+      resolvedWordIds: ["canopy", "cautious", "camouflage"],
+      resolvedComprehensionIds: ["track-clues", "tracks-choice-outcome"],
     };
 
     const next = storySessionReducer(state, {
@@ -298,9 +302,9 @@ describe("storySessionReducer", () => {
       "page-4",
       "page-5",
     ]);
-    expect(next.resolvedWordIds).toEqual(["shelter", "snug"]);
-    expect(next.resolvedComprehensionIds).toEqual(["find-shelter"]);
-    expect(next.learnedWordIds).toEqual(["shelter", "snug", "lullaby"]);
+    expect(next.resolvedWordIds).toEqual(["canopy", "cautious"]);
+    expect(next.resolvedComprehensionIds).toEqual(["track-clues"]);
+    expect(next.learnedWordIds).toEqual(["canopy", "cautious", "camouflage"]);
     expect(next.exploredEndingIds).toEqual(["page-7a"]);
   });
 
@@ -309,8 +313,8 @@ describe("storySessionReducer", () => {
       ...initialStorySession,
       pageId: "page-6a",
       pageHistory: ["page-5"],
-      resolvedWordIds: ["shelter", "snug", "lullaby"],
-      resolvedComprehensionIds: ["find-shelter", "cozy-nap"],
+      resolvedWordIds: ["canopy", "cautious", "camouflage"],
+      resolvedComprehensionIds: ["track-clues", "tracks-choice-outcome"],
     };
 
     const next = storySessionReducer(state, {
@@ -318,10 +322,10 @@ describe("storySessionReducer", () => {
       pageId: "page-7a",
     });
 
-    expect(next.resolvedWordIds).toEqual(["shelter", "snug", "lullaby"]);
+    expect(next.resolvedWordIds).toEqual(["canopy", "cautious", "camouflage"]);
     expect(next.resolvedComprehensionIds).toEqual([
-      "find-shelter",
-      "cozy-nap",
+      "track-clues",
+      "tracks-choice-outcome",
     ]);
   });
 });
