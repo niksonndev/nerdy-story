@@ -10,8 +10,11 @@ export const BRANCH_PAGE_ID = "page-5";
 
 const PATH_PAGE_IDS = ["page-6a", "page-6b"] as const;
 
-const PATH_SPECIFIC_WORD_IDS = ["lullaby", "shimmered"] as const;
-const PATH_SPECIFIC_COMPREHENSION_IDS = ["cozy-nap", "rainy-surprise"] as const;
+const PATH_SPECIFIC_WORD_IDS = ["camouflage", "nocturnal"] as const;
+const PATH_SPECIFIC_COMPREHENSION_IDS = [
+  "tracks-choice-outcome",
+  "guide-choice-outcome",
+] as const;
 
 function withoutPathSpecificProgress(state: StorySessionState): Pick<
   StorySessionState,
@@ -34,13 +37,13 @@ function withoutPathSpecificProgress(state: StorySessionState): Pick<
 }
 
 export const ENDING_MYSTERY_WORD: Record<EndingPageId, string> = {
-  "page-7a": "lullaby",
-  "page-7b": "shimmered",
+  "page-7a": "camouflage",
+  "page-7b": "nocturnal",
 };
 
 export const DEFAULT_LEARNED_WORD_IDS: Record<EndingPageId, string[]> = {
-  "page-7a": ["shelter", "snug", "lullaby"],
-  "page-7b": ["shelter", "snug", "shimmered"],
+  "page-7a": ["canopy", "cautious", "camouflage"],
+  "page-7b": ["canopy", "cautious", "nocturnal"],
 };
 
 export type StorySessionState = {
@@ -157,9 +160,9 @@ export function storySessionReducer(
         exploredEndingIds: action.exploredEndingIds,
         resolvedWordIds: [ENDING_MYSTERY_WORD[action.pageId]],
         resolvedComprehensionIds: [
-          "find-shelter",
-          "cozy-nap",
-          "rainy-surprise",
+          "track-clues",
+          "tracks-choice-outcome",
+          "guide-choice-outcome",
         ],
         endingView: action.endingView,
         beatSession: state.beatSession + 1,
