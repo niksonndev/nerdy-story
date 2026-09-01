@@ -64,6 +64,7 @@ export function useStoryReader() {
     beatSession,
     resolvedWordIds,
     resolvedComprehensionIds,
+    hasStarted,
   } = session;
 
   const {
@@ -272,6 +273,10 @@ export function useStoryReader() {
     return true;
   }
 
+  function handleStartReading() {
+    dispatchSession({ type: "startReading" });
+  }
+
   function handleReadAgain() {
     pendingAdvanceId.current = null;
     dispatchSession({ type: "readAgain" });
@@ -363,6 +368,8 @@ export function useStoryReader() {
     handleReadAgain,
     handleDiscoverAlternateEnding,
     handleReadChapter2,
+    handleStartReading,
+    hasStarted,
     setExplanation,
   };
 }
