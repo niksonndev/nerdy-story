@@ -2,7 +2,12 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 
 import {
-  appendPriorAttempts,
+  childAnswerSchema,
+  priorAttemptsSchema,
+} from "@/lib/grade/child-input";
+import {
+  buildChildAnswerMessage,
+  buildVocabTrustedContext,
   gradeResultSchema,
   VOCAB_GRADER_SYSTEM,
 } from "@/lib/grade/prompts";
@@ -12,8 +17,6 @@ import {
   GRADE_PRIMARY_MODEL,
   GRADE_TEMPERATURE,
   GradeError,
-  gradeAttemptSchema,
-  type GradeAttempt,
   type GradeRequest,
   type GradeResult,
 } from "@/lib/grade/shared";
@@ -22,28 +25,11 @@ import { mysteryWords } from "@/lib/story-data";
 
 export const gradeRequestSchema = z.object({
   wordId: z.string().min(1),
-  explanation: z.string().trim().min(1),
-  priorAttempts: z.array(gradeAttemptSchema).optional(),
+  explanation: childAnswerSchema,
+  priorAttempts: priorAttemptsSchema,
 });
 
 export type { GradeRequest };
-
-function buildPrompt(
-  word: (typeof mysteryWords)[string],
-  explanation: string,
-  priorAttempts: GradeAttempt[] | undefined,
-): string {
-  const lines = [
-    `Mystery word: ${word.word}`,
-    `Target definition: ${word.targetDefinition}`,
-    `Child's latest explanation: ${explanation}`,
-  ];
-
-  appendPriorAttempts(lines, priorAttempts);
-
-  lines.push("", "Does the child's latest explanation match the meaning of the word?");
-  return lines.join("\n");
-}
 
 /**
  * Live AI meaning check via AI Gateway (primary + failover models).
@@ -60,7 +46,7 @@ export async function gradeExplanation(
     throw new GradeError("fatal", "Unknown mystery word.");
   }
 
-  const explanation = request.explanation.trim();
+  const explanation = request.explanation;
 
   try {
     const { output } = await generateText({
@@ -74,7 +60,13 @@ export async function gradeExplanation(
           "Whether the child's explanation matches the mystery word's meaning.",
       }),
       system: VOCAB_GRADER_SYSTEM,
-      prompt: buildPrompt(word, explanation, request.priorAttempts),
+      messages: [
+        {
+          role: "user",
+          content: buildVocabTrustedContext(word, request.priorAttempts),
+        },
+        { role: "user", content: buildChildAnswerMessage(explanation) },
+      ],
       providerOptions: {
         gateway: {
           models: [...GRADE_FALLBACK_MODELS],

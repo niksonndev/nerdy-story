@@ -2,52 +2,34 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 
 import {
-  appendPriorAttempts,
+  childAnswerSchema,
+  priorAttemptsSchema,
+} from "@/lib/grade/child-input";
+import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
+import {
+  buildChildAnswerMessage,
+  buildComprehensionTrustedContext,
   COMPREHENSION_GRADER_SYSTEM,
   gradeResultSchema,
 } from "@/lib/grade/prompts";
-import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
 import {
   GRADE_FALLBACK_MODELS,
   GRADE_MAX_OUTPUT_TOKENS,
   GRADE_PRIMARY_MODEL,
   GRADE_TEMPERATURE,
   GradeError,
-  gradeAttemptSchema,
   type ComprehensionGradeRequest,
-  type GradeAttempt,
   type GradeResult,
 } from "@/lib/grade/shared";
 import { comprehensionChallenges } from "@/lib/story-data";
 
 export const comprehensionGradeRequestSchema = z.object({
   challengeId: z.string().min(1),
-  answer: z.string().trim().min(1),
-  priorAttempts: z.array(gradeAttemptSchema).optional(),
+  answer: childAnswerSchema,
+  priorAttempts: priorAttemptsSchema,
 });
 
 export type { ComprehensionGradeRequest };
-
-function buildPrompt(
-  challenge: (typeof comprehensionChallenges)[string],
-  answer: string,
-  priorAttempts: GradeAttempt[] | undefined,
-): string {
-  const lines = [
-    `Question: ${challenge.question}`,
-    `Story passage: ${challenge.passage}`,
-    `Expected understanding: ${challenge.expectedUnderstanding}`,
-    `Child's latest answer: ${answer}`,
-  ];
-
-  appendPriorAttempts(lines, priorAttempts);
-
-  lines.push(
-    "",
-    "Does the child's latest answer match the expected understanding of the passage?",
-  );
-  return lines.join("\n");
-}
 
 /**
  * Live AI comprehension check via AI Gateway (primary + failover models).
@@ -64,7 +46,7 @@ export async function gradeComprehension(
     throw new GradeError("fatal", "Unknown comprehension challenge.");
   }
 
-  const answer = request.answer.trim();
+  const answer = request.answer;
 
   try {
     const { output } = await generateText({
@@ -78,7 +60,16 @@ export async function gradeComprehension(
           "Whether the child's answer matches the expected story understanding.",
       }),
       system: COMPREHENSION_GRADER_SYSTEM,
-      prompt: buildPrompt(challenge, answer, request.priorAttempts),
+      messages: [
+        {
+          role: "user",
+          content: buildComprehensionTrustedContext(
+            challenge,
+            request.priorAttempts,
+          ),
+        },
+        { role: "user", content: buildChildAnswerMessage(answer) },
+      ],
       providerOptions: {
         gateway: {
           models: [...GRADE_FALLBACK_MODELS],
