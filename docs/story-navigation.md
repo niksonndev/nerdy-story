@@ -105,16 +105,16 @@ flowchart TD
 - **HTTP / transport failure:** burn attempt; fixed reason + story `hints` tier; at limit → answer reveal.
 - Closing with X before resolve does not advance; Next Page can reopen the challenge.
 
-## Pip and the Rainy Woods (7-page graph)
+## Mia and the Hidden Sloth (7-page graph)
 
 ```mermaid
 flowchart LR
-  page1[page-1 Setup] -->|nextPageId| page2[page-2 Vocab1]
-  page2 -->|nextPageId| page3[page-3 Comp1]
-  page3 -->|nextPageId| page4[page-4 Quiet]
-  page4 -->|nextPageId| page5[page-5 Vocab2 plus branch]
-  page5 -->|Stay curled up| page6a[page-6a Comp2A]
-  page5 -->|Peek outside| page6b[page-6b Comp2B]
-  page6a -->|nextPageId| page7a[page-7a Vocab3A ending]
-  page6b -->|nextPageId| page7b[page-7b Vocab3B ending]
+  page1[page-1 Into the Rainforest] -->|nextPageId| page2[page-2 canopy vocab]
+  page2 -->|nextPageId| page3[page-3 track-clues comp]
+  page3 -->|nextPageId| page4[page-4 Two Paths]
+  page4 -->|nextPageId| page5[page-5 cautious vocab plus branch]
+  page5 -->|Follow the tracks| page6a[page-6a tracks-choice-outcome comp]
+  page5 -->|Ask the ranger station| page6b[page-6b guide-choice-outcome comp]
+  page6a -->|nextPageId| page7a[page-7a camouflage vocab ending]
+  page6b -->|nextPageId| page7b[page-7b nocturnal vocab ending]
 ```
