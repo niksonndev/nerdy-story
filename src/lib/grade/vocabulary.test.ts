@@ -41,7 +41,7 @@ import { mysteryWords } from "@/lib/story-data";
 describe("gradeRequestSchema", () => {
   it("accepts a valid request and trims explanation", () => {
     const parsed = gradeRequestSchema.safeParse({
-      wordId: "shelter",
+      wordId: "canopy",
       explanation: "  a safe place  ",
       priorAttempts: [
         {
@@ -62,14 +62,14 @@ describe("gradeRequestSchema", () => {
   it("rejects empty explanation and malformed priorAttempts", () => {
     expect(
       gradeRequestSchema.safeParse({
-        wordId: "shelter",
+        wordId: "canopy",
         explanation: "   ",
       }).success,
     ).toBe(false);
 
     expect(
       gradeRequestSchema.safeParse({
-        wordId: "shelter",
+        wordId: "canopy",
         explanation: "a safe place",
         priorAttempts: [{ explanation: "x", reason: "y" }],
       }).success,
@@ -78,52 +78,71 @@ describe("gradeRequestSchema", () => {
 });
 
 describe("gradeVocabularyLocally", () => {
-  it("accepts overlapping definition tokens as correct", () => {
+  it("accepts acceptKeywords for camouflage", () => {
     const result = gradeVocabularyLocally({
-      wordId: "shelter",
-      explanation: "a safe covered place from rain",
+      wordId: "camouflage",
+      explanation: "colors that help an animal blend in and hide",
     });
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
-    expect(result.reason).toMatch(/shelter/i);
   });
 
-  it("accepts acceptKeywords phrases as correct", () => {
+  it("accepts overlapping definition tokens as correct", () => {
     const result = gradeVocabularyLocally({
-      wordId: "snug",
-      explanation: "it feels cozy under a blanket",
+      wordId: "canopy",
+      explanation: "the treetops where the leaves block the sun",
     });
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
+    expect(result.reason).toMatch(/canopy/i);
+  });
+
+  it("accepts acceptKeywords for cautious", () => {
+    const result = gradeVocabularyLocally({
+      wordId: "cautious",
+      explanation: "being careful and watching out for danger",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+  });
+
+  it("accepts overlapping definition tokens for nocturnal", () => {
+    const result = gradeVocabularyLocally({
+      wordId: "nocturnal",
+      explanation: "awake at night and resting during the day",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+    expect(result.reason).toMatch(/nocturnal/i);
   });
 
   it("rejects a wrong concept and returns a story hint", () => {
     const result = gradeVocabularyLocally({
-      wordId: "shelter",
+      wordId: "canopy",
       explanation: "a kind of tasty fruit",
     });
     expect(result).toEqual({
       correct: false,
       reason:
         "That does not quite match the meaning. Try another way to say it.",
-      hint: mysteryWords.shelter.hints[0],
+      hint: mysteryWords.canopy.hints[0],
     });
   });
 
   it("uses the next hint tier after prior attempts", () => {
     const result = gradeVocabularyLocally({
-      wordId: "shelter",
+      wordId: "canopy",
       explanation: "a banana",
       priorAttempts: [
         {
           explanation: "a fruit",
           reason: "nope",
-          hint: mysteryWords.shelter.hints[0],
+          hint: mysteryWords.canopy.hints[0],
         },
       ],
     });
     expect(result.correct).toBe(false);
-    expect(result.hint).toBe(mysteryWords.shelter.hints[1]);
+    expect(result.hint).toBe(mysteryWords.canopy.hints[1]);
   });
 });
 
@@ -146,19 +165,19 @@ describe("gradeExplanation", () => {
     generateText.mockResolvedValue({
       output: {
         correct: true,
-        reason: "A shelter is a safe place from the rain.",
+        reason: "The canopy is the leafy roof high in the trees.",
         hint: "should be cleared",
       },
     });
 
     const result = await gradeExplanation({
-      wordId: "shelter",
-      explanation: "a safe place from the rain",
+      wordId: "canopy",
+      explanation: "the top of the trees where leaves meet",
     });
 
     expect(result).toEqual({
       correct: true,
-      reason: "A shelter is a safe place from the rain.",
+      reason: "The canopy is the leafy roof high in the trees.",
       hint: null,
     });
     expect(generateText).toHaveBeenCalledTimes(1);
@@ -187,9 +206,9 @@ describe("gradeExplanation", () => {
       "feature:vocabulary-grade",
     );
     expect(call.prompt).toContain(
-      "A shelter is a safe, covered place that keeps you protected",
+      "The roof-like layer formed by the tops of tall rainforest trees",
     );
-    expect(call.prompt).toContain("a safe place from the rain");
+    expect(call.prompt).toContain("the top of the trees where leaves meet");
     expect(call.system).toMatch(/encouraging/i);
     expect(call.system).toMatch(/fake enthusiasm/i);
     expect(call.system).toMatch(/target definition/i);
@@ -207,18 +226,18 @@ describe("gradeExplanation", () => {
       output: {
         correct: false,
         reason: "That still sounds like something else.",
-        hint: "Think about a covered place.",
+        hint: "Think about the treetops.",
       },
     });
 
     await gradeExplanation({
-      wordId: "shelter",
-      explanation: "a dry roof",
+      wordId: "canopy",
+      explanation: "a kind of boat",
       priorAttempts: [
         {
           explanation: "a tasty fruit",
-          reason: "That sounds like food, not a place.",
-          hint: "Think about staying dry in the rain.",
+          reason: "That sounds like food, not treetops.",
+          hint: mysteryWords.canopy.hints[0],
         },
       ],
     });
@@ -226,8 +245,8 @@ describe("gradeExplanation", () => {
     const call = generateText.mock.calls[0]?.[0] as { prompt: string };
     expect(call.prompt).toContain("Previous tries");
     expect(call.prompt).toContain("a tasty fruit");
-    expect(call.prompt).toContain("Think about staying dry in the rain.");
-    expect(call.prompt).toContain("Child's latest explanation: a dry roof");
+    expect(call.prompt).toContain(mysteryWords.canopy.hints[0]);
+    expect(call.prompt).toContain("Child's latest explanation: a kind of boat");
   });
 
   it("maps an incorrect model result with a hint", async () => {
@@ -240,7 +259,7 @@ describe("gradeExplanation", () => {
     });
 
     const result = await gradeExplanation({
-      wordId: "shelter",
+      wordId: "canopy",
       explanation: "a kind of tasty fruit",
     });
 
@@ -258,12 +277,12 @@ describe("gradeExplanation", () => {
     generateText.mockRejectedValue(error);
 
     const result = await gradeExplanation({
-      wordId: "shelter",
+      wordId: "canopy",
       explanation: "a banana",
     });
 
     expect(result.correct).toBe(false);
-    expect(result.hint).toBe(mysteryWords.shelter.hints[0]);
+    expect(result.hint).toBe(mysteryWords.canopy.hints[0]);
   });
 
   it("falls back to local grading when NoOutputGeneratedError is thrown", async () => {
@@ -273,12 +292,12 @@ describe("gradeExplanation", () => {
     generateText.mockRejectedValue(error);
 
     const result = await gradeExplanation({
-      wordId: "shelter",
+      wordId: "canopy",
       explanation: "a banana",
     });
 
     expect(result.correct).toBe(false);
-    expect(result.hint).toBe(mysteryWords.shelter.hints[0]);
+    expect(result.hint).toBe(mysteryWords.canopy.hints[0]);
   });
 
   it("classifies 403 provider errors as fatal", () => {

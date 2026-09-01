@@ -42,12 +42,12 @@ import { comprehensionChallenges } from "@/lib/story-data";
 describe("comprehensionGradeRequestSchema", () => {
   it("accepts a valid request and trims answer", () => {
     const parsed = comprehensionGradeRequestSchema.safeParse({
-      challengeId: "find-shelter",
-      answer: "  because it is raining  ",
+      challengeId: "track-clues",
+      answer: "  because of the scraped bark and fur  ",
       priorAttempts: [
         {
-          explanation: "she is hungry",
-          reason: "This part is about the rain.",
+          explanation: "they heard monkeys",
+          reason: "This part is about clues on the branch.",
           hint: null,
         },
       ],
@@ -55,7 +55,7 @@ describe("comprehensionGradeRequestSchema", () => {
 
     expect(parsed.success).toBe(true);
     if (parsed.success) {
-      expect(parsed.data.answer).toBe("because it is raining");
+      expect(parsed.data.answer).toBe("because of the scraped bark and fur");
       expect(parsed.data.priorAttempts).toHaveLength(1);
     }
   });
@@ -63,15 +63,15 @@ describe("comprehensionGradeRequestSchema", () => {
   it("rejects empty answer and malformed priorAttempts", () => {
     expect(
       comprehensionGradeRequestSchema.safeParse({
-        challengeId: "find-shelter",
+        challengeId: "track-clues",
         answer: "   ",
       }).success,
     ).toBe(false);
 
     expect(
       comprehensionGradeRequestSchema.safeParse({
-        challengeId: "find-shelter",
-        answer: "because it is raining",
+        challengeId: "track-clues",
+        answer: "because they heard monkeys",
         priorAttempts: [{ explanation: "x", reason: "y" }],
       }).success,
     ).toBe(false);
@@ -81,8 +81,8 @@ describe("comprehensionGradeRequestSchema", () => {
 describe("gradeComprehensionLocally", () => {
   it("accepts acceptKeywords phrases as correct", () => {
     const result = gradeComprehensionLocally({
-      challengeId: "find-shelter",
-      answer: "because of the rain",
+      challengeId: "track-clues",
+      answer: "because of the scraped bark and green fur",
     });
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
@@ -91,8 +91,17 @@ describe("gradeComprehensionLocally", () => {
 
   it("accepts overlapping expectedUnderstanding tokens as correct", () => {
     const result = gradeComprehensionLocally({
-      challengeId: "cozy-nap",
-      answer: "she is cozy and sleepy in the hollow",
+      challengeId: "tracks-choice-outcome",
+      answer: "the tracks got faint and she almost went the wrong way",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+  });
+
+  it("accepts overlapping expectedUnderstanding tokens for guide path", () => {
+    const result = gradeComprehensionLocally({
+      challengeId: "guide-choice-outcome",
+      answer: "sloths rest at midday and get active near dusk so they waited",
     });
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
@@ -100,31 +109,31 @@ describe("gradeComprehensionLocally", () => {
 
   it("rejects a wrong idea and returns a story hint", () => {
     const result = gradeComprehensionLocally({
-      challengeId: "find-shelter",
+      challengeId: "track-clues",
       answer: "bananas and candy",
     });
     expect(result).toEqual({
       correct: false,
       reason:
         "That does not quite match this part of the story. Try another way to say it.",
-      hint: comprehensionChallenges["find-shelter"].hints[0],
+      hint: comprehensionChallenges["track-clues"].hints[0],
     });
   });
 
   it("uses the next hint tier after prior attempts", () => {
     const result = gradeComprehensionLocally({
-      challengeId: "find-shelter",
+      challengeId: "track-clues",
       answer: "bananas",
       priorAttempts: [
         {
           explanation: "hungry",
           reason: "nope",
-          hint: comprehensionChallenges["find-shelter"].hints[0],
+          hint: comprehensionChallenges["track-clues"].hints[0],
         },
       ],
     });
     expect(result.correct).toBe(false);
-    expect(result.hint).toBe(comprehensionChallenges["find-shelter"].hints[1]);
+    expect(result.hint).toBe(comprehensionChallenges["track-clues"].hints[1]);
   });
 });
 
@@ -137,7 +146,7 @@ describe("gradeComprehension", () => {
     await expect(
       gradeComprehension({
         challengeId: "nope",
-        answer: "because rain",
+        answer: "because they heard monkeys",
       }),
     ).rejects.toMatchObject({ kind: "fatal" });
     expect(generateText).not.toHaveBeenCalled();
@@ -147,19 +156,19 @@ describe("gradeComprehension", () => {
     generateText.mockResolvedValue({
       output: {
         correct: true,
-        reason: "Pip needs somewhere dry from the rain.",
+        reason: "They found scraped bark and green fur from a sloth.",
         hint: "should be cleared",
       },
     });
 
     const result = await gradeComprehension({
-      challengeId: "find-shelter",
-      answer: "so she can stay dry in the storm",
+      challengeId: "track-clues",
+      answer: "they saw scraped bark and green fur on the branch",
     });
 
     expect(result).toEqual({
       correct: true,
-      reason: "Pip needs somewhere dry from the rain.",
+      reason: "They found scraped bark and green fur from a sloth.",
       hint: null,
     });
     expect(generateText).toHaveBeenCalledTimes(1);
@@ -187,12 +196,14 @@ describe("gradeComprehension", () => {
       "feature:comprehension-grade",
     );
     expect(call.prompt).toContain(
-      comprehensionChallenges["find-shelter"].question,
+      comprehensionChallenges["track-clues"].question,
     );
     expect(call.prompt).toContain(
-      comprehensionChallenges["find-shelter"].expectedUnderstanding,
+      comprehensionChallenges["track-clues"].expectedUnderstanding,
     );
-    expect(call.prompt).toContain("so she can stay dry in the storm");
+    expect(call.prompt).toContain(
+      "they saw scraped bark and green fur on the branch",
+    );
     expect(call.system).toMatch(/reading-comprehension/i);
     expect(call.system).toMatch(/expected understanding/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
@@ -204,47 +215,49 @@ describe("gradeComprehension", () => {
     generateText.mockResolvedValue({
       output: {
         correct: false,
-        reason: "This part is about staying dry, not exactly about food.",
-        hint: "Think about the rain.",
+        reason: "This part is about branch clues, not exactly about animals nearby.",
+        hint: "Look again at what Grandpa Elias noticed on the branch.",
       },
     });
 
     await gradeComprehension({
-      challengeId: "find-shelter",
-      answer: "she wants a dry spot",
+      challengeId: "track-clues",
+      answer: "because they heard monkeys",
       priorAttempts: [
         {
-          explanation: "she is hungry",
-          reason: "This part is about the storm.",
-          hint: "Think about the rain.",
+          explanation: "they saw a bird",
+          reason: "This part is about clues on the branch.",
+          hint: comprehensionChallenges["track-clues"].hints[0],
         },
       ],
     });
 
     const call = generateText.mock.calls[0]?.[0] as { prompt: string };
     expect(call.prompt).toContain("Previous tries");
-    expect(call.prompt).toContain("she is hungry");
-    expect(call.prompt).toContain("Child's latest answer: she wants a dry spot");
+    expect(call.prompt).toContain("they saw a bird");
+    expect(call.prompt).toContain(
+      "Child's latest answer: because they heard monkeys",
+    );
   });
 
   it("maps an incorrect model result with a hint", async () => {
     generateText.mockResolvedValue({
       output: {
         correct: false,
-        reason: "This part is about staying dry, not exactly about snacks.",
-        hint: "Think about rain and a safe place.",
+        reason: "This part is about branch clues, not exactly about snacks.",
+        hint: "Look again at what was on the branch.",
       },
     });
 
     const result = await gradeComprehension({
-      challengeId: "find-shelter",
+      challengeId: "track-clues",
       answer: "she wants a snack",
     });
 
     expect(result).toEqual({
       correct: false,
-      reason: "This part is about staying dry, not exactly about snacks.",
-      hint: "Think about rain and a safe place.",
+      reason: "This part is about branch clues, not exactly about snacks.",
+      hint: "Look again at what was on the branch.",
     });
   });
 
@@ -255,12 +268,12 @@ describe("gradeComprehension", () => {
     generateText.mockRejectedValue(error);
 
     const result = await gradeComprehension({
-      challengeId: "find-shelter",
+      challengeId: "track-clues",
       answer: "bananas",
     });
 
     expect(result.correct).toBe(false);
-    expect(result.hint).toBe(comprehensionChallenges["find-shelter"].hints[0]);
+    expect(result.hint).toBe(comprehensionChallenges["track-clues"].hints[0]);
   });
 
   it("falls back to local grading when NoOutputGeneratedError is thrown", async () => {
@@ -270,8 +283,8 @@ describe("gradeComprehension", () => {
     generateText.mockRejectedValue(error);
 
     const result = await gradeComprehension({
-      challengeId: "find-shelter",
-      answer: "to stay dry",
+      challengeId: "track-clues",
+      answer: "scraped bark and green fur on the branch",
     });
 
     expect(result.correct).toBe(true);
