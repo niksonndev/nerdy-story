@@ -8,6 +8,7 @@ import {
   requestComprehensionGrade,
   requestVocabGrade,
 } from "@/lib/grade/client";
+import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
 import type { GradeResult } from "@/lib/grade/shared";
 import { mysteryWordIdsFor } from "@/lib/story/page-helpers";
 import {
@@ -147,7 +148,9 @@ export function useStoryReader() {
     if (!activeWordId || explanation.trim().length === 0) return;
     dispatchChallenge({ type: "setWaiting" });
 
-    const submittedExplanation = explanation.trim();
+    const submittedExplanation = explanation
+      .trim()
+      .slice(0, CHILD_ANSWER_MAX_LENGTH);
     let result: GradeResult;
     try {
       result = await requestVocabGrade(
@@ -188,7 +191,9 @@ export function useStoryReader() {
     if (!activeComprehensionId || explanation.trim().length === 0) return;
     dispatchChallenge({ type: "setWaiting" });
 
-    const submittedAnswer = explanation.trim();
+    const submittedAnswer = explanation
+      .trim()
+      .slice(0, CHILD_ANSWER_MAX_LENGTH);
     let result: GradeResult;
     try {
       result = await requestComprehensionGrade(

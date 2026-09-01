@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
 import { StoryPuzzleLoader } from "@/components/story/loading/StoryPuzzleLoader";
+import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
 import { type ChallengePhase } from "@/lib/story/types";
 import { type ComprehensionChallenge } from "@/lib/story-data";
 
@@ -163,6 +164,7 @@ function PromptState({
           }
         }}
         rows={3}
+        maxLength={CHILD_ANSWER_MAX_LENGTH}
         placeholder="Type your idea here..."
         className="mt-4 w-full resize-none rounded-2xl border-2 border-border bg-background p-4 text-lg text-foreground outline-none placeholder:text-muted-foreground focus:border-magic"
       />
