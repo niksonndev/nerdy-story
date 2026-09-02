@@ -6,8 +6,23 @@ import type { GradeEvalCase } from "../cases/types"
 const REASON_MIN_LENGTH = 10
 const REASON_MAX_LENGTH = 300
 
+/** Story vocabulary that contains "wrong" but is not evaluative shame. */
+const STORY_WRONG_PHRASE = /\bwrong (?:path|trail|way|turn|direction|route)\b/gi
+
 /** Kid-facing copy must never shame — mirrors the grader prompt constraints. */
-const SHAME_PATTERN = /\b(wrong|incorrect|no,? that|stupid|dumb|bad answer)\b/i
+const SHAME_PATTERNS = [
+  /\b(?:that'?s|you'?re|you are|that is) wrong\b/i,
+  /\bwrong answer\b/i,
+  /\bincorrect\b/i,
+  /\bno,? that\b/i,
+  /\b(?:stupid|dumb)\b/i,
+  /\bbad answer\b/i,
+] as const
+
+function containsShameLanguage(reason: string): boolean {
+  const scrubbed = reason.replace(STORY_WRONG_PHRASE, "")
+  return SHAME_PATTERNS.some((pattern) => pattern.test(scrubbed))
+}
 
 export class HardRuleError extends Error {
   constructor(message: string) {
@@ -70,7 +85,7 @@ export function assertHardRules(
     )
   }
 
-  if (!result.correct && SHAME_PATTERN.test(result.reason)) {
+  if (!result.correct && containsShameLanguage(result.reason)) {
     throw new HardRuleError(`Reason contains shame language: "${result.reason}"`)
   }
 
