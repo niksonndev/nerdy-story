@@ -9,7 +9,7 @@ import type { z } from "zod";
 /** Primary + Gateway failover — educational prompt is independent of these IDs. */
 export const GRADE_PRIMARY_MODEL = "openai/gpt-oss-120b";
 export const GRADE_FALLBACK_MODELS = [
-  "google/gemini-2.5-flash-lite",
+  "google/gemini-3.1-flash-lite",
 ] as const;
 
 /** Shared live-grade generation limits (vocab + comprehension). */
