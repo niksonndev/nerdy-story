@@ -14,7 +14,7 @@ export const GRADE_FALLBACK_MODELS = [
 
 /** Shared live-grade generation limits (vocab + comprehension). */
 export const GRADE_MAX_OUTPUT_TOKENS = 1024;
-export const GRADE_TEMPERATURE = 0.1;
+export const GRADE_TEMPERATURE = 0;
 
 export const gradeAttemptSchema = priorAttemptSchema;
 

@@ -22,7 +22,7 @@ Uses `openai/gpt-oss-120b` for evaluating kids' answers — strong semantic grad
 
 ## How to run
 
-Requires [Bun](https://bun.sh). Vocab and comprehension grading use **Vercel AI Gateway** (primary `openai/gpt-oss-120b`, failover `google/gemini-2.5-flash-lite`; `temperature` 0.1, `maxOutputTokens` 1024). If Gateway/OIDC fails after that failover, the API still returns a grade via the local keyword matcher so the loop is not blocked — live AI remains the intended grader. Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
+Requires [Bun](https://bun.sh). Vocab and comprehension grading use **Vercel AI Gateway** (primary `openai/gpt-oss-120b`, failover `google/gemini-2.5-flash-lite`; `temperature` 0, `maxOutputTokens` 1024). If Gateway/OIDC fails after that failover, the API still returns a grade via the local keyword matcher so the loop is not blocked — live AI remains the intended grader. Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
 
 ```bash
 vercel link   # once
