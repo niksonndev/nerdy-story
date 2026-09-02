@@ -75,6 +75,12 @@ boundary/gaming cases (answer, verdict, reason, hint, rationale). When more than
 one model runs, a cross-model divergence list shows cases where the models
 disagree.
 
+When a live grade call fails (rate limit, provider error, etc.), the outcome is
+**excluded**: `"actualCorrect": null` and `"reason": "(threw)"`. These are not
+model verdicts — use `excluded` / `gradedPassed` in the JSON report for
+calibration metrics without counting infrastructure failures as false accepts
+or rejects.
+
 The same data is written to `evals/results/<run-id>-<domain>.json` (gitignored)
 so you can diff runs while tuning prompts in `src/lib/grade/prompts.ts`. Outcomes
 for boundary/gaming cases include `"manualReview": true`.

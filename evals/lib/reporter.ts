@@ -16,7 +16,8 @@ export type CaseOutcome = {
   itemId: string
   childAnswer: string
   expectedCorrect: boolean
-  actualCorrect: boolean
+  /** Null when the live grade call failed — not a real model verdict. */
+  actualCorrect: boolean | null
   passed: boolean
   failReasons: string[]
   reason: string
@@ -43,6 +44,36 @@ export function recordOutcome(outcome: CaseOutcome): void {
   outcomes.push(outcome)
 }
 
+function baseOutcomeFields(
+  model: string,
+  evalCase: GradeEvalCase,
+): Pick<
+  CaseOutcome,
+  | "model"
+  | "caseId"
+  | "category"
+  | "itemId"
+  | "childAnswer"
+  | "expectedCorrect"
+  | "expectedReasonTag"
+  | "expectedReasonConcept"
+  | "boundaryRationale"
+  | "manualReview"
+> {
+  return {
+    model,
+    caseId: evalCase.id,
+    category: evalCase.category,
+    itemId: evalCase.wordId ?? evalCase.challengeId ?? "(unknown)",
+    childAnswer: evalCase.childAnswer,
+    expectedCorrect: evalCase.expectedCorrect,
+    expectedReasonTag: evalCase.expectedReasonTag,
+    expectedReasonConcept: evalCase.expectedReasonConcept,
+    boundaryRationale: evalCase.boundaryRationale,
+    manualReview: isManualReviewCategory(evalCase.category),
+  }
+}
+
 export function buildOutcome(args: {
   model: string
   evalCase: GradeEvalCase
@@ -51,21 +82,29 @@ export function buildOutcome(args: {
 }): CaseOutcome {
   const { model, evalCase, result, failReasons } = args
   return {
-    model,
-    caseId: evalCase.id,
-    category: evalCase.category,
-    itemId: evalCase.wordId ?? evalCase.challengeId ?? "(unknown)",
-    childAnswer: evalCase.childAnswer,
-    expectedCorrect: evalCase.expectedCorrect,
+    ...baseOutcomeFields(model, evalCase),
     actualCorrect: result.correct,
     passed: failReasons.length === 0,
     failReasons,
     reason: result.reason,
     hint: result.hint,
-    expectedReasonTag: evalCase.expectedReasonTag,
-    expectedReasonConcept: evalCase.expectedReasonConcept,
-    boundaryRationale: evalCase.boundaryRationale,
-    manualReview: isManualReviewCategory(evalCase.category),
+  }
+}
+
+/** Record a failed grade call without inventing a synthetic verdict. */
+export function buildErrorOutcome(args: {
+  model: string
+  evalCase: GradeEvalCase
+  errorMessage: string
+}): CaseOutcome {
+  const { model, evalCase, errorMessage } = args
+  return {
+    ...baseOutcomeFields(model, evalCase),
+    actualCorrect: null,
+    passed: false,
+    failReasons: [`grade call threw: ${errorMessage}`],
+    reason: "(threw)",
+    hint: null,
   }
 }
 
@@ -99,16 +138,19 @@ type DivergenceEntry = {
 function computeDivergence(items: CaseOutcome[]): DivergenceEntry[] {
   const entries: DivergenceEntry[] = []
   for (const [, group] of groupBy(items, (o) => o.caseId)) {
-    const verdicts = new Set(group.map((o) => o.actualCorrect))
+    const graded = group.filter((o) => o.actualCorrect !== null)
+    if (graded.length < 2) continue
+
+    const verdicts = new Set(graded.map((o) => o.actualCorrect))
     if (verdicts.size > 1) {
-      const first = group[0]
+      const first = graded[0]
       entries.push({
         caseId: first.caseId,
         category: first.category,
         itemId: first.itemId,
         childAnswer: first.childAnswer,
         verdictByModel: Object.fromEntries(
-          group.map((o) => [o.model, o.actualCorrect]),
+          graded.map((o) => [o.model, o.actualCorrect as boolean]),
         ),
       })
     }
@@ -116,11 +158,19 @@ function computeDivergence(items: CaseOutcome[]): DivergenceEntry[] {
   return entries
 }
 
+function excludedCount(items: CaseOutcome[]): number {
+  return items.filter((o) => o.actualCorrect === null).length
+}
+
+function gradedOutcomes(items: CaseOutcome[]): CaseOutcome[] {
+  return items.filter((o) => o.actualCorrect !== null)
+}
+
 function formatManualReviewEntry(o: CaseOutcome): string[] {
   const entry: string[] = [
     `    [${o.caseId}] (${o.category})`,
     `      answer: "${o.childAnswer}"`,
-    `      expected correct=${o.expectedCorrect}, got ${o.actualCorrect}`,
+    `      expected correct=${o.expectedCorrect}, got ${o.actualCorrect === null ? "(excluded — grade call failed)" : o.actualCorrect}`,
     `      reason: "${o.reason}"`,
     `      hint: ${o.hint ? `"${o.hint}"` : "(none)"}`,
   ]
@@ -155,11 +205,25 @@ export function finalizeReport(domain: "vocabulary" | "comprehension"): void {
   for (const model of models) {
     const modelOutcomes = domainOutcomes.filter((o) => o.model === model)
     lines.push("", `Model: ${model}`)
+    const modelExcluded = excludedCount(modelOutcomes)
+    const modelGraded = gradedOutcomes(modelOutcomes)
     lines.push(`  Overall: ${rate(passCount(modelOutcomes), modelOutcomes.length)}`)
+    if (modelExcluded > 0) {
+      lines.push(`  Excluded (grade call failed): ${modelExcluded}`)
+      lines.push(
+        `  Graded only: ${rate(passCount(modelGraded), modelGraded.length)}`,
+      )
+    }
 
     lines.push("  By category:")
     for (const [category, group] of groupBy(modelOutcomes, (o) => o.category)) {
-      lines.push(`    ${category}: ${rate(passCount(group), group.length)}`)
+      const excluded = excludedCount(group)
+      const graded = gradedOutcomes(group)
+      const suffix =
+        excluded > 0
+          ? ` (${excluded} excluded, graded ${rate(passCount(graded), graded.length)})`
+          : ""
+      lines.push(`    ${category}: ${rate(passCount(group), group.length)}${suffix}`)
     }
 
     lines.push("  By category x item:")
@@ -213,12 +277,18 @@ export function finalizeReport(domain: "vocabulary" | "comprehension"): void {
     }
   }
 
+  const excluded = excludedCount(domainOutcomes)
+  const graded = gradedOutcomes(domainOutcomes)
+
   const report = {
     runId: RUN_ID,
     domain,
     models,
     total: domainOutcomes.length,
     passed: passCount(domainOutcomes),
+    excluded,
+    gradedTotal: graded.length,
+    gradedPassed: passCount(graded),
     divergence,
     outcomes: domainOutcomes,
   }

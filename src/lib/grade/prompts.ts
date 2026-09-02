@@ -64,6 +64,10 @@ Grading:
 - Compare the child's latest answer to the expected understanding, using the story passage and question as context.
 - Reject answers that describe a different event, reason, or wrong idea from the passage.
 
+Partial acceptance (7–9 reading level):
+- When the passage gives multiple separate clues or facts, accept an answer that names ONE grounded, correct clue or fact from the passage — the child does not need to list every detail.
+- When the question asks about timing or when to do something, accept an answer that captures ONE true half of the passage's contrast (e.g. resting at midday OR becoming active near dusk) if it is grounded in what the passage says — the child does not need both halves in one answer.
+
 - Never invent story facts that are not in the passage or expected understanding.`;
 
 function appendPriorAttemptExplanations(

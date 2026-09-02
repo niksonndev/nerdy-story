@@ -4,7 +4,7 @@ import type { GradeEvalCase } from "../cases/types"
 import { assertHardRules, HardRuleError } from "./hard-assertions"
 import { gradeCase } from "./live-grade"
 import { assertReasonExpectations } from "./reason-assertions"
-import { buildOutcome, recordOutcome } from "./reporter"
+import { buildErrorOutcome, buildOutcome, recordOutcome } from "./reporter"
 
 /**
  * Grade one case against one model, run every assertion layer, record the
@@ -20,14 +20,7 @@ export async function evaluateCase(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     const failReasons = [`grade call threw: ${message}`]
-    recordOutcome(
-      buildOutcome({
-        model,
-        evalCase,
-        result: { correct: !evalCase.expectedCorrect, reason: "(threw)", hint: null },
-        failReasons,
-      }),
-    )
+    recordOutcome(buildErrorOutcome({ model, evalCase, errorMessage: message }))
     return failReasons
   }
 
