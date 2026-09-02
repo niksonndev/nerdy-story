@@ -8,8 +8,9 @@ const REASON_FIELD_DESCRIPTION = `One short kid-friendly sentence that always pr
 Vocabulary (mystery word):
 - correct true: affirm the result and explain why — tie their words to the target.
   Templates: "Perfect! That's exactly it: [definition]." "Exactly! Since [word] is about [dimension], that fits perfectly." "Right — [word] means [definition], just like you said."
-- correct false: name the domain or category their answer landed in and contrast against the target without revealing the target.
+- correct false: name only the domain or category their answer landed in — stop there; never restate or paraphrase the target definition in reason (save direction for hint).
   Templates: "Good guess, but [word] isn't about [child's concept]." "That's more about [child's concept] than about this word."
+  Bad: adding "it's about [correct definition]" after the contrast — that reveals the answer.
 
 Story comprehension:
 - correct true: affirm the causal/textual link — reinforce why it's right, not just that it is.
@@ -36,6 +37,7 @@ const GRADER_SHARED = `Tone:
 
 Acceptance:
 - Accept simplified wording, synonyms, and partial-but-correct understanding.
+- Ignore spelling and grammar mistakes when the meaning is clear.
 
 Output behavior:
 - Grade only the latest answer. Earlier wrong tries are context, not extra penalties.
@@ -54,6 +56,20 @@ Grading:
 - Compare the child's latest explanation to the target definition for semantic meaning.
 - Reject answers that describe a different or wrong idea than the target definition.
 
+Partial acceptance (7–9 reading level):
+- When the target definition has two parts (e.g. active at night AND resting by day), accept an answer that captures ONE true half — the child does not need both parts in one answer.
+- The half must be the specific timing or behavior in the target (e.g. active at night OR resting during the day) — not a vague related idea like "sleeps a lot" or "is sleepy", which miss the night/day contrast.
+- Accept simplified wording and synonyms for whichever part they name.
+- Accept answers that clearly describe the core idea even without every nuance (e.g. treetops / top of trees counts for canopy even without "roof" or "layer" wording).
+
+Reject feedback:
+- On reject, reason must contrast the child's mistaken concept with the word — never quote or paraphrase the full target definition in reason.
+
+Reject overly generic answers:
+- Reject when the answer could fit many unrelated words and misses what makes THIS word specific in the target definition.
+- If the target includes both a means and an outcome (e.g. blending or matching colors to hide), naming only the outcome ("hide") without the means is not enough.
+- Accept when both means and outcome are present even in simple phrasing (e.g. "blending in to hide" or "matching colors to hide" counts for camouflage).
+
 - Never invent a different definition than the target provided.`;
 
 export const COMPREHENSION_GRADER_SYSTEM = `You grade reading-comprehension answers for children ages 7–9 (2nd–3rd grade reading level).
@@ -67,6 +83,12 @@ Grading:
 Partial acceptance (7–9 reading level):
 - When the passage gives multiple separate clues or facts, accept an answer that names ONE grounded, correct clue or fact from the passage — the child does not need to list every detail.
 - When the question asks about timing or when to do something, accept an answer that captures ONE true half of the passage's contrast (e.g. resting at midday OR becoming active near dusk) if it is grounded in what the passage says — the child does not need both halves in one answer.
+- Partial acceptance is for missing extra details — not when the child swaps who did or said something.
+
+Attribution (when the question implies who):
+- Wrong-character reject applies only when the child names a specific character who did or said something — not when they omit who but give grounded correct clues, timing, or reasoning.
+- If the child credits the wrong character for an action or explanation (e.g. the ranger for what Grandpa did, or Grandpa for what the ranger taught), reject — use the wrong-character reason template.
+- Answers that describe correct timing or facts without naming anyone still count as partial acceptance when the content matches the passage.
 
 - Never invent story facts that are not in the passage or expected understanding.`;
 
