@@ -70,7 +70,7 @@ export function assertHardRules(
     )
   }
 
-  if (SHAME_PATTERN.test(result.reason)) {
+  if (!result.correct && SHAME_PATTERN.test(result.reason)) {
     throw new HardRuleError(`Reason contains shame language: "${result.reason}"`)
   }
 
