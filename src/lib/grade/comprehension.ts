@@ -19,6 +19,7 @@ import {
   GRADE_TEMPERATURE,
   GradeError,
   type ComprehensionGradeRequest,
+  type GradeLiveOptions,
   type GradeResult,
 } from "@/lib/grade/shared";
 import { comprehensionChallenges } from "@/lib/story-data";
@@ -32,13 +33,13 @@ export const comprehensionGradeRequestSchema = z.object({
 export type { ComprehensionGradeRequest };
 
 /**
- * Live AI comprehension check via AI Gateway (primary + failover models).
- * Looks up passage / expected understanding server-side.
- * After the live call fails (failover already attempted inside generateText),
- * returns a local keyword GradeResult instead of throwing.
+ * Live AI comprehension check via AI Gateway. Throws on provider/parse failure.
+ * Production omits `options` (primary model + Gateway failover). Evals pass an
+ * explicit model with `failoverModels: []` to isolate one model's calibration.
  */
-export async function gradeComprehension(
+export async function gradeComprehensionLive(
   request: ComprehensionGradeRequest,
+  options?: GradeLiveOptions,
 ): Promise<GradeResult> {
   const challenge = comprehensionChallenges[request.challengeId];
 
@@ -46,45 +47,55 @@ export async function gradeComprehension(
     throw new GradeError("fatal", "Unknown comprehension challenge.");
   }
 
-  const answer = request.answer;
-
-  try {
-    const { output } = await generateText({
-      model: GRADE_PRIMARY_MODEL,
-      temperature: GRADE_TEMPERATURE,
-      maxOutputTokens: GRADE_MAX_OUTPUT_TOKENS,
-      output: Output.object({
-        schema: gradeResultSchema,
-        name: "ComprehensionGrade",
-        description:
-          "Whether the child's answer matches the expected story understanding.",
-      }),
-      system: COMPREHENSION_GRADER_SYSTEM,
-      messages: [
-        {
-          role: "user",
-          content: buildComprehensionTrustedContext(
-            challenge,
-            request.priorAttempts,
-          ),
-        },
-        { role: "user", content: buildChildAnswerMessage(answer) },
-      ],
-      providerOptions: {
-        gateway: {
-          models: [...GRADE_FALLBACK_MODELS],
-          tags: ["feature:comprehension-grade"],
-        },
+  const { output } = await generateText({
+    model: options?.model ?? GRADE_PRIMARY_MODEL,
+    temperature: GRADE_TEMPERATURE,
+    maxOutputTokens: GRADE_MAX_OUTPUT_TOKENS,
+    output: Output.object({
+      schema: gradeResultSchema,
+      name: "ComprehensionGrade",
+      description:
+        "Whether the child's answer matches the expected story understanding.",
+    }),
+    system: COMPREHENSION_GRADER_SYSTEM,
+    messages: [
+      {
+        role: "user",
+        content: buildComprehensionTrustedContext(
+          challenge,
+          request.priorAttempts,
+        ),
       },
-    });
+      { role: "user", content: buildChildAnswerMessage(request.answer) },
+    ],
+    providerOptions: {
+      gateway: {
+        models: [...(options?.failoverModels ?? GRADE_FALLBACK_MODELS)],
+        tags: ["feature:comprehension-grade"],
+      },
+    },
+  });
 
-    return {
-      correct: output.correct,
-      reason: output.reason,
-      hint: output.correct ? null : output.hint,
-    };
-  } catch {
+  return {
+    correct: output.correct,
+    reason: output.reason,
+    hint: output.correct ? null : output.hint,
+  };
+}
+
+/**
+ * Production grader: live AI comprehension check via AI Gateway (primary +
+ * failover). After the live call fails (failover already attempted inside
+ * generateText), returns a local keyword GradeResult instead of throwing.
+ */
+export async function gradeComprehension(
+  request: ComprehensionGradeRequest,
+): Promise<GradeResult> {
+  try {
+    return await gradeComprehensionLive(request);
+  } catch (error) {
+    if (error instanceof GradeError) throw error;
     // Gateway already tried primary + failover models inside generateText.
-    return gradeComprehensionLocally({ ...request, answer });
+    return gradeComprehensionLocally(request);
   }
 }

@@ -40,6 +40,16 @@ export type GradeResult = {
   hint: string | null;
 };
 
+/**
+ * Overrides for the live grade call. Production omits this and uses the
+ * default primary model + Gateway failover. Evals pass an explicit model with
+ * `failoverModels: []` to grade one model's calibration in isolation.
+ */
+export type GradeLiveOptions = {
+  model?: string;
+  failoverModels?: readonly string[];
+};
+
 export type GradeErrorKind = "structured" | "retryable" | "fatal";
 
 export class GradeError extends Error {
