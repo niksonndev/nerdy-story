@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "test": "vitest"
+    "test": "vitest",
+    "eval": "vitest run --config evals/vitest.config.ts",
+    "eval:watch": "vitest --config evals/vitest.config.ts",
+    "eval:primary": "EVAL_MODELS=primary vitest run --config evals/vitest.config.ts",
+    "eval:fallback": "EVAL_MODELS=fallback vitest run --config evals/vitest.config.ts",
+    "eval:all-models": "EVAL_MODELS=all vitest run --config evals/vitest.config.ts"
   },
   "dependencies": {
     "ai": "^7.0.79",
