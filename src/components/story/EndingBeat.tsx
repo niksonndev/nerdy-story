@@ -6,9 +6,14 @@ import {
   AnimatePresence,
   animate,
   motion,
+  useReducedMotion,
 } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import {
+  dialogCloseButtonClassName,
+  useDialogA11y,
+} from "@/lib/a11y/use-dialog-a11y";
 import { ENDING_PAGE_IDS } from "@/lib/story/reader-state";
 import { mysteryWords } from "@/lib/story-data";
 import { type EndingBeatView } from "@/lib/story/types";
@@ -42,7 +47,7 @@ const ENDING_SECONDARY_ACTION_BUTTON_CLASS = cn(
   "order-2 lg:order-1",
   "text-muted-foreground hover:text-foreground",
   "max-lg:bg-white/80 max-lg:hover:bg-white/90",
-  "lg:w-auto lg:min-h-11 lg:flex-none lg:bg-transparent lg:px-5 lg:text-xl lg:underline-offset-4 lg:hover:underline",
+  "lg:w-auto lg:min-h-14 lg:flex-none lg:bg-transparent lg:px-5 lg:text-xl lg:underline-offset-4 lg:hover:underline",
 );
 
 const ENDING_LABELS: Record<(typeof ENDING_PAGE_IDS)[number], string> = {
@@ -62,15 +67,29 @@ export function EndingBeat({
 }: EndingBeatProps) {
   const [phase, setPhase] = useState<EndingBeatPhase>("coloring");
   const [displayCount, setDisplayCount] = useState(0);
+  const reduceMotion = useReducedMotion();
+  const coloringMs = reduceMotion ? 0 : COLORING_MS;
 
   useEffect(() => {
     if (view !== "beat" || phase !== "coloring") return;
-    const timer = window.setTimeout(() => setPhase("celebration"), COLORING_MS);
+    if (coloringMs === 0) {
+      setPhase("celebration");
+      return;
+    }
+    const timer = window.setTimeout(
+      () => setPhase("celebration"),
+      coloringMs,
+    );
     return () => window.clearTimeout(timer);
-  }, [view, phase]);
+  }, [view, phase, coloringMs]);
 
   useEffect(() => {
     if (view !== "beat" || phase !== "celebration") return;
+
+    if (reduceMotion) {
+      setDisplayCount(wordsLearned);
+      return;
+    }
 
     const controls = animate(0, wordsLearned, {
       duration: Math.min(1.2, 0.4 + wordsLearned * 0.25),
@@ -79,7 +98,7 @@ export function EndingBeat({
     });
 
     return () => controls.stop();
-  }, [view, phase, wordsLearned]);
+  }, [view, phase, wordsLearned, reduceMotion]);
 
   const bothEndings = endingsExplored >= 2;
 
@@ -305,7 +324,7 @@ function CelebrationHeader({ bothEndings }: { bothEndings: boolean }) {
         </span>
         Story complete!
       </h1>
-      <p className="mt-2 font-heading text-xl font-semibold text-magic sm:text-3xl">
+      <p className="mt-2 font-heading text-xl font-semibold text-magic-ink sm:text-3xl">
         {bothEndings ? "You found both endings!" : "You found one ending!"}
       </p>
     </header>
@@ -323,7 +342,7 @@ function RecapSectionLabel({
     <p
       className={cn(
         "font-heading text-lg font-semibold sm:text-xl lg:text-2xl",
-        tone === "reward" ? "text-reward" : "text-magic",
+        tone === "reward" ? "text-reward-ink" : "text-magic-ink",
       )}
     >
       {children}
@@ -458,30 +477,24 @@ function CelebrationActions({
 
 function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
   const [activeWordId, setActiveWordId] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const reduceMotion = useReducedMotion();
 
   const activeWord = activeWordId ? mysteryWords[activeWordId] : null;
 
-  useEffect(() => {
-    if (activeWordId) {
-      closeButtonRef.current?.focus();
-    }
-  }, [activeWordId]);
-
-  useEffect(() => {
-    if (!activeWordId) return;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setActiveWordId(null);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeWordId]);
+  useDialogA11y({
+    open: activeWordId !== null,
+    onClose: () => setActiveWordId(null),
+    containerRef: dialogRef,
+    initialFocusRef: closeButtonRef,
+  });
 
   if (learnedWordIds.length === 0) return null;
+
+  const spring = reduceMotion
+    ? { duration: 0.01 }
+    : { type: "spring" as const, stiffness: 320, damping: 26 };
 
   return (
     <>
@@ -517,7 +530,7 @@ function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
           >
             <div
               className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
@@ -526,13 +539,22 @@ function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
             />
 
             <motion.div
+              ref={dialogRef}
               role="dialog"
               aria-modal="true"
               aria-label={`Definition: ${activeWord.word}`}
-              initial={{ opacity: 0, scale: 0.92, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              transition={{ type: "spring", stiffness: 320, damping: 26 }}
+              initial={
+                reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 16 }
+              }
+              animate={
+                reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }
+              }
+              exit={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, scale: 0.95, y: 8 }
+              }
+              transition={spring}
               className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
             >
               <button
@@ -540,7 +562,7 @@ function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
                 type="button"
                 onClick={() => setActiveWordId(null)}
                 aria-label="Close"
-                className="absolute right-3 top-3 flex size-11 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors hover:bg-muted/80 hover:text-foreground"
+                className={dialogCloseButtonClassName}
               >
                 <X className="size-6" aria-hidden />
               </button>
@@ -579,7 +601,7 @@ function EndingTracker({ exploredEndingIds }: { exploredEndingIds: string[] }) {
             className={cn(
               "inline-flex min-h-12 items-center gap-1.5 rounded-2xl border px-5 py-2.5 font-heading text-lg font-semibold sm:text-2xl",
               explored
-                ? "border-magic/40 bg-magic/15 text-magic"
+                ? "border-magic/40 bg-magic/15 text-magic-ink"
                 : "border-border bg-muted/50 text-muted-foreground",
             )}
           >
@@ -603,26 +625,20 @@ function ExploreFirstPrompt({
   onSkip: () => void;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const reduceMotion = useReducedMotion();
 
-  useEffect(() => {
-    if (open) {
-      closeButtonRef.current?.focus();
-    }
-  }, [open]);
+  useDialogA11y({
+    open,
+    onClose,
+    containerRef: dialogRef,
+    initialFocusRef: closeButtonRef,
+  });
 
-  useEffect(() => {
-    if (!open) return;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const spring = reduceMotion
+    ? { duration: 0.01 }
+    : { type: "spring" as const, stiffness: 320, damping: 26 };
 
   return (
     <AnimatePresence>
@@ -632,7 +648,7 @@ function ExploreFirstPrompt({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
         >
           <div
             className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
@@ -641,13 +657,22 @@ function ExploreFirstPrompt({
           />
 
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="explore-first-title"
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            initial={
+              reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }
+            }
+            animate={
+              reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }
+            }
+            exit={
+              reduceMotion
+                ? { opacity: 0 }
+                : { opacity: 0, y: 16, scale: 0.98 }
+            }
+            transition={spring}
             className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
           >
             <button
@@ -655,7 +680,7 @@ function ExploreFirstPrompt({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute right-3 top-3 flex size-11 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors hover:bg-muted/80 hover:text-foreground"
+              className={dialogCloseButtonClassName}
             >
               <X className="size-6" aria-hidden />
             </button>
@@ -724,7 +749,7 @@ function Chapter2Stub({ onReadAgain }: { onReadAgain: () => void }) {
           >
             {"\uD83D\uDCDA"}
           </motion.div>
-          <h1 className="mt-6 font-heading text-3xl font-bold text-magic sm:text-5xl">
+          <h1 className="mt-6 font-heading text-3xl font-bold text-magic-ink sm:text-5xl">
             Chapter 2 unlocked!
           </h1>
         </header>
