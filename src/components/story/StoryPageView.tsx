@@ -463,7 +463,7 @@ function MysteryWord({
         "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         resolved
           ? "bg-reward/20"
-          : "bg-magic/15 underline decoration-magic decoration-wavy underline-offset-4 transition-colors lg:hover:bg-magic/25",
+          : "bg-magic/15 underline decoration-magic decoration-wavy underline-offset-4 sm:underline-offset-8 transition-colors lg:hover:bg-magic/25",
       )}
     >
       {resolved ? (
