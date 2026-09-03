@@ -16,7 +16,7 @@ Uses `openai/gpt-oss-120b` for evaluating kids' answers — strong semantic grad
 
 ## Demo / MVP constraints
 
-- **Deadline:** September 7 — deliverable is a 2–3 minute demo video
+- **Deadline:** September 18 — deliverable is a 2–3 minute demo video
 - Build the smallest version of the full loop that demos well
 - Out of MVP scope: playable chapter 2, settings, auth, persistence
 

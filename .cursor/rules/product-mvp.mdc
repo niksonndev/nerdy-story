@@ -76,7 +76,7 @@ Enforce these decisions. Do not invent product, scope, or stack choices beyond w
 ## Process constraints
 
 - **No human-written code** — 100% AI-authored (Cursor + harness)
-- **Deadline:** September 7; deliverable is a 2–3 minute demo video
+- **Deadline:** September 18; deliverable is a 2–3 minute demo video
 - **Scope discipline:** build the smallest version of the full loop that demos well; resist adding chapter 2, settings, auth, or persistence for the MVP
 
 ## Explicit non-goals (MVP)
