@@ -45,6 +45,8 @@ export type StoryPage = {
   id: string;
   title: string;
   image?: string;
+  /** Scene description for screen readers — not a duplicate of `title`. */
+  imageAlt?: string;
   segments: StorySegment[];
   nextPageId?: string;
   choice?: StoryChoice;
@@ -207,6 +209,8 @@ export const STORY_META = {
   id: "mia-and-the-hidden-sloth",
   title: "Mia and the Hidden Sloth",
   coverImage: `${STORY_IMAGE}/cover.jpeg`,
+  coverImageAlt:
+    "Mia stands at the edge of a lush green rainforest path, notebook in hand, looking toward the tall trees.",
   protagonistName: "Mia",
 } as const;
 
@@ -215,6 +219,8 @@ export const storyPages: StoryPage[] = [
     id: "page-1",
     title: "Into the Rainforest",
     image: `${STORY_IMAGE}/page-1.jpeg`,
+    imageAlt:
+      "Mia and Grandpa Elias step from a small boat onto a wooden dock beside dense rainforest trees.",
     nextPageId: "page-2",
     segments: [
       {
@@ -228,6 +234,8 @@ export const storyPages: StoryPage[] = [
     id: "page-2",
     title: "Up Among the Leaves",
     image: `${STORY_IMAGE}/page-2.jpeg`,
+    imageAlt:
+      "Sunlight filters through a thick green ceiling of rainforest leaves high above a narrow forest path.",
     nextPageId: "page-3",
     segments: [
       {
@@ -247,6 +255,8 @@ export const storyPages: StoryPage[] = [
     id: "page-3",
     title: "The First Clue",
     image: `${STORY_IMAGE}/page-3.jpeg`,
+    imageAlt:
+      "Grandpa Elias crouches by a low branch, pointing at scratched bark and a tuft of greenish fur.",
     nextPageId: "page-4",
     comprehensionId: "track-clues",
     segments: [
@@ -261,6 +271,8 @@ export const storyPages: StoryPage[] = [
     id: "page-4",
     title: "Two Paths",
     image: `${STORY_IMAGE}/page-4.jpeg`,
+    imageAlt:
+      "A forest trail splits in two — faint animal prints lead one way, a ranger station sign points the other.",
     nextPageId: "page-5",
     segments: [
       {
@@ -274,6 +286,8 @@ export const storyPages: StoryPage[] = [
     id: "page-5",
     title: "Mia's Decision",
     image: `${STORY_IMAGE}/page-5.jpeg`,
+    imageAlt:
+      "Mia stands at the fork in the rainforest path, thinking carefully while Grandpa Elias waits nearby.",
     choice: {
       prompt: "What should Mia and Grandpa Elias do?",
       options: [
@@ -305,6 +319,8 @@ export const storyPages: StoryPage[] = [
     id: "page-6a",
     title: "Following the Trail",
     image: `${STORY_IMAGE}/page-6a.jpeg`,
+    imageAlt:
+      "Mia walks carefully along a faint trail under the trees, searching for fresh scrapes on the bark.",
     nextPageId: "page-7a",
     comprehensionId: "tracks-choice-outcome",
     segments: [
@@ -319,6 +335,8 @@ export const storyPages: StoryPage[] = [
     id: "page-6b",
     title: "At the Ranger Station",
     image: `${STORY_IMAGE}/page-6b.jpeg`,
+    imageAlt:
+      "A friendly ranger shows notes to Mia and Grandpa Elias inside a small wooden ranger station.",
     nextPageId: "page-7b",
     comprehensionId: "guide-choice-outcome",
     segments: [
@@ -333,6 +351,8 @@ export const storyPages: StoryPage[] = [
     id: "page-7a",
     title: "Spotted!",
     image: `${STORY_IMAGE}/page-7a.jpeg`,
+    imageAlt:
+      "A gray-green sloth blends into mossy branches high in a tree while Mia looks up in wonder.",
     segments: [
       {
         type: "text",
@@ -351,6 +371,8 @@ export const storyPages: StoryPage[] = [
     id: "page-7b",
     title: "Waiting for Dusk",
     image: `${STORY_IMAGE}/page-7b.jpeg`,
+    imageAlt:
+      "At orange dusk, a sloth climbs toward leafy branches above an observation platform.",
     segments: [
       {
         type: "text",

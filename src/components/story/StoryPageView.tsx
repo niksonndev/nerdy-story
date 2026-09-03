@@ -4,12 +4,13 @@ import {
   forwardRef,
   useEffect,
   useEffectEvent,
+  useId,
   useImperativeHandle,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
 
@@ -62,6 +63,8 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
       useState<PageTurnDirection>("forward");
     const pendingPageId = useRef<string | null>(null);
     const pendingRetreat = useRef(false);
+    const reduceMotion = useReducedMotion();
+    const turnMs = reduceMotion ? 0 : PAGE_TURN_MS;
     const advancePage = useEffectEvent(() => {
       if (pendingRetreat.current) {
         pendingRetreat.current = false;
@@ -75,12 +78,13 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
 
     useEffect(() => {
       if (turnPhase !== "exit") return;
+      const nextPhase: PageTurnPhase = turnMs === 0 ? "idle" : "enter";
       const timer = window.setTimeout(() => {
         advancePage();
-        setTurnPhase("enter");
-      }, PAGE_TURN_MS);
+        setTurnPhase(nextPhase);
+      }, turnMs);
       return () => window.clearTimeout(timer);
-    }, [turnPhase]);
+    }, [turnPhase, turnMs]);
 
     useEffect(() => {
       if (turnPhase !== "enter") return;
@@ -152,20 +156,27 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
             "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
             "lg:max-w-225",
             "origin-center will-change-transform",
-            turnPhase === "exit" &&
+            !reduceMotion &&
+              turnPhase === "exit" &&
               turnDirection === "forward" &&
               "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
-            turnPhase === "exit" &&
+            !reduceMotion &&
+              turnPhase === "exit" &&
               turnDirection === "back" &&
               "translate-x-[12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
-            turnPhase === "enter" &&
+            !reduceMotion &&
+              turnPhase === "enter" &&
               turnDirection === "forward" &&
               "translate-x-[12%] opacity-0 transition-none",
-            turnPhase === "enter" &&
+            !reduceMotion &&
+              turnPhase === "enter" &&
               turnDirection === "back" &&
               "translate-x-[-12%] opacity-0 transition-none",
-            turnPhase === "idle" &&
-              "translate-x-0 scale-100 opacity-100 transition-[opacity,transform] duration-350 ease-out",
+            (reduceMotion || turnPhase === "idle") &&
+              "translate-x-0 scale-100 opacity-100",
+            !reduceMotion &&
+              turnPhase === "idle" &&
+              "transition-[opacity,transform] duration-350 ease-out",
           )}
         >
           <div
@@ -176,7 +187,7 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
           >
             <SceneImage
               src={page.image}
-              alt={page.title}
+              alt={page.imageAlt ?? page.title}
               backControl={
                 showDecisionBack ? (
                   <>
@@ -241,6 +252,7 @@ export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>
                 canAdvance={progressionReady}
                 canGoBack={canGoBack}
                 previousDisabled={previousDisabled}
+                vocabGated={!canAdvance}
                 onNextPage={handleNextPage}
                 onPreviousPage={requestRetreat}
                 onChoosePath={requestAdvance}
@@ -296,7 +308,7 @@ function PreviousControl({
         type="button"
         variant="ghost"
         className={cn(
-          "h-11 w-fit gap-1 rounded-2xl bg-card/80 px-3 font-heading text-base font-semibold text-foreground shadow-sm backdrop-blur-sm",
+          "min-h-11 w-fit gap-1 rounded-2xl bg-card/80 px-3 font-heading text-base font-semibold text-foreground shadow-sm backdrop-blur-sm",
           "hover:bg-card/90 hover:text-foreground",
           className,
         )}
@@ -330,6 +342,7 @@ function PageProgression({
   canAdvance,
   canGoBack,
   previousDisabled,
+  vocabGated,
   onNextPage,
   onPreviousPage,
   onChoosePath,
@@ -340,11 +353,13 @@ function PageProgression({
   canAdvance: boolean;
   canGoBack: boolean;
   previousDisabled: boolean;
+  vocabGated: boolean;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onChoosePath: (nextPageId: string) => void;
   className?: string;
 }) {
+  const nextHintId = useId();
   if (page.choice) {
     return (
       <div className={cn("flex w-full flex-col gap-3", className)}>
@@ -403,12 +418,18 @@ function PageProgression({
       ) : (
         <span className="hidden sm:block" />
       )}
+      {vocabGated ? (
+        <span id={nextHintId} className="sr-only">
+          Finish the mystery word on this page before going to the next page.
+        </span>
+      ) : null}
       <Button
         size="kid"
         className="min-h-14 flex-1 sm:ml-auto sm:w-auto sm:flex-none"
         onClick={onNextPage}
         disabled={!canAdvance}
         aria-label="Next Page"
+        aria-describedby={vocabGated ? nextHintId : undefined}
       >
         Next Page
       </Button>
@@ -457,17 +478,31 @@ function MysteryWord({
   resolved: boolean;
   onClick: () => void;
 }) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <motion.button
       type="button"
-      onClick={onClick}
-      whileTap={{ scale: 0.94 }}
-      className={
+      onClick={() => {
+        if (!resolved) onClick();
+      }}
+      aria-label={resolved ? `Learned word: ${label}` : `Mystery word: ${label}`}
+      aria-disabled={resolved}
+      whileTap={reduceMotion || resolved ? undefined : { scale: 0.94 }}
+      className={cn(
+        // Inline hit slate ≥44px tall without breaking sentence flow
+        "mx-0.5 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-1.5 py-1 align-baseline font-semibold text-foreground",
+        "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         resolved
-          ? "mx-0.5 inline rounded-md bg-reward/20 px-1 font-semibold text-reward decoration-reward/60 underline decoration-wavy underline-offset-4"
-          : "mx-0.5 inline rounded-md bg-magic/15 px-1 font-semibold text-magic underline decoration-magic decoration-wavy underline-offset-4 transition-colors lg:hover:bg-magic/25"
-      }
+          ? "bg-reward/20"
+          : "bg-magic/15 underline decoration-magic decoration-wavy underline-offset-4 transition-colors lg:hover:bg-magic/25",
+      )}
     >
+      {resolved ? (
+        <span aria-hidden className="mr-1 text-sm font-bold text-reward">
+          {"\u2713"}
+        </span>
+      ) : null}
       {label}
     </motion.button>
   );
@@ -480,28 +515,39 @@ function WordsLearned({
   count: number;
   className?: string;
 }) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
       className={cn(
-        "relative z-10 flex items-center gap-2 rounded-full bg-magic/10 px-4 py-1.5 text-magic",
+        "relative z-10 flex items-center gap-2 rounded-full bg-magic/10 px-4 py-1.5",
         className,
       )}
     >
-      <span aria-hidden className="text-lg">
+      <span aria-hidden className="text-lg text-magic">
         {"\u2728"}
       </span>
-      <span className="font-heading text-sm font-semibold uppercase tracking-wide">
+      <span className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
         Words learned
       </span>
       <div className="relative h-6 w-6 overflow-hidden text-center">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
             key={count}
-            initial={{ y: 14, opacity: 0, scale: 0.6 }}
+            initial={
+              reduceMotion ? false : { y: 14, opacity: 0, scale: 0.6 }
+            }
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -14, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 24 }}
-            className="absolute inset-0 font-heading text-lg font-bold text-reward"
+            exit={reduceMotion ? undefined : { y: -14, opacity: 0 }}
+            transition={
+              reduceMotion
+                ? { duration: 0.01 }
+                : { type: "spring", stiffness: 500, damping: 24 }
+            }
+            className="absolute inset-0 font-heading text-lg font-bold text-magic"
           >
             {count}
           </motion.span>
