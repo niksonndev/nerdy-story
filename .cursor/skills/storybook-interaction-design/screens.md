@@ -4,7 +4,7 @@ Behavior and chrome copy only. Visuals: [kid-friendly-ui-design](../kid-friendly
 
 ```
 StoryPage (read; mystery word highlighted)
-  → VocabChallenge overlay → GradingWait → WhyFeedback
+  → VocabularyChallenge overlay → GradingWait → WhyFeedback
     accepted → success why (grade reason); overlay closes → same StoryPage; words-learned++; Next Page unlocked
     rejected (retries left) → stay in overlay; “Try another idea!” + about/not-exactly reason + answer-aware hint (AI or local); try again
     grade HTTP failed (retries left) → burn attempt; “Try another idea!” + fixed reason + story hint; try again

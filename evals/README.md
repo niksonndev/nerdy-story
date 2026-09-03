@@ -37,7 +37,7 @@ Then run:
 ```bash
 RUN_LIVE_EVALS=1 bun run eval            # primary model only (default)
 RUN_LIVE_EVALS=1 bun run eval:primary    # openai/gpt-oss-120b
-RUN_LIVE_EVALS=1 bun run eval:fallback   # google/gemini-2.5-flash-lite
+RUN_LIVE_EVALS=1 bun run eval:fallback   # google/gemini-3.1-flash-lite
 RUN_LIVE_EVALS=1 bun run eval:all-models # both, with a divergence report
 ```
 

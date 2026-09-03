@@ -29,7 +29,7 @@ Session flag `hasStarted` flips to `true` only after the entrance animation comp
 ```mermaid
 flowchart TD
   read[StoryPage read]
-  vocab[VocabChallenge overlay]
+  vocab[VocabularyChallenge overlay]
   comp[ComprehensionChallenge overlay]
   nextBtn[Next Page]
   branch[BranchChoice]
@@ -58,7 +58,7 @@ Words-learned on the ending screen counts only vocab answers graded **correct** 
 
 ## Vocab challenge client flow (`StoryReader`)
 
-Server path (not shown in the client diagram): live AI grade via `POST /api/grade-vocabulary` (`openai/gpt-oss-120b`, Gateway failover to `google/gemini-2.5-flash-lite`) → on live failure, **local keyword** `GradeResult` (still HTTP 200).
+Server path (not shown in the client diagram): live AI grade via `POST /api/grade-vocabulary` (`openai/gpt-oss-120b`, Gateway failover to `google/gemini-3.1-flash-lite`) → on live failure, **local keyword** `GradeResult` (still HTTP 200).
 
 ```mermaid
 flowchart TD
@@ -87,7 +87,7 @@ flowchart TD
 
 Trigger: **Next Page** on a page with unresolved `comprehensionId` (never auto-open on page enter).
 
-Server path: live AI grade via `POST /api/grade-comprehension` (`openai/gpt-oss-120b`, Gateway failover to `google/gemini-2.5-flash-lite`) → on live failure, **local keyword** `GradeResult` (still HTTP 200).
+Server path: live AI grade via `POST /api/grade-comprehension` (`openai/gpt-oss-120b`, Gateway failover to `google/gemini-3.1-flash-lite`) → on live failure, **local keyword** `GradeResult` (still HTTP 200).
 
 ```mermaid
 flowchart TD
