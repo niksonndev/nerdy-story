@@ -9,7 +9,7 @@ import {
 } from "@/components/story/StoryCoverEntrance";
 import { StoryPageView } from "@/components/story/StoryPageView";
 import { useStoryReader } from "@/components/story/use-story-reader";
-import { VocabChallengeOverlay } from "@/components/story/VocabChallengeOverlay";
+import { VocabularyChallengeOverlay } from "@/components/story/VocabularyChallengeOverlay";
 
 export function StoryReader() {
   const {
@@ -33,24 +33,24 @@ export function StoryReader() {
     activeWord,
     activeChallenge,
     phase,
-    explanation,
+    childAnswer,
     missReason,
     hintText,
     acceptedReason,
-    openVocabChallenge,
+    openVocabularyChallenge,
     goToPage,
     goToPreviousPage,
     handleBeforeNextPage,
-    handleVocabCheck,
+    handleVocabularyCheck,
     handleComprehensionCheck,
-    closeVocabChallenge,
+    closeVocabularyChallenge,
     closeComprehensionChallenge,
     continueComprehension,
     handleReadAgain,
     handleDiscoverAlternateEnding,
     handleReadChapter2,
     handleStartReading,
-    setExplanation,
+    setChildAnswer,
   } = useStoryReader();
 
   const {
@@ -66,7 +66,7 @@ export function StoryReader() {
     canAdvance,
     canGoBack,
     isLastPage,
-    onMysteryClick: openVocabChallenge,
+    onMysteryClick: openVocabularyChallenge,
     onChoosePath: goToPage,
     onPreviousPage: goToPreviousPage,
     onBeforeNextPage: handleBeforeNextPage,
@@ -108,28 +108,28 @@ export function StoryReader() {
 
           {hasStarted ? (
             <>
-              <VocabChallengeOverlay
+              <VocabularyChallengeOverlay
                 open={activeWordId !== null}
                 word={activeWord}
                 phase={phase}
-                value={explanation}
+                value={childAnswer}
                 missReason={missReason}
                 hintText={hintText}
                 acceptedReason={acceptedReason}
-                onChange={setExplanation}
-                onCheck={handleVocabCheck}
-                onClose={closeVocabChallenge}
+                onChange={setChildAnswer}
+                onCheck={handleVocabularyCheck}
+                onClose={closeVocabularyChallenge}
               />
 
               <ComprehensionChallengeOverlay
                 open={activeComprehensionId !== null}
                 challenge={activeChallenge}
                 phase={phase}
-                value={explanation}
+                value={childAnswer}
                 missReason={missReason}
                 hintText={hintText}
                 acceptedReason={acceptedReason}
-                onChange={setExplanation}
+                onChange={setChildAnswer}
                 onCheck={handleComprehensionCheck}
                 onContinue={continueComprehension}
                 onClose={closeComprehensionChallenge}

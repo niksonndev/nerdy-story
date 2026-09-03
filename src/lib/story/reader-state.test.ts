@@ -12,7 +12,7 @@ describe("challengeUiReducer", () => {
   it("restores reason, hint, and attempts after close then reopen", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "canopy",
     });
 
@@ -32,11 +32,11 @@ describe("challengeUiReducer", () => {
     expect(state.missReason).toBeNull();
     expect(state.progressById.canopy).toEqual({
       phase: "prompt",
-      explanation: "",
+      childAnswer: "",
       attempts: 1,
       priorAttempts: [
         {
-          explanation: "a banana",
+          childAnswer: "a banana",
           reason:
             "Canopy is about treetops high in the forest, not exactly about fruit.",
           hint: "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
@@ -51,7 +51,7 @@ describe("challengeUiReducer", () => {
 
     state = challengeUiReducer(state, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "canopy",
     });
 
@@ -68,7 +68,7 @@ describe("challengeUiReducer", () => {
   it("preserves progress on word A when switching to word B and back", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "canopy",
     });
 
@@ -82,7 +82,7 @@ describe("challengeUiReducer", () => {
 
     state = challengeUiReducer(state, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "cautious",
     });
 
@@ -101,7 +101,7 @@ describe("challengeUiReducer", () => {
 
     state = challengeUiReducer(state, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "canopy",
     });
 
@@ -139,7 +139,7 @@ describe("challengeUiReducer", () => {
   it("simulates read-again: close/open cycle then reset yields fresh state", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "canopy",
     });
 
@@ -153,7 +153,7 @@ describe("challengeUiReducer", () => {
     state = challengeUiReducer(state, { type: "close" });
     state = challengeUiReducer(state, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "canopy",
     });
 
@@ -163,7 +163,7 @@ describe("challengeUiReducer", () => {
 
     state = challengeUiReducer(state, {
       type: "open",
-      kind: "vocab",
+      kind: "vocabulary",
       id: "canopy",
     });
 

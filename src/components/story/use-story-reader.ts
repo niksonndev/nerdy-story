@@ -6,7 +6,7 @@ import type { StoryPageViewHandle } from "@/components/story/StoryPageView";
 import {
   fallbackHintFor,
   requestComprehensionGrade,
-  requestVocabGrade,
+  requestVocabularyGrade,
 } from "@/lib/grade/client";
 import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
 import type { GradeResult } from "@/lib/grade/shared";
@@ -72,7 +72,7 @@ export function useStoryReader() {
     kind: challengeKind,
     id: challengeId,
     phase,
-    explanation,
+    childAnswer,
     attempts,
     priorAttempts,
     missReason,
@@ -84,7 +84,7 @@ export function useStoryReader() {
   const isLastPage = !page.nextPageId && !page.choice;
   const pageWordIds = mysteryWordIdsFor(page);
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
-  const activeWordId = challengeKind === "vocab" ? challengeId : null;
+  const activeWordId = challengeKind === "vocabulary" ? challengeId : null;
   const activeComprehensionId =
     challengeKind === "comprehension" ? challengeId : null;
   const canGoBack =
@@ -108,9 +108,9 @@ export function useStoryReader() {
     (wordId) => mysteryWords[wordId]?.word ?? wordId,
   );
 
-  function openVocabChallenge(wordId: string) {
+  function openVocabularyChallenge(wordId: string) {
     if (resolvedWordIds.includes(wordId)) return;
-    dispatchChallenge({ type: "open", kind: "vocab", id: wordId });
+    dispatchChallenge({ type: "open", kind: "vocabulary", id: wordId });
   }
 
   function openComprehensionChallenge(challengeId: string) {
@@ -133,7 +133,7 @@ export function useStoryReader() {
     });
 
     if (nextAttempts >= MAX_ATTEMPTS && challengeId) {
-      if (challengeKind === "vocab") {
+      if (challengeKind === "vocabulary") {
         dispatchSession({ type: "resolveWord", wordId: challengeId });
       } else if (challengeKind === "comprehension") {
         dispatchSession({
@@ -144,18 +144,18 @@ export function useStoryReader() {
     }
   }
 
-  async function handleVocabCheck() {
-    if (!activeWordId || explanation.trim().length === 0) return;
+  async function handleVocabularyCheck() {
+    if (!activeWordId || childAnswer.trim().length === 0) return;
     dispatchChallenge({ type: "setWaiting" });
 
-    const submittedExplanation = explanation
+    const submittedChildAnswer = childAnswer
       .trim()
       .slice(0, CHILD_ANSWER_MAX_LENGTH);
     let result: GradeResult;
     try {
-      result = await requestVocabGrade(
+      result = await requestVocabularyGrade(
         activeWordId,
-        submittedExplanation,
+        submittedChildAnswer,
         priorAttempts,
       );
     } catch {
@@ -165,7 +165,7 @@ export function useStoryReader() {
         nextAttempts - 1,
       );
       recordFailedAttempt(
-        submittedExplanation,
+        submittedChildAnswer,
         "Not quite — try another way.",
         hint,
         nextAttempts,
@@ -180,7 +180,7 @@ export function useStoryReader() {
     }
 
     recordFailedAttempt(
-      submittedExplanation,
+      submittedChildAnswer,
       result.reason,
       result.hint,
       attempts + 1,
@@ -188,17 +188,17 @@ export function useStoryReader() {
   }
 
   async function handleComprehensionCheck() {
-    if (!activeComprehensionId || explanation.trim().length === 0) return;
+    if (!activeComprehensionId || childAnswer.trim().length === 0) return;
     dispatchChallenge({ type: "setWaiting" });
 
-    const submittedAnswer = explanation
+    const submittedChildAnswer = childAnswer
       .trim()
       .slice(0, CHILD_ANSWER_MAX_LENGTH);
     let result: GradeResult;
     try {
       result = await requestComprehensionGrade(
         activeComprehensionId,
-        submittedAnswer,
+        submittedChildAnswer,
         priorAttempts,
       );
     } catch {
@@ -208,7 +208,7 @@ export function useStoryReader() {
         nextAttempts - 1,
       );
       recordFailedAttempt(
-        submittedAnswer,
+        submittedChildAnswer,
         "Not quite — try another way.",
         hint,
         nextAttempts,
@@ -226,14 +226,14 @@ export function useStoryReader() {
     }
 
     recordFailedAttempt(
-      submittedAnswer,
+      submittedChildAnswer,
       result.reason,
       result.hint,
       attempts + 1,
     );
   }
 
-  function closeVocabChallenge() {
+  function closeVocabularyChallenge() {
     dispatchChallenge({ type: "close" });
     if (isLastPage && canAdvance) {
       dispatchSession({ type: "recordEndingExplored", pageId });
@@ -298,8 +298,8 @@ export function useStoryReader() {
     dispatchSession({ type: "setEndingView", view: "chapter2" });
   }
 
-  function setExplanation(value: string) {
-    dispatchChallenge({ type: "setExplanation", explanation: value });
+  function setChildAnswer(value: string) {
+    dispatchChallenge({ type: "setChildAnswer", childAnswer: value });
   }
 
   useEffect(() => {
@@ -357,17 +357,17 @@ export function useStoryReader() {
     activeWord,
     activeChallenge,
     phase,
-    explanation,
+    childAnswer,
     missReason,
     hintText,
     acceptedReason,
-    openVocabChallenge,
+    openVocabularyChallenge,
     goToPage,
     goToPreviousPage,
     handleBeforeNextPage,
-    handleVocabCheck,
+    handleVocabularyCheck,
     handleComprehensionCheck,
-    closeVocabChallenge,
+    closeVocabularyChallenge,
     closeComprehensionChallenge,
     continueComprehension,
     handleReadAgain,
@@ -375,6 +375,6 @@ export function useStoryReader() {
     handleReadChapter2,
     handleStartReading,
     hasStarted,
-    setExplanation,
+    setChildAnswer,
   };
 }

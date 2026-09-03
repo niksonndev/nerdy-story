@@ -11,7 +11,7 @@ import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
 import { type MysteryWord } from "@/lib/story-data";
 import { type ChallengePhase } from "@/lib/story/types";
 
-type VocabChallengeOverlayProps = {
+type VocabularyChallengeOverlayProps = {
   open: boolean;
   word: MysteryWord | null;
   phase: ChallengePhase;
@@ -24,7 +24,7 @@ type VocabChallengeOverlayProps = {
   onClose: () => void;
 };
 
-export function VocabChallengeOverlay({
+export function VocabularyChallengeOverlay({
   open,
   word,
   phase,
@@ -35,7 +35,7 @@ export function VocabChallengeOverlay({
   onChange,
   onCheck,
   onClose,
-}: VocabChallengeOverlayProps) {
+}: VocabularyChallengeOverlayProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {

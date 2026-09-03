@@ -5,14 +5,14 @@ import { fallbackHintFor } from "@/lib/grade/client";
 import { MAX_ATTEMPTS, mysteryWords } from "@/lib/story-data";
 import { gradeMiss, gradeOk } from "@/test/grade-fixtures";
 
-const requestVocabGrade = vi.hoisted(() => vi.fn());
+const requestVocabularyGrade = vi.hoisted(() => vi.fn());
 const requestComprehensionGrade = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/grade/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/grade/client")>();
   return {
     ...actual,
-    requestVocabGrade: (...args: unknown[]) => requestVocabGrade(...args),
+    requestVocabularyGrade: (...args: unknown[]) => requestVocabularyGrade(...args),
     requestComprehensionGrade: (...args: unknown[]) =>
       requestComprehensionGrade(...args),
   };
@@ -35,17 +35,17 @@ async function resolveCanopyAndGoToPage3(
   hook: ReturnType<typeof renderHook<ReturnType<typeof useStoryReader>, unknown>>,
 ) {
   act(() => {
-    hook.result.current.openVocabChallenge("canopy");
-    hook.result.current.setExplanation("treetops high up");
+    hook.result.current.openVocabularyChallenge("canopy");
+    hook.result.current.setChildAnswer("treetops high up");
   });
-  requestVocabGrade.mockResolvedValueOnce(
+  requestVocabularyGrade.mockResolvedValueOnce(
     gradeOk("Yes — canopy is about the leafy roof of the forest."),
   );
   await act(async () => {
-    await hook.result.current.handleVocabCheck();
+    await hook.result.current.handleVocabularyCheck();
   });
   act(() => {
-    hook.result.current.closeVocabChallenge();
+    hook.result.current.closeVocabularyChallenge();
     hook.result.current.goToPage("page-3");
   });
   expect(hook.result.current.pageId).toBe("page-3");
@@ -53,7 +53,7 @@ async function resolveCanopyAndGoToPage3(
 
 describe("useStoryReader", () => {
   beforeEach(() => {
-    requestVocabGrade.mockReset();
+    requestVocabularyGrade.mockReset();
     requestComprehensionGrade.mockReset();
   });
 
@@ -62,16 +62,16 @@ describe("useStoryReader", () => {
       const { result } = await startOnPage2();
 
       act(() => {
-        result.current.openVocabChallenge("canopy");
-        result.current.setExplanation("the leafy roof of the trees");
+        result.current.openVocabularyChallenge("canopy");
+        result.current.setChildAnswer("the leafy roof of the trees");
       });
 
-      requestVocabGrade.mockResolvedValueOnce(
+      requestVocabularyGrade.mockResolvedValueOnce(
         gradeOk("Yes — canopy is about the leafy roof of the forest."),
       );
 
       await act(async () => {
-        await result.current.handleVocabCheck();
+        await result.current.handleVocabularyCheck();
       });
 
       expect(result.current.phase).toBe("accepted");
@@ -84,7 +84,7 @@ describe("useStoryReader", () => {
       expect(result.current.canAdvance).toBe(true);
 
       act(() => {
-        result.current.closeVocabChallenge();
+        result.current.closeVocabularyChallenge();
       });
 
       expect(result.current.activeWordId).toBeNull();
@@ -95,11 +95,11 @@ describe("useStoryReader", () => {
       const { result } = await startOnPage2();
 
       act(() => {
-        result.current.openVocabChallenge("canopy");
-        result.current.setExplanation("a banana");
+        result.current.openVocabularyChallenge("canopy");
+        result.current.setChildAnswer("a banana");
       });
 
-      requestVocabGrade.mockResolvedValueOnce(
+      requestVocabularyGrade.mockResolvedValueOnce(
         gradeMiss(
           "Canopy is about treetops high in the forest, not exactly about fruit.",
           "Think about the very top of the forest.",
@@ -107,7 +107,7 @@ describe("useStoryReader", () => {
       );
 
       await act(async () => {
-        await result.current.handleVocabCheck();
+        await result.current.handleVocabularyCheck();
       });
 
       expect(result.current.phase).toBe("prompt");
@@ -126,18 +126,18 @@ describe("useStoryReader", () => {
       const { result } = await startOnPage2();
 
       act(() => {
-        result.current.openVocabChallenge("canopy");
+        result.current.openVocabularyChallenge("canopy");
       });
 
       for (let i = 0; i < MAX_ATTEMPTS; i++) {
         act(() => {
-          result.current.setExplanation(`wrong idea ${i}`);
+          result.current.setChildAnswer(`wrong idea ${i}`);
         });
-        requestVocabGrade.mockResolvedValueOnce(
+        requestVocabularyGrade.mockResolvedValueOnce(
           gradeMiss(`Miss reason ${i}`, `Hint ${i}`),
         );
         await act(async () => {
-          await result.current.handleVocabCheck();
+          await result.current.handleVocabularyCheck();
         });
       }
 
@@ -148,7 +148,7 @@ describe("useStoryReader", () => {
       expect(result.current.canAdvance).toBe(true);
 
       act(() => {
-        result.current.closeVocabChallenge();
+        result.current.closeVocabularyChallenge();
       });
 
       expect(result.current.activeWordId).toBeNull();
@@ -160,14 +160,14 @@ describe("useStoryReader", () => {
       const canopyHints = mysteryWords.canopy.hints;
 
       act(() => {
-        result.current.openVocabChallenge("canopy");
-        result.current.setExplanation("something");
+        result.current.openVocabularyChallenge("canopy");
+        result.current.setChildAnswer("something");
       });
 
-      requestVocabGrade.mockRejectedValueOnce(new Error("network"));
+      requestVocabularyGrade.mockRejectedValueOnce(new Error("network"));
 
       await act(async () => {
-        await result.current.handleVocabCheck();
+        await result.current.handleVocabularyCheck();
       });
 
       expect(result.current.phase).toBe("prompt");
@@ -203,7 +203,7 @@ describe("useStoryReader", () => {
 
       act(() => {
         result.current.handleBeforeNextPage("page-4");
-        result.current.setExplanation("scratched bark and greenish fur");
+        result.current.setChildAnswer("scratched bark and greenish fur");
       });
 
       requestComprehensionGrade.mockResolvedValueOnce(
@@ -236,7 +236,7 @@ describe("useStoryReader", () => {
 
       act(() => {
         result.current.handleBeforeNextPage("page-4");
-        result.current.setExplanation("they heard birds");
+        result.current.setChildAnswer("they heard birds");
       });
 
       requestComprehensionGrade.mockResolvedValueOnce(
@@ -272,7 +272,7 @@ describe("useStoryReader", () => {
 
       for (let i = 0; i < MAX_ATTEMPTS; i++) {
         act(() => {
-          result.current.setExplanation(`wrong ${i}`);
+          result.current.setChildAnswer(`wrong ${i}`);
         });
         requestComprehensionGrade.mockResolvedValueOnce(
           gradeMiss(`Miss ${i}`, `Hint ${i}`),
@@ -309,7 +309,7 @@ describe("useStoryReader", () => {
           }
         ).current = { advanceTo };
         result.current.handleBeforeNextPage("page-4");
-        result.current.setExplanation("scratched bark and green fur");
+        result.current.setChildAnswer("scratched bark and green fur");
       });
 
       requestComprehensionGrade.mockResolvedValueOnce(

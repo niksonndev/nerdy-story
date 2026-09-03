@@ -190,11 +190,11 @@ export function storySessionReducer(
   }
 }
 
-export type ChallengeKind = "vocab" | "comprehension";
+export type ChallengeKind = "vocabulary" | "comprehension";
 
 export type ChallengeProgress = {
   phase: ChallengePhase;
-  explanation: string;
+  childAnswer: string;
   attempts: number;
   priorAttempts: GradeAttempt[];
   missReason: string | null;
@@ -211,7 +211,7 @@ export type ChallengeUiState = ChallengeProgress & {
 function defaultChallengeProgress(): ChallengeProgress {
   return {
     phase: "prompt",
-    explanation: "",
+    childAnswer: "",
     attempts: 0,
     priorAttempts: [],
     missReason: null,
@@ -222,7 +222,7 @@ function defaultChallengeProgress(): ChallengeProgress {
 
 function snapshotProgress({
   phase,
-  explanation,
+  childAnswer,
   attempts,
   priorAttempts,
   missReason,
@@ -231,7 +231,7 @@ function snapshotProgress({
 }: ChallengeUiState): ChallengeProgress {
   return {
     phase,
-    explanation,
+    childAnswer,
     attempts,
     priorAttempts,
     missReason,
@@ -269,7 +269,7 @@ export const initialChallengeUi: ChallengeUiState = {
 export type ChallengeUiAction =
   | { type: "reset" }
   | { type: "open"; kind: ChallengeKind; id: string }
-  | { type: "setExplanation"; explanation: string }
+  | { type: "setChildAnswer"; childAnswer: string }
   | { type: "setWaiting" }
   | {
       type: "recordFailedAttempt";
@@ -302,15 +302,15 @@ export function challengeUiReducer(
         progressById,
       };
     }
-    case "setExplanation":
-      return { ...state, explanation: action.explanation };
+    case "setChildAnswer":
+      return { ...state, childAnswer: action.childAnswer };
     case "setWaiting":
       return { ...state, phase: "waiting" };
     case "recordFailedAttempt": {
       const priorAttempts = [
         ...state.priorAttempts,
         {
-          explanation: action.submitted,
+          childAnswer: action.submitted,
           reason: action.reason,
           hint: action.hint,
         },
@@ -329,7 +329,7 @@ export function challengeUiReducer(
         attempts: action.nextAttempts,
         missReason: action.reason,
         hintText: action.hint,
-        explanation: "",
+        childAnswer: "",
         phase: "prompt",
       };
     }

@@ -2,13 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { VocabChallengeOverlay } from "@/components/story/VocabChallengeOverlay";
+import { VocabularyChallengeOverlay } from "@/components/story/VocabularyChallengeOverlay";
 import { mysteryWords } from "@/lib/story-data";
 import type { ChallengePhase } from "@/lib/story/types";
 
 const canopy = mysteryWords.canopy;
 
-function renderVocab(
+function renderVocabulary(
   overrides: Partial<{
     open: boolean;
     phase: ChallengePhase;
@@ -26,7 +26,7 @@ function renderVocab(
   const onClose = overrides.onClose ?? vi.fn();
 
   render(
-    <VocabChallengeOverlay
+    <VocabularyChallengeOverlay
       open={overrides.open ?? true}
       word={canopy}
       phase={overrides.phase ?? "prompt"}
@@ -43,9 +43,9 @@ function renderVocab(
   return { onChange, onCheck, onClose };
 }
 
-describe("VocabChallengeOverlay", () => {
+describe("VocabularyChallengeOverlay", () => {
   it("renders nothing when closed", () => {
-    renderVocab({ open: false });
+    renderVocabulary({ open: false });
     expect(
       screen.queryByRole("dialog", { name: /Word challenge/i }),
     ).not.toBeInTheDocument();
@@ -53,7 +53,7 @@ describe("VocabChallengeOverlay", () => {
 
   it("shows the mystery word and disables Check until typed", async () => {
     const user = userEvent.setup();
-    const { onChange } = renderVocab();
+    const { onChange } = renderVocabulary();
 
     expect(
       screen.getByRole("heading", { name: "canopy" }),
@@ -74,14 +74,14 @@ describe("VocabChallengeOverlay", () => {
 
   it("submits via Check when the field has a value", async () => {
     const user = userEvent.setup();
-    const { onCheck } = renderVocab({ value: "leafy roof" });
+    const { onCheck } = renderVocabulary({ value: "leafy roof" });
 
     await user.click(screen.getByRole("button", { name: "Check" }));
     expect(onCheck).toHaveBeenCalledTimes(1);
   });
 
   it("shows miss chrome with reason and hint", () => {
-    renderVocab({
+    renderVocabulary({
       missReason:
         "Canopy is about treetops high in the forest, not exactly about fruit.",
       hintText: "Think about the very top of the forest.",
@@ -100,7 +100,7 @@ describe("VocabChallengeOverlay", () => {
   });
 
   it("shows the waiting dictionary state", () => {
-    renderVocab({ phase: "waiting" });
+    renderVocabulary({ phase: "waiting" });
     expect(
       screen.getByText("Checking the dictionary..."),
     ).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe("VocabChallengeOverlay", () => {
 
   it("shows accepted feedback and Keep reading calls onClose", async () => {
     const user = userEvent.setup();
-    const { onClose } = renderVocab({
+    const { onClose } = renderVocabulary({
       phase: "accepted",
       acceptedReason: "Yes — canopy is about the leafy roof.",
     });
@@ -124,7 +124,7 @@ describe("VocabChallengeOverlay", () => {
 
   it("shows meaning reveal and Got it calls onClose", async () => {
     const user = userEvent.setup();
-    const { onClose } = renderVocab({ phase: "reveal" });
+    const { onClose } = renderVocabulary({ phase: "reveal" });
 
     expect(screen.getByText(/Here's what it means/i)).toBeInTheDocument();
     expect(screen.getByText(canopy.meaningReveal)).toBeInTheDocument();
