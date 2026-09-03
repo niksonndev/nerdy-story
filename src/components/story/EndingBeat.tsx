@@ -10,10 +10,12 @@ import {
 } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import { SpeakableMysteryWord } from "@/components/story/SpeakableMysteryWord";
 import {
   dialogCloseButtonClassName,
   useDialogA11y,
 } from "@/lib/a11y/use-dialog-a11y";
+import { stopWordAudio } from "@/lib/speech/play-word-audio";
 import { ENDING_PAGE_IDS } from "@/lib/story/reader-state";
 import { mysteryWords } from "@/lib/story/story-data";
 import { type EndingBeatView } from "@/lib/story/types";
@@ -481,6 +483,11 @@ function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
     initialFocusRef: closeButtonRef,
   });
 
+  useEffect(() => {
+    if (activeWordId === null) return;
+    return () => stopWordAudio();
+  }, [activeWordId]);
+
   if (learnedWordIds.length === 0) return null;
 
   const spring = reduceMotion
@@ -558,8 +565,12 @@ function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
                 <X className="size-6" aria-hidden />
               </button>
 
-              <h2 className="font-heading text-2xl font-bold text-foreground">
-                {activeWord.word}
+              <h2>
+                <SpeakableMysteryWord
+                  wordId={activeWord.id}
+                  word={activeWord.word}
+                  className="font-heading text-2xl font-bold text-foreground"
+                />
               </h2>
               <p className="mt-4 text-lg leading-relaxed text-foreground/90">
                 {activeWord.meaningReveal}
