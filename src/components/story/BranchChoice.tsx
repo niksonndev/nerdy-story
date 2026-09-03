@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { type StoryChoice } from "@/lib/story-data";
@@ -19,6 +19,8 @@ export function BranchChoice({
   onChoose,
   className,
 }: BranchChoiceProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div className={cn("flex w-full flex-col gap-3", className)}>
       <p className="text-center font-heading text-lg font-semibold text-foreground sm:text-left">
@@ -28,7 +30,9 @@ export function BranchChoice({
         {choice.options.map((option, index) => (
           <motion.div
             key={option.nextPageId}
-            whileTap={disabled ? undefined : { scale: 0.96 }}
+            whileTap={
+              disabled || reduceMotion ? undefined : { scale: 0.96 }
+            }
             className="flex-1"
           >
             <Button

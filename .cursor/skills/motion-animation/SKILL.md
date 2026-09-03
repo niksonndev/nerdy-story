@@ -17,10 +17,11 @@ Subtle presence only.
 
 - **Next Page / page turn:** CSS `transition` + `transform` / opacity on the **page container only** (`article` in `StoryPageView`). Do **not** use Motion for this; no new animation library. Do not animate the modal, image crop logic, or text/segment content separately.
 - **Everything else** (overlay enter, CTA press, words-learned bump, ending beat, grading wait): Motion (`motion/react`) unless a simpler CSS transition is clearly enough.
+- **`prefers-reduced-motion`:** Honor OS reduce-motion. Collapse page-turn to an instant swap (no slide/scale). Gate Motion springs to near-instant opacity (or skip) via `useReducedMotion()`. Essential state changes (dialog open/close, page content, feedback text) must not require motion to understand.
 
 ## Page turn (Next Page) — current contract
 
-Apply to the story page container only. Keep it subtle and quick (~300–400ms; shipped at 350ms).
+Apply to the story page container only. Keep it subtle and quick (~300–400ms; shipped at 350ms). When reduced motion is preferred, skip exit/enter transforms and advance immediately.
 
 1. **Exit (current page):** slide out to the left (~12%), slight fade out, slight scale-down (~0.96) — reads as the page being lifted/turned away.
 2. **Advance** after the exit duration, then
@@ -30,10 +31,10 @@ Gate the Next Page control while a turn is in progress so it cannot double-fire.
 
 ## When motion is allowed
 
-- Page / scene change on **Next Page** — CSS page-turn per contract above
+- Page / scene change on **Next Page** — CSS page-turn per contract above (instant when reduced motion)
 - CTA press feedback
 - Words-learned increment (soft success pulse / count bump)
-- Sequenced ending beat: book-coloring → count-up → chapter unlock
+- Sequenced ending beat: book-coloring → count-up → chapter unlock (short-circuit coloring + count-up when reduced motion)
 - Vocab challenge / feedback overlay: brief enter; focus the input — no celebration until an accepted answer
 - Grading wait: a subtle loop only if essential (e.g. gentle bounce); keep short and calm
 - Branch choice: press feedback, then scene change into the path
@@ -47,10 +48,12 @@ Gate the Next Page control while a turn is in progress so it cannot double-fire.
 - Spinner storms or busy loader stacks
 - Excessive animation of any kind
 - Flashy or slow page turns; Motion-driven page turns when CSS already covers it
+- Ignoring `prefers-reduced-motion` for page turns or Motion choreography
 
 ## Pre-ship checklist
 
 - [ ] Motion / transitions are subtle and purposeful
 - [ ] Next Page uses the CSS page-turn on the page container only (~300–400ms)
 - [ ] Ending beat is sequenced: coloring → count-up → unlock
+- [ ] `prefers-reduced-motion` collapses page-turn + Motion springs
 - [ ] No looping decoration, confetti, or layout thrash

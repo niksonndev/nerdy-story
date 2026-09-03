@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import Image from "next/image";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { STORY_META } from "@/lib/story-data";
@@ -24,18 +24,27 @@ export function StoryCoverView({
   onTransitionComplete,
 }: StoryCoverViewProps) {
   const completedRef = useRef(false);
+  const reduceMotion = useReducedMotion();
+  const dollyMs = reduceMotion ? 0 : DOLLY_MS;
+  const chromeFadeMs = reduceMotion ? 0 : CHROME_FADE_MS;
+
+  const handleDollyComplete = useEffectEvent(() => {
+    if (!isTransitioning || completedRef.current) return;
+    completedRef.current = true;
+    onTransitionComplete?.();
+  });
 
   useEffect(() => {
     if (!isTransitioning) {
       completedRef.current = false;
+      return;
     }
-  }, [isTransitioning]);
-
-  function handleDollyComplete() {
-    if (!isTransitioning || completedRef.current) return;
-    completedRef.current = true;
-    onTransitionComplete?.();
-  }
+    if (!reduceMotion) return;
+    const timer = window.setTimeout(() => {
+      handleDollyComplete();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [isTransitioning, reduceMotion]);
 
   return (
     <div
@@ -79,18 +88,22 @@ export function StoryCoverView({
               initial={false}
               animate={
                 isTransitioning
-                  ? { scale: DOLLY_SCALE, opacity: 0, z: 120 }
+                  ? {
+                      scale: reduceMotion ? 1 : DOLLY_SCALE,
+                      opacity: 0,
+                      z: reduceMotion ? 0 : 120,
+                    }
                   : { scale: 1, opacity: 1, z: 0 }
               }
               transition={{
-                duration: DOLLY_MS / 1000,
+                duration: dollyMs / 1000,
                 ease: [0.22, 1, 0.36, 1],
               }}
               onAnimationComplete={handleDollyComplete}
             >
               <Image
                 src={STORY_META.coverImage}
-                alt={STORY_META.title}
+                alt={STORY_META.coverImageAlt}
                 fill
                 className="object-cover"
                 sizes="(min-width: 1024px) 700px, (min-width: 640px) 900px, 100vw"
@@ -108,14 +121,14 @@ export function StoryCoverView({
             )}
             initial={false}
             animate={{ opacity: isTransitioning ? 0 : 1 }}
-            transition={{ duration: CHROME_FADE_MS / 1000, ease: "easeOut" }}
+            transition={{ duration: chromeFadeMs / 1000, ease: "easeOut" }}
           >
             <div className="flex flex-col max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto">
               <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
                 {STORY_META.title}
               </h1>
 
-              <p className="mt-3 font-heading text-base font-semibold text-magic sm:text-lg">
+              <p className="mt-3 font-heading text-base font-semibold text-magic-ink sm:text-lg">
                 Find mystery words along the way
               </p>
 
@@ -127,7 +140,7 @@ export function StoryCoverView({
                   <li className="flex gap-3">
                     <span
                       aria-hidden
-                      className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-magic/15 font-heading text-sm font-bold text-magic"
+                      className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-magic/15 font-heading text-sm font-bold text-magic-ink"
                     >
                       1
                     </span>
