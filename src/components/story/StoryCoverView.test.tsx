@@ -4,7 +4,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { StoryCoverView } from "@/components/story/StoryCoverView";
 import { SCENE_IMAGE_SIZES } from "@/components/story/scene-image";
-import { STORY_META, STORY_START_ID, storyPagesById } from "@/lib/story/story-data";
+import {
+  STORY_META,
+  STORY_START_ID,
+  storyPagesById,
+  storySceneImages,
+} from "@/lib/story/story-data";
 
 vi.mock("next/image", () => ({
   default: function MockImage({
@@ -32,7 +37,7 @@ vi.mock("next/image", () => ({
 }));
 
 describe("StoryCoverView", () => {
-  it("prefetches page-1 scene art at banner size while the cover is up", () => {
+  it("prefetches every scene banner at reader size while the cover is up", () => {
     const { container } = render(
       <StoryCoverView onStartReading={() => {}} />,
     );
@@ -48,6 +53,12 @@ describe("StoryCoverView", () => {
     expect(page1Prefetch).toHaveAttribute("data-priority", "true");
     expect(page1Prefetch).toHaveAttribute("data-sizes", SCENE_IMAGE_SIZES);
     expect(page1Prefetch?.closest("[aria-hidden]")).toHaveClass("left-full");
+
+    for (const src of storySceneImages) {
+      const warmed = container.querySelector(`img[src="${src}"]`);
+      expect(warmed).toHaveAttribute("data-sizes", SCENE_IMAGE_SIZES);
+      expect(warmed?.closest("[aria-hidden]")).toHaveClass("left-full");
+    }
   });
 
   it("does not keep a full-bleed magic fill on the overlay during the dolly", () => {

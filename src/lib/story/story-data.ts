@@ -392,3 +392,10 @@ export const storyPages: StoryPage[] = [
 export const storyPagesById: Record<string, StoryPage> = Object.fromEntries(
   storyPages.map((page) => [page.id, page]),
 );
+
+/** Unique scene banners — used to warm `/_next/image` at reader size. */
+export const storySceneImages: string[] = [
+  ...new Set(
+    storyPages.flatMap((page) => (page.image ? [page.image] : [])),
+  ),
+];

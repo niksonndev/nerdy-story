@@ -6,18 +6,12 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { SceneImagePreload } from "@/components/story/scene-image";
 import { Button } from "@/components/ui/button";
-import {
-  STORY_META,
-  STORY_START_ID,
-  storyPagesById,
-} from "@/lib/story/story-data";
+import { STORY_META, storySceneImages } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
 
 export const COVER_DOLLY_MS = 700;
 const CHROME_FADE_MS = 400;
 const DOLLY_SCALE = 2.6;
-
-const firstPageImage = storyPagesById[STORY_START_ID]?.image;
 
 type StoryCoverViewProps = {
   onStartReading: () => void;
@@ -70,7 +64,9 @@ export function StoryCoverView({
         )}
       >
         <div className="flex min-h-0 flex-col max-sm:flex-1 lg:flex-row lg:items-stretch">
-          {firstPageImage ? <SceneImagePreload src={firstPageImage} /> : null}
+          {storySceneImages.map((src) => (
+            <SceneImagePreload key={src} src={src} />
+          ))}
           <motion.div
             data-cover-art-overlay
             className={cn(
