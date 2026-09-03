@@ -14,6 +14,11 @@ type SceneImageProps = {
   backControl?: ReactNode;
 };
 
+type DisplayedScene = {
+  src: string;
+  alt: string;
+};
+
 /** Off-screen but real layout — 0×0 `fill` boxes do not load the banner candidate. */
 export function SceneImagePreload({ src }: { src: string }) {
   return (
@@ -36,27 +41,37 @@ export function SceneImagePreload({ src }: { src: string }) {
 }
 
 export function SceneImage({ src, alt, backControl }: SceneImageProps) {
-  const [loadedSrc, setLoadedSrc] = useState<string | undefined>();
-  const waiting = Boolean(src) && loadedSrc !== src;
+  const [displayed, setDisplayed] = useState<DisplayedScene | null>(null);
+  const waiting = Boolean(src) && displayed?.src !== src;
 
   return (
     <div
       className={cn(
         "relative w-full shrink-0 self-start overflow-hidden",
-        !waiting && "bg-magic/10",
+        displayed && "bg-magic/10",
         "max-sm:aspect-4/5 max-sm:max-h-[40vh]",
         "sm:aspect-7/3 sm:h-auto sm:w-full",
       )}
     >
+      {displayed && waiting ? (
+        <Image
+          src={displayed.src}
+          alt={displayed.alt}
+          fill
+          sizes={SCENE_IMAGE_SIZES}
+          className="object-cover"
+        />
+      ) : null}
       {src ? (
         <Image
+          key={src}
           src={src}
           alt={alt}
           fill
           sizes={SCENE_IMAGE_SIZES}
           className={cn("object-cover", waiting && "opacity-0")}
           priority
-          onLoad={() => setLoadedSrc(src)}
+          onLoad={() => setDisplayed({ src, alt })}
         />
       ) : null}
       {backControl}

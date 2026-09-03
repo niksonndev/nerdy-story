@@ -63,4 +63,27 @@ describe("SceneImage", () => {
     fireEvent.load(screen.getByRole("img", { name: "Dock" }));
     expect(frame).toHaveClass("bg-magic/10");
   });
+
+  it("keeps the last loaded photo visible until the next src loads", () => {
+    const { rerender } = render(
+      <SceneImage src="/images/story/page-1.jpeg" alt="Dock" />,
+    );
+
+    fireEvent.load(screen.getByRole("img", { name: "Dock" }));
+
+    rerender(<SceneImage src="/images/story/page-2.jpeg" alt="Trail" />);
+
+    const outgoing = screen.getByRole("img", { name: "Dock" });
+    const incoming = screen.getByRole("img", { name: "Trail" });
+    expect(outgoing).toHaveAttribute("src", "/images/story/page-1.jpeg");
+    expect(outgoing).not.toHaveClass("opacity-0");
+    expect(incoming).toHaveClass("opacity-0");
+
+    fireEvent.load(incoming);
+
+    expect(screen.queryByRole("img", { name: "Dock" })).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Trail" })).not.toHaveClass(
+      "opacity-0",
+    );
+  });
 });
