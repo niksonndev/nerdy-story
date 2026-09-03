@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
-import { STORY_META } from "@/lib/story-data";
+import { STORY_META } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
 
 const DOLLY_MS = 700;

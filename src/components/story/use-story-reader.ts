@@ -28,7 +28,7 @@ import {
   storyPagesById,
   type ComprehensionChallenge,
   type MysteryWord,
-} from "@/lib/story-data";
+} from "@/lib/story/story-data";
 
 type DebugShowEndingBeatOptions = {
   pageId?: EndingPageId;

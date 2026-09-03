@@ -16,7 +16,7 @@ import Image from "next/image";
 
 import { BranchChoice } from "@/components/story/BranchChoice";
 import { Button } from "@/components/ui/button";
-import { type StoryPage } from "@/lib/story-data";
+import { type StoryPage } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
 
 type StoryPageViewProps = {

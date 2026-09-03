@@ -9,7 +9,7 @@ import {
   hintForAttempt,
   matchesAcceptKeywords,
 } from "@/lib/grade/local-helpers";
-import { mysteryWords, type MysteryWord } from "@/lib/story-data";
+import { mysteryWords, type MysteryWord } from "@/lib/story/story-data";
 
 function isLocallyCorrect(word: MysteryWord, childAnswer: string): boolean {
   const answerLower = childAnswer.toLowerCase();

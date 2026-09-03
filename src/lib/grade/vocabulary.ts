@@ -22,7 +22,7 @@ import {
   type GradeResult,
 } from "@/lib/grade/shared";
 import { gradeVocabularyLocally } from "@/lib/grade/vocabulary-local";
-import { mysteryWords } from "@/lib/story-data";
+import { mysteryWords } from "@/lib/story/story-data";
 
 export const vocabularyGradeRequestSchema = z.object({
   wordId: z.string().min(1),

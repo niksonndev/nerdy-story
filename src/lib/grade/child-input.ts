@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { MAX_ATTEMPTS } from "@/lib/story-data";
+import { MAX_ATTEMPTS } from "@/lib/story/story-data";
 
 export const CHILD_ANSWER_MAX_LENGTH = 200;
 export const PRIOR_ATTEMPT_META_MAX_LENGTH = 300;

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { VocabularyChallengeOverlay } from "@/components/story/VocabularyChallengeOverlay";
-import { mysteryWords } from "@/lib/story-data";
+import { mysteryWords } from "@/lib/story/story-data";
 import type { ChallengePhase } from "@/lib/story/types";
 
 const canopy = mysteryWords.canopy;

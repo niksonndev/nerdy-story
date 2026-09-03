@@ -12,7 +12,7 @@ import {
 import {
   comprehensionChallenges,
   type ComprehensionChallenge,
-} from "@/lib/story-data";
+} from "@/lib/story/story-data";
 
 function isLocallyCorrect(
   challenge: ComprehensionChallenge,

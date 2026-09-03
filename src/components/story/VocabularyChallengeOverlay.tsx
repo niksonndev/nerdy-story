@@ -12,7 +12,7 @@ import {
   useDialogA11y,
 } from "@/lib/a11y/use-dialog-a11y";
 import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
-import { type MysteryWord } from "@/lib/story-data";
+import { type MysteryWord } from "@/lib/story/story-data";
 import { type ChallengePhase } from "@/lib/story/types";
 
 type VocabularyChallengeOverlayProps = {

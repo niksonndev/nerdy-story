@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fallbackHintFor } from "@/lib/grade/client";
-import { MAX_ATTEMPTS, mysteryWords } from "@/lib/story-data";
+import { MAX_ATTEMPTS, mysteryWords } from "@/lib/story/story-data";
 import { gradeMiss, gradeOk } from "@/test/grade-fixtures";
 
 const requestVocabularyGrade = vi.hoisted(() => vi.fn());

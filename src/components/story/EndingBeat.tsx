@@ -15,7 +15,7 @@ import {
   useDialogA11y,
 } from "@/lib/a11y/use-dialog-a11y";
 import { ENDING_PAGE_IDS } from "@/lib/story/reader-state";
-import { mysteryWords } from "@/lib/story-data";
+import { mysteryWords } from "@/lib/story/story-data";
 import { type EndingBeatView } from "@/lib/story/types";
 import { cn } from "@/lib/utils";
 

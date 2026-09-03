@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { ComprehensionChallengeOverlay } from "@/components/story/ComprehensionChallengeOverlay";
-import { comprehensionChallenges } from "@/lib/story-data";
+import { comprehensionChallenges } from "@/lib/story/story-data";
 import type { ChallengePhase } from "@/lib/story/types";
 
 const trackClues = comprehensionChallenges["track-clues"];

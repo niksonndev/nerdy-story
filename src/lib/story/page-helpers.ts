@@ -1,4 +1,4 @@
-import type { StoryPage } from "@/lib/story-data";
+import type { StoryPage } from "@/lib/story/story-data";
 
 export function mysteryWordIdsFor(page: StoryPage): string[] {
   return page.segments

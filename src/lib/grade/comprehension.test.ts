@@ -41,7 +41,7 @@ import {
   GRADE_PRIMARY_MODEL,
   GRADE_TEMPERATURE,
 } from "@/lib/grade/shared";
-import { comprehensionChallenges } from "@/lib/story-data";
+import { comprehensionChallenges } from "@/lib/story/story-data";
 
 describe("comprehensionGradeRequestSchema", () => {
   it("accepts a valid request and trims childAnswer", () => {

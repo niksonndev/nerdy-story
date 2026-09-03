@@ -1,6 +1,6 @@
 # Story navigation
 
-The story reader advances by **page id**, not array order. Each page in [`src/lib/story-data.ts`](../src/lib/story-data.ts) either:
+The story reader advances by **page id**, not array order. Each page in [`src/lib/story/story-data.ts`](../src/lib/story/story-data.ts) either:
 
 - has `nextPageId` — linear **Next Page**
 - has `choice` — two equal-weight options (`BranchChoice`)
@@ -17,7 +17,7 @@ State lives in [`StoryReader`](../src/components/story/StoryReader.tsx) (`pageId
 
 On first load, [`StoryReader`](../src/components/story/StoryReader.tsx) shows [`StoryCoverView`](../src/components/story/StoryCoverView.tsx) before page 1:
 
-- **Cover art** and story title from `STORY_META` in [`story-data.ts`](../src/lib/story-data.ts)
+- **Cover art** and story title from `STORY_META` in [`story-data.ts`](../src/lib/story/story-data.ts)
 - **Mystery words** teaser — “Find mystery words along the way”
 - **Quick tips** — two micro-steps (tap highlighted words, make choices for Mia)
 - **Start Reading** — triggers a one-shot dolly-in zoom (cover scales toward the viewer, crossfades into page 1); orchestrated by [`StoryCoverEntrance`](../src/components/story/StoryCoverEntrance.tsx)

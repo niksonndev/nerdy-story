@@ -1,4 +1,4 @@
-import { comprehensionChallenges, mysteryWords } from "@/lib/story-data"
+import { comprehensionChallenges, mysteryWords } from "@/lib/story/story-data"
 
 import { validateCoverage, type CoverageConfig } from "../lib/coverage"
 import { comprehensionAcceptCases } from "./comprehension/accept"

@@ -22,7 +22,7 @@ import {
   type GradeLiveOptions,
   type GradeResult,
 } from "@/lib/grade/shared";
-import { comprehensionChallenges } from "@/lib/story-data";
+import { comprehensionChallenges } from "@/lib/story/story-data";
 
 export const comprehensionGradeRequestSchema = z.object({
   challengeId: z.string().min(1),

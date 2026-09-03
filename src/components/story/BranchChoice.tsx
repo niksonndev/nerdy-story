@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
-import { type StoryChoice } from "@/lib/story-data";
+import { type StoryChoice } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
 
 type BranchChoiceProps = {

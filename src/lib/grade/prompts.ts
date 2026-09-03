@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import type { GradeAttempt } from "@/lib/grade/shared";
-import type { ComprehensionChallenge, MysteryWord } from "@/lib/story-data";
+import type { ComprehensionChallenge, MysteryWord } from "@/lib/story/story-data";
 
 const REASON_FIELD_DESCRIPTION = `One short kid-friendly sentence that always praises — what you praise depends on correct.
 

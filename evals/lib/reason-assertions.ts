@@ -1,5 +1,5 @@
 import type { GradeResult } from "@/lib/grade/shared"
-import { comprehensionChallenges, mysteryWords } from "@/lib/story-data"
+import { comprehensionChallenges, mysteryWords } from "@/lib/story/story-data"
 
 import type { GradeEvalCase } from "../cases/types"
 import { HardRuleError } from "./hard-assertions"

@@ -40,7 +40,7 @@ import {
 } from "@/lib/grade/child-input";
 import { gradeVocabulary, vocabularyGradeRequestSchema } from "@/lib/grade/vocabulary";
 import { gradeVocabularyLocally } from "@/lib/grade/vocabulary-local";
-import { mysteryWords } from "@/lib/story-data";
+import { mysteryWords } from "@/lib/story/story-data";
 
 describe("vocabularyGradeRequestSchema", () => {
   it("accepts a valid request and trims childAnswer", () => {
