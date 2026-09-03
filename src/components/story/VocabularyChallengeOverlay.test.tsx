@@ -1,12 +1,24 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { VocabularyChallengeOverlay } from "@/components/story/VocabularyChallengeOverlay";
+import { playWordAudio, stopWordAudio } from "@/lib/speech/play-word-audio";
 import { mysteryWords } from "@/lib/story/story-data";
 import type { ChallengePhase } from "@/lib/story/types";
 
+vi.mock("@/lib/speech/play-word-audio", () => ({
+  canPlayMysteryWord: () => true,
+  playWordAudio: vi.fn(),
+  stopWordAudio: vi.fn(),
+  mysteryWordAudioSrc: (wordId: string) => `/audio/mystery-words/${wordId}.mp3`,
+}));
+
 const canopy = mysteryWords.canopy;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 function renderVocabulary(
   overrides: Partial<{
@@ -56,7 +68,7 @@ describe("VocabularyChallengeOverlay", () => {
     const { onChange } = renderVocabulary();
 
     expect(
-      screen.getByRole("heading", { name: "canopy" }),
+      screen.getByRole("button", { name: /Hear canopy/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Explain what you understand by/i),
@@ -125,6 +137,50 @@ describe("VocabularyChallengeOverlay", () => {
 
     await user.click(screen.getByRole("button", { name: "Keep reading" }));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("plays the word clip when the mystery word is tapped", async () => {
+    const user = userEvent.setup();
+    renderVocabulary();
+
+    await user.click(screen.getByRole("button", { name: /Hear canopy/i }));
+    expect(playWordAudio).toHaveBeenCalledWith(canopy.id);
+  });
+
+  it("stops any word playback when the overlay closes", () => {
+    const { rerender } = render(
+      <VocabularyChallengeOverlay
+        open
+        word={canopy}
+        phase="prompt"
+        value=""
+        missReason={null}
+        hintText={null}
+        acceptedReason={null}
+        onChange={vi.fn()}
+        onCheck={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(stopWordAudio).not.toHaveBeenCalled();
+
+    rerender(
+      <VocabularyChallengeOverlay
+        open={false}
+        word={canopy}
+        phase="prompt"
+        value=""
+        missReason={null}
+        hintText={null}
+        acceptedReason={null}
+        onChange={vi.fn()}
+        onCheck={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(stopWordAudio).toHaveBeenCalled();
   });
 
   it("shows meaning reveal and Got it calls onClose", async () => {

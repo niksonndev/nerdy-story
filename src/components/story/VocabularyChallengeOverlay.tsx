@@ -1,12 +1,14 @@
 "use client";
 
-import { useId, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
 import { DictionaryScanLoader } from "@/components/story/loading/DictionaryScanLoader";
+import { SpeakableMysteryWord } from "@/components/story/SpeakableMysteryWord";
+import { stopWordAudio } from "@/lib/speech/play-word-audio";
 import {
   dialogCloseButtonClassName,
   useDialogA11y,
@@ -43,7 +45,6 @@ export function VocabularyChallengeOverlay({
   const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const reduceMotion = useReducedMotion();
-  const titleId = useId();
   const instructionsId = useId();
   const feedbackId = useId();
 
@@ -53,6 +54,11 @@ export function VocabularyChallengeOverlay({
     containerRef: dialogRef,
     initialFocusRef: phase === "prompt" ? inputRef : undefined,
   });
+
+  useEffect(() => {
+    if (!open) return;
+    return () => stopWordAudio();
+  }, [open]);
 
   const spring = reduceMotion
     ? { duration: 0.01 }
@@ -79,7 +85,6 @@ export function VocabularyChallengeOverlay({
             role="dialog"
             aria-modal="true"
             aria-label={`Word challenge: ${word.word}`}
-            aria-labelledby={phase === "prompt" ? titleId : undefined}
             aria-describedby={
               phase === "prompt"
                 ? `${instructionsId}${missReason ? ` ${feedbackId}` : ""}`
@@ -120,7 +125,6 @@ export function VocabularyChallengeOverlay({
                 missReason={missReason}
                 hintText={hintText}
                 inputRef={inputRef}
-                titleId={titleId}
                 instructionsId={instructionsId}
                 feedbackId={feedbackId}
                 onChange={onChange}
@@ -140,7 +144,6 @@ function PromptState({
   missReason,
   hintText,
   inputRef,
-  titleId,
   instructionsId,
   feedbackId,
   onChange,
@@ -151,7 +154,6 @@ function PromptState({
   missReason: string | null;
   hintText: string | null;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
-  titleId: string;
   instructionsId: string;
   feedbackId: string;
   onChange: (value: string) => void;
@@ -170,11 +172,12 @@ function PromptState({
       <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
         Mystery word
       </p>
-      <h2
-        id={titleId}
-        className="mt-1 font-heading text-4xl font-bold text-foreground"
-      >
-        {word.word}
+      <h2 className="mt-1">
+        <SpeakableMysteryWord
+          wordId={word.id}
+          word={word.word}
+          className="font-heading text-4xl font-bold text-foreground"
+        />
       </h2>
       <p
         id={instructionsId}
@@ -295,8 +298,12 @@ function RevealState({
         <p className="font-heading text-sm font-semibold uppercase tracking-wide text-reward-ink">
           Here&apos;s what it means
         </p>
-        <h2 className="mt-1 font-heading text-3xl font-bold text-foreground">
-          {word.word}
+        <h2 className="mt-1">
+          <SpeakableMysteryWord
+            wordId={word.id}
+            word={word.word}
+            className="font-heading text-3xl font-bold text-foreground"
+          />
         </h2>
         <p className="mt-4 text-lg leading-relaxed text-foreground/90">
           {word.meaningReveal}
