@@ -4,13 +4,20 @@ import { useEffect, useEffectEvent, useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 
+import { SceneImagePreload } from "@/components/story/scene-image";
 import { Button } from "@/components/ui/button";
-import { STORY_META } from "@/lib/story/story-data";
+import {
+  STORY_META,
+  STORY_START_ID,
+  storyPagesById,
+} from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
 
-const DOLLY_MS = 700;
+export const COVER_DOLLY_MS = 700;
 const CHROME_FADE_MS = 400;
 const DOLLY_SCALE = 2.6;
+
+const firstPageImage = storyPagesById[STORY_START_ID]?.image;
 
 type StoryCoverViewProps = {
   onStartReading: () => void;
@@ -25,7 +32,7 @@ export function StoryCoverView({
 }: StoryCoverViewProps) {
   const completedRef = useRef(false);
   const reduceMotion = useReducedMotion();
-  const dollyMs = reduceMotion ? 0 : DOLLY_MS;
+  const dollyMs = reduceMotion ? 0 : COVER_DOLLY_MS;
   const chromeFadeMs = reduceMotion ? 0 : CHROME_FADE_MS;
 
   const handleDollyComplete = useEffectEvent(() => {
@@ -39,12 +46,11 @@ export function StoryCoverView({
       completedRef.current = false;
       return;
     }
-    if (!reduceMotion) return;
     const timer = window.setTimeout(() => {
       handleDollyComplete();
-    }, 0);
+    }, dollyMs);
     return () => window.clearTimeout(timer);
-  }, [isTransitioning, reduceMotion]);
+  }, [isTransitioning, dollyMs]);
 
   return (
     <div
@@ -64,13 +70,15 @@ export function StoryCoverView({
         )}
       >
         <div className="flex min-h-0 flex-col max-sm:flex-1 lg:flex-row lg:items-stretch">
+          {firstPageImage ? <SceneImagePreload src={firstPageImage} /> : null}
           <motion.div
+            data-cover-art-overlay
             className={cn(
-              "overflow-hidden bg-magic/10",
+              "overflow-hidden",
               isTransitioning
                 ? "fixed inset-0 z-40 flex items-center justify-center"
                 : cn(
-                    "relative w-full shrink-0 self-start",
+                    "relative w-full shrink-0 self-start bg-magic/10",
                     "aspect-4/5 max-sm:max-h-[40vh]",
                     "sm:aspect-3/1 sm:h-auto sm:w-full",
                     "lg:aspect-4/5 lg:w-[58%] lg:max-h-[85dvh] lg:max-w-none lg:self-auto",
@@ -90,16 +98,14 @@ export function StoryCoverView({
                 isTransitioning
                   ? {
                       scale: reduceMotion ? 1 : DOLLY_SCALE,
-                      opacity: 0,
                       z: reduceMotion ? 0 : 120,
                     }
-                  : { scale: 1, opacity: 1, z: 0 }
+                  : { scale: 1, z: 0 }
               }
               transition={{
                 duration: dollyMs / 1000,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              onAnimationComplete={handleDollyComplete}
             >
               <Image
                 src={STORY_META.coverImage}

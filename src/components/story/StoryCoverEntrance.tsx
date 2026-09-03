@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
-import { StoryCoverView } from "@/components/story/StoryCoverView";
+import {
+  COVER_DOLLY_MS,
+  StoryCoverView,
+} from "@/components/story/StoryCoverView";
 import { cn } from "@/lib/utils";
 
 type StoryCoverEntranceProps = {
@@ -17,19 +20,29 @@ export function StoryCoverEntrance({
   onStartReading,
   onEntranceComplete,
 }: StoryCoverEntranceProps) {
+  const reduceMotion = useReducedMotion();
+  const fadeMs = reduceMotion ? 0 : COVER_DOLLY_MS;
+
   return (
-    <div
+    <motion.div
+      data-cover-entrance
       className={cn(
         "flex flex-1 flex-col",
         isTransitioning && "pointer-events-none absolute inset-0 z-20",
       )}
+      initial={false}
+      animate={{ opacity: isTransitioning ? 0 : 1 }}
+      transition={{
+        duration: fadeMs / 1000,
+        ease: [0.22, 1, 0.36, 1],
+      }}
     >
       <StoryCoverView
         isTransitioning={isTransitioning}
         onStartReading={onStartReading}
         onTransitionComplete={onEntranceComplete}
       />
-    </div>
+    </motion.div>
   );
 }
 

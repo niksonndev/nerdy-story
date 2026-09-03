@@ -8,13 +8,12 @@ import {
   useImperativeHandle,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
-import Image from "next/image";
 
 import { BranchChoice } from "@/components/story/BranchChoice";
+import { SceneImage } from "@/components/story/scene-image";
 import { Button } from "@/components/ui/button";
 import { type StoryPage } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
@@ -433,38 +432,6 @@ function PageProgression({
       >
         Next Page
       </Button>
-    </div>
-  );
-}
-
-function SceneImage({
-  src,
-  alt,
-  backControl,
-}: {
-  src?: string;
-  alt: string;
-  backControl?: ReactNode;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative w-full shrink-0 self-start overflow-hidden bg-magic/10",
-        "max-sm:aspect-4/5 max-sm:max-h-[40vh]",
-        "sm:aspect-7/3 sm:h-auto sm:w-full",
-      )}
-    >
-      {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          className="object-cover"
-          sizes="(min-width: 640px) 900px, 100vw"
-          priority
-        />
-      ) : null}
-      {backControl}
     </div>
   );
 }
