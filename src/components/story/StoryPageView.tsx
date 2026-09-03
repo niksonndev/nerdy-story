@@ -41,234 +41,233 @@ type PageTurnDirection = "forward" | "back";
 
 const PAGE_TURN_MS = 350;
 
-export const StoryPageView = forwardRef<StoryPageViewHandle, StoryPageViewProps>(
-  function StoryPageView(
-    {
-      page,
-      wordsLearned,
-      resolvedWordIds,
-      canAdvance,
-      canGoBack,
-      isLastPage,
-      onMysteryClick,
-      onChoosePath,
-      onPreviousPage,
-      onBeforeNextPage,
-    },
-    ref,
-  ) {
-    const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
-    const [turnDirection, setTurnDirection] =
-      useState<PageTurnDirection>("forward");
-    const pendingPageId = useRef<string | null>(null);
-    const pendingRetreat = useRef(false);
-    const reduceMotion = useReducedMotion();
-    const turnMs = reduceMotion ? 0 : PAGE_TURN_MS;
-    const advancePage = useEffectEvent(() => {
-      if (pendingRetreat.current) {
-        pendingRetreat.current = false;
-        onPreviousPage();
-        return;
-      }
-      const nextId = pendingPageId.current;
-      pendingPageId.current = null;
-      if (nextId) onChoosePath(nextId);
-    });
-
-    useEffect(() => {
-      if (turnPhase !== "exit") return;
-      const nextPhase: PageTurnPhase = turnMs === 0 ? "idle" : "enter";
-      const timer = window.setTimeout(() => {
-        advancePage();
-        setTurnPhase(nextPhase);
-      }, turnMs);
-      return () => window.clearTimeout(timer);
-    }, [turnPhase, turnMs]);
-
-    useEffect(() => {
-      if (turnPhase !== "enter") return;
-      const frame = requestAnimationFrame(() => {
-        requestAnimationFrame(() => setTurnPhase("idle"));
-      });
-      return () => cancelAnimationFrame(frame);
-    }, [turnPhase]);
-
-    function requestAdvance(nextPageId: string) {
-      if (turnPhase !== "idle" || !canAdvance) return;
+export const StoryPageView = forwardRef<
+  StoryPageViewHandle,
+  StoryPageViewProps
+>(function StoryPageView(
+  {
+    page,
+    wordsLearned,
+    resolvedWordIds,
+    canAdvance,
+    canGoBack,
+    isLastPage,
+    onMysteryClick,
+    onChoosePath,
+    onPreviousPage,
+    onBeforeNextPage,
+  },
+  ref,
+) {
+  const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
+  const [turnDirection, setTurnDirection] =
+    useState<PageTurnDirection>("forward");
+  const pendingPageId = useRef<string | null>(null);
+  const pendingRetreat = useRef(false);
+  const reduceMotion = useReducedMotion();
+  const turnMs = reduceMotion ? 0 : PAGE_TURN_MS;
+  const advancePage = useEffectEvent(() => {
+    if (pendingRetreat.current) {
       pendingRetreat.current = false;
-      pendingPageId.current = nextPageId;
-      setTurnDirection("forward");
-      setTurnPhase("exit");
+      onPreviousPage();
+      return;
     }
+    const nextId = pendingPageId.current;
+    pendingPageId.current = null;
+    if (nextId) onChoosePath(nextId);
+  });
 
-    function requestRetreat() {
-      if (turnPhase !== "idle" || !canGoBack) return;
-      pendingPageId.current = null;
-      pendingRetreat.current = true;
-      setTurnDirection("back");
-      setTurnPhase("exit");
-    }
+  useEffect(() => {
+    if (turnPhase !== "exit") return;
+    const nextPhase: PageTurnPhase = turnMs === 0 ? "idle" : "enter";
+    const timer = window.setTimeout(() => {
+      advancePage();
+      setTurnPhase(nextPhase);
+    }, turnMs);
+    return () => window.clearTimeout(timer);
+  }, [turnPhase, turnMs]);
 
-    useImperativeHandle(ref, () => ({
-      advanceTo(nextPageId: string) {
-        requestAdvance(nextPageId);
-      },
-    }));
+  useEffect(() => {
+    if (turnPhase !== "enter") return;
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setTurnPhase("idle"));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [turnPhase]);
 
-    function handleNextPage() {
-      if (!page.nextPageId) return;
-      if (onBeforeNextPage?.(page.nextPageId) === false) return;
-      requestAdvance(page.nextPageId);
-    }
+  function requestAdvance(nextPageId: string) {
+    if (turnPhase !== "idle" || !canAdvance) return;
+    pendingRetreat.current = false;
+    pendingPageId.current = nextPageId;
+    setTurnDirection("forward");
+    setTurnPhase("exit");
+  }
 
-    const progressionReady = canAdvance && turnPhase === "idle";
-    const previousReady = canGoBack && turnPhase === "idle";
-    const isDecision = Boolean(page.choice);
-    const showDecisionBack = isDecision && canGoBack;
-    const previousDisabled = !previousReady;
+  function requestRetreat() {
+    if (turnPhase !== "idle" || !canGoBack) return;
+    pendingPageId.current = null;
+    pendingRetreat.current = true;
+    setTurnDirection("back");
+    setTurnPhase("exit");
+  }
 
-    return (
-      <div
+  useImperativeHandle(ref, () => ({
+    advanceTo(nextPageId: string) {
+      requestAdvance(nextPageId);
+    },
+  }));
+
+  function handleNextPage() {
+    if (!page.nextPageId) return;
+    if (onBeforeNextPage?.(page.nextPageId) === false) return;
+    requestAdvance(page.nextPageId);
+  }
+
+  const progressionReady = canAdvance && turnPhase === "idle";
+  const previousReady = canGoBack && turnPhase === "idle";
+  const isDecision = Boolean(page.choice);
+  const showDecisionBack = isDecision && canGoBack;
+  const previousDisabled = !previousReady;
+
+  return (
+    <div
+      className={cn(
+        "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
+        // Reading pages: fill the phone viewport so the split bar can sit at the bottom
+        !isDecision && "max-sm:h-dvh max-sm:overflow-y-hidden",
+      )}
+    >
+      {/* Mobile: glass chip floats top-center over the scene (stable across page turns) */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-5 pt-[max(0.75rem,env(safe-area-inset-top))] sm:hidden">
+        <WordsLearned
+          count={wordsLearned}
+          className="pointer-events-auto bg-card/55 shadow-sm ring-1 ring-foreground/10 backdrop-blur-md"
+        />
+      </div>
+
+      <div className="relative z-10 hidden justify-center px-5 pt-4 sm:flex sm:pt-6">
+        <WordsLearned count={wordsLearned} />
+      </div>
+
+      <article
         className={cn(
-          "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
-          // Reading pages: fill the phone viewport so the split bar can sit at the bottom
-          !isDecision && "max-sm:h-dvh max-sm:overflow-y-hidden",
+          "relative z-10 flex w-full flex-col",
+          isDecision ? "flex-none" : "min-h-0 max-sm:flex-1",
+          // Tablet: narrower stacked book card (~700px); desktop widens (~900px)
+          "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
+          "lg:max-w-225",
+          "origin-center will-change-transform",
+          !reduceMotion &&
+            turnPhase === "exit" &&
+            turnDirection === "forward" &&
+            "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
+          !reduceMotion &&
+            turnPhase === "exit" &&
+            turnDirection === "back" &&
+            "translate-x-[12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
+          !reduceMotion &&
+            turnPhase === "enter" &&
+            turnDirection === "forward" &&
+            "translate-x-[12%] opacity-0 transition-none",
+          !reduceMotion &&
+            turnPhase === "enter" &&
+            turnDirection === "back" &&
+            "translate-x-[-12%] opacity-0 transition-none",
+          (reduceMotion || turnPhase === "idle") &&
+            "translate-x-0 scale-100 opacity-100",
+          !reduceMotion &&
+            turnPhase === "idle" &&
+            "transition-[opacity,transform] duration-350 ease-out",
         )}
       >
-        {/* Mobile: glass chip floats top-center over the scene (stable across page turns) */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-5 pt-[max(0.75rem,env(safe-area-inset-top))] sm:hidden">
-          <WordsLearned
-            count={wordsLearned}
-            className="pointer-events-auto bg-card/55 shadow-sm ring-1 ring-foreground/10 backdrop-blur-md"
-          />
-        </div>
-
-        <div className="relative z-10 hidden justify-center px-5 pt-4 sm:flex sm:pt-6">
-          <WordsLearned count={wordsLearned} />
-        </div>
-
-        <article
+        <div
           className={cn(
-            "relative z-10 flex w-full flex-col",
-            isDecision ? "flex-none" : "min-h-0 max-sm:flex-1",
-            // Tablet: narrower stacked book card (~700px); desktop widens (~900px)
-            "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
-            "lg:max-w-225",
-            "origin-center will-change-transform",
-            !reduceMotion &&
-              turnPhase === "exit" &&
-              turnDirection === "forward" &&
-              "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
-            !reduceMotion &&
-              turnPhase === "exit" &&
-              turnDirection === "back" &&
-              "translate-x-[12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
-            !reduceMotion &&
-              turnPhase === "enter" &&
-              turnDirection === "forward" &&
-              "translate-x-[12%] opacity-0 transition-none",
-            !reduceMotion &&
-              turnPhase === "enter" &&
-              turnDirection === "back" &&
-              "translate-x-[-12%] opacity-0 transition-none",
-            (reduceMotion || turnPhase === "idle") &&
-              "translate-x-0 scale-100 opacity-100",
-            !reduceMotion &&
-              turnPhase === "idle" &&
-              "transition-[opacity,transform] duration-350 ease-out",
+            "flex flex-col",
+            !isDecision && "min-h-0 max-sm:flex-1",
           )}
         >
+          <SceneImage
+            src={page.image}
+            alt={page.imageAlt ?? page.title}
+            backControl={
+              showDecisionBack ? (
+                <>
+                  <PreviousControl
+                    variant="ghostIcon"
+                    disabled={previousDisabled}
+                    onClick={requestRetreat}
+                    className="absolute top-3 left-3 z-20 sm:hidden"
+                  />
+                  <PreviousControl
+                    variant="backLink"
+                    disabled={previousDisabled}
+                    onClick={requestRetreat}
+                    className="absolute top-3 left-3 z-20 hidden sm:inline-flex"
+                  />
+                </>
+              ) : null
+            }
+          />
+
           <div
             className={cn(
-              "flex flex-col",
-              !isDecision && "min-h-0 max-sm:flex-1",
+              "flex min-w-0 flex-col px-5 pt-6",
+              !isDecision && "min-h-0 max-sm:flex-1 max-sm:pb-0",
+              isDecision && "pb-8",
+              "sm:flex-none sm:px-10 sm:pb-8 sm:pt-8",
             )}
           >
-            <SceneImage
-              src={page.image}
-              alt={page.imageAlt ?? page.title}
-              backControl={
-                showDecisionBack ? (
-                  <>
-                    <PreviousControl
-                      variant="ghostIcon"
-                      disabled={previousDisabled}
-                      onClick={requestRetreat}
-                      className="absolute top-3 left-3 z-20 sm:hidden"
-                    />
-                    <PreviousControl
-                      variant="backLink"
-                      disabled={previousDisabled}
-                      onClick={requestRetreat}
-                      className="absolute top-3 left-3 z-20 hidden sm:inline-flex"
-                    />
-                  </>
-                ) : null
-              }
-            />
-
             <div
               className={cn(
-                "flex min-w-0 flex-col px-5 pt-6",
-                !isDecision && "min-h-0 max-sm:flex-1 max-sm:pb-0",
-                isDecision && "pb-8",
-                "sm:flex-none sm:px-10 sm:pb-8 sm:pt-8",
+                !isDecision &&
+                  "flex flex-col max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto",
               )}
             >
-              <div
-                className={cn(
-                  !isDecision &&
-                    "flex flex-col max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto",
-                )}
-              >
-                <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
-                  {page.title}
-                </h1>
+              <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
+                {page.title}
+              </h1>
 
-                <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
-                  {page.segments.map((segment, index) => {
-                    if (segment.type === "mystery") {
-                      const isResolved = resolvedWordIds.includes(
-                        segment.wordId,
-                      );
-                      return (
-                        <MysteryWord
-                          key={index}
-                          label={segment.content}
-                          resolved={isResolved}
-                          onClick={() => onMysteryClick(segment.wordId)}
-                        />
-                      );
-                    }
-                    return <span key={index}>{segment.content}</span>;
-                  })}
-                </p>
-              </div>
-
-              <PageProgression
-                page={page}
-                isLastPage={isLastPage}
-                canAdvance={progressionReady}
-                canGoBack={canGoBack}
-                previousDisabled={previousDisabled}
-                vocabGated={!canAdvance}
-                onNextPage={handleNextPage}
-                onPreviousPage={requestRetreat}
-                onChoosePath={requestAdvance}
-                className={cn(
-                  "relative z-10 mt-6 flex w-full",
-                  !isDecision &&
-                    "max-sm:mt-auto max-sm:shrink-0 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-4",
-                  "sm:mt-auto sm:pt-8",
-                )}
-              />
+              <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
+                {page.segments.map((segment, index) => {
+                  if (segment.type === "mystery") {
+                    const isResolved = resolvedWordIds.includes(segment.wordId);
+                    return (
+                      <MysteryWord
+                        key={index}
+                        label={segment.content}
+                        resolved={isResolved}
+                        onClick={() => onMysteryClick(segment.wordId)}
+                      />
+                    );
+                  }
+                  return <span key={index}>{segment.content}</span>;
+                })}
+              </p>
             </div>
+
+            <PageProgression
+              page={page}
+              isLastPage={isLastPage}
+              canAdvance={progressionReady}
+              canGoBack={canGoBack}
+              previousDisabled={previousDisabled}
+              vocabGated={!canAdvance}
+              onNextPage={handleNextPage}
+              onPreviousPage={requestRetreat}
+              onChoosePath={requestAdvance}
+              className={cn(
+                "relative z-10 mt-6 flex w-full",
+                !isDecision &&
+                  "max-sm:mt-auto max-sm:shrink-0 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-4",
+                "sm:mt-auto sm:pt-8",
+              )}
+            />
           </div>
-        </article>
-      </div>
-    );
-  },
-);
+        </div>
+      </article>
+    </div>
+  );
+});
 
 function PreviousControl({
   variant,
@@ -453,7 +452,9 @@ function MysteryWord({
       onClick={() => {
         if (!resolved) onClick();
       }}
-      aria-label={resolved ? `Learned word: ${label}` : `Mystery word: ${label}`}
+      aria-label={
+        resolved ? `Learned word: ${label}` : `Mystery word: ${label}`
+      }
       aria-disabled={resolved}
       whileTap={reduceMotion || resolved ? undefined : { scale: 0.94 }}
       className={cn(
@@ -494,19 +495,20 @@ function WordsLearned({
         className,
       )}
     >
-      <span aria-hidden className="text-lg text-magic">
+      <span
+        aria-hidden
+        className="flex size-6 shrink-0 items-center justify-center text-lg leading-none text-magic"
+      >
         {"\u2728"}
       </span>
-      <span className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
+      <span className="translate-y-0.5 font-heading text-sm font-semibold uppercase leading-none tracking-wide text-magic-ink">
         Words learned
       </span>
       <div className="relative h-6 w-6 overflow-hidden text-center">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
             key={count}
-            initial={
-              reduceMotion ? false : { y: 14, opacity: 0, scale: 0.6 }
-            }
+            initial={reduceMotion ? false : { y: 14, opacity: 0, scale: 0.6 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={reduceMotion ? undefined : { y: -14, opacity: 0 }}
             transition={
