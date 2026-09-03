@@ -25,10 +25,14 @@ A painted storybook page with a light game HUD — not a classroom, not a toddle
 | --- | --- | --- |
 | Page | Warm butter paper (not #F4F1EA cream-terracotta) | `#FFF4D6` |
 | Ink | Deep forest, high contrast on paper | `#243428` |
-| Primary action | Coral, one obvious CTA | `#E24A3A` |
-| Magic / progress | Teal for words-learned and spark moments | `#0F8A7A` |
-| Reward | Gold for learned-word highlights | `#D4920A` |
+| Primary action | Coral, one obvious CTA | `#D13D2E` |
+| Magic / progress | Soft teal for fills & cues (not small body text) | `#0F8A7A` |
+| Magic ink | Darker teal for small readable UI text | `#0C7566` |
+| Reward | Soft gold for fills & cues (not body text) | `#D4920A` |
+| Reward ink | Darker gold for small readable UI text | `#926200` |
 | Secondary choice | Sky, equal-weight branch options | `#4E8FBF` |
+
+Mystery words: forest ink (`#243428`) on soft tinted chips; unresolved = wavy underline; resolved = checkmark (no underline). Soft teal/gold stay decorative fills; readable brand-colored labels use magic-ink / reward-ink. Words-learned HUD: magic-ink label + soft magic count (large text).
 
 **Color bans:** purple/indigo systems, dark mode, neon, pastel rainbow, grayscale shadcn neutrals as the page.
 

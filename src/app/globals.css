@@ -10,11 +10,13 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-grandstander), var(--font-lexend), ui-sans-serif,
-    sans-serif;
+  --font-heading:
+    var(--font-grandstander), var(--font-lexend), ui-sans-serif, sans-serif;
   --color-magic: var(--magic);
+  --color-magic-ink: var(--magic-ink);
   --color-magic-foreground: var(--magic-foreground);
   --color-reward: var(--reward);
+  --color-reward-ink: var(--reward-ink);
   --color-reward-foreground: var(--reward-foreground);
   --color-sky: var(--sky);
   --color-sky-foreground: var(--sky-foreground);
@@ -64,7 +66,7 @@
   --card-foreground: #243428;
   --popover: #fffaf0;
   --popover-foreground: #243428;
-  --primary: #e24a3a;
+  --primary: #d13d2e;
   --primary-foreground: #fff8ec;
   --secondary: #4e8fbf;
   --secondary-foreground: #f4faff;
@@ -77,12 +79,16 @@
   --input: #e6cf94;
   --ring: #0f8a7a;
   --magic: #0f8a7a;
+  /* Readable teal for small UI text on butter paper (~5.1:1) */
+  --magic-ink: #0c7566;
   --magic-foreground: #f0fbf8;
   --reward: #d4920a;
+  /* Readable gold for small UI text on butter paper (~4.8:1) */
+  --reward-ink: #926200;
   --reward-foreground: #fff8ec;
   --sky: #4e8fbf;
   --sky-foreground: #f4faff;
-  --chart-1: #e24a3a;
+  --chart-1: #d13d2e;
   --chart-2: #0f8a7a;
   --chart-3: #d4920a;
   --chart-4: #4e8fbf;
@@ -143,3 +149,12 @@
     @apply font-sans;
   }
 }
+
+/* Contrast notes (WCAG 2.1 AA on --background #fff4d6):
+ * --foreground #243428 ≈ 12:1 (body / mystery-word text)
+ * --muted-foreground #6b6a4f ≈ 5.0:1
+ * --magic-ink #0c7566 ≈ 5.1:1 (small teal UI text)
+ * --reward-ink #926200 ≈ 4.8:1 (small gold UI text)
+ * --magic / --reward soft accents for fills & decorative cues — not small body text
+ * --primary-foreground on --primary ≈ 4.5:1
+ */
