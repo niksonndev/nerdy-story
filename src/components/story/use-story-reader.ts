@@ -10,6 +10,10 @@ import {
 } from "@/lib/grade/client";
 import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
 import type { GradeResult } from "@/lib/grade/shared";
+import {
+  playCorrectSfx,
+  playStoryCompleteSfx,
+} from "@/lib/speech/play-sfx";
 import { mysteryWordIdsFor } from "@/lib/story/page-helpers";
 import {
   DEFAULT_LEARNED_WORD_IDS,
@@ -174,6 +178,7 @@ export function useStoryReader() {
     }
 
     if (result.correct) {
+      playCorrectSfx();
       dispatchSession({ type: "acceptWord", wordId: activeWordId });
       dispatchChallenge({ type: "accepted", reason: result.reason });
       return;
@@ -217,6 +222,7 @@ export function useStoryReader() {
     }
 
     if (result.correct) {
+      playCorrectSfx();
       dispatchSession({
         type: "resolveComprehension",
         challengeId: activeComprehensionId,
@@ -236,6 +242,7 @@ export function useStoryReader() {
   function closeVocabularyChallenge() {
     dispatchChallenge({ type: "close" });
     if (isLastPage && canAdvance) {
+      playStoryCompleteSfx();
       dispatchSession({ type: "recordEndingExplored", pageId });
     }
   }
