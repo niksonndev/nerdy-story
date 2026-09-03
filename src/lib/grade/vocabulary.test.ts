@@ -273,7 +273,7 @@ describe("gradeExplanation", () => {
       /Vocabulary \(mystery word\)/i,
     );
     expect(gradeResultSchema.shape.reason.description).toMatch(
-      /without revealing the target/i,
+      /never restate or paraphrase the target definition/i,
     );
   });
 
