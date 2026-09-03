@@ -16,21 +16,19 @@ export const GRADE_FALLBACK_MODELS = [
 export const GRADE_MAX_OUTPUT_TOKENS = 1024;
 export const GRADE_TEMPERATURE = 0;
 
-export const gradeAttemptSchema = priorAttemptSchema;
-
 export type GradeAttempt = z.infer<typeof priorAttemptSchema>;
 
 /** Vocabulary grade request shape (schema lives in vocabulary.ts). */
-export type GradeRequest = {
+export type VocabularyGradeRequest = {
   wordId: string;
-  explanation: string;
+  childAnswer: string;
   priorAttempts?: GradeAttempt[];
 };
 
 /** Comprehension grade request shape (schema lives in comprehension.ts). */
 export type ComprehensionGradeRequest = {
   challengeId: string;
-  answer: string;
+  childAnswer: string;
   priorAttempts?: GradeAttempt[];
 };
 

@@ -16,13 +16,13 @@ import {
 
 function isLocallyCorrect(
   challenge: ComprehensionChallenge,
-  answer: string,
+  childAnswer: string,
 ): boolean {
-  const answerLower = answer.toLowerCase();
+  const answerLower = childAnswer.toLowerCase();
   if (matchesAcceptKeywords(answerLower, challenge.acceptKeywords)) {
     return true;
   }
-  return hasContentOverlap(answer, challenge.expectedUnderstanding);
+  return hasContentOverlap(childAnswer, challenge.expectedUnderstanding);
 }
 
 /**
@@ -38,10 +38,10 @@ export function gradeComprehensionLocally(
     throw new GradeError("fatal", "Unknown comprehension challenge.");
   }
 
-  const answer = request.answer.trim();
+  const childAnswer = request.childAnswer.trim();
   const priorCount = request.priorAttempts?.length ?? 0;
 
-  if (isLocallyCorrect(challenge, answer)) {
+  if (isLocallyCorrect(challenge, childAnswer)) {
     return {
       correct: true,
       reason: "Yes — that matches what this part of the story is about.",
@@ -54,7 +54,7 @@ export function gradeComprehensionLocally(
     reason: buildLocalMissReason({
       kind: "comprehension",
       coreIdea: challenge.coreIdea,
-      answer,
+      childAnswer,
     }),
     hint: hintForAttempt(challenge.hints, priorCount),
   };

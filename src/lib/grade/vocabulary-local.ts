@@ -1,6 +1,6 @@
 import {
   GradeError,
-  type GradeRequest,
+  type VocabularyGradeRequest,
   type GradeResult,
 } from "@/lib/grade/shared";
 import {
@@ -11,32 +11,33 @@ import {
 } from "@/lib/grade/local-helpers";
 import { mysteryWords, type MysteryWord } from "@/lib/story-data";
 
-function isLocallyCorrect(word: MysteryWord, explanation: string): boolean {
-  const explanationLower = explanation.toLowerCase();
-  if (matchesAcceptKeywords(explanationLower, word.acceptKeywords)) {
+function isLocallyCorrect(word: MysteryWord, childAnswer: string): boolean {
+  const answerLower = childAnswer.toLowerCase();
+  if (matchesAcceptKeywords(answerLower, word.acceptKeywords)) {
     return true;
   }
-  return hasContentOverlap(explanation, word.targetDefinition);
+  return hasContentOverlap(childAnswer, word.targetDefinition);
 }
 
 /**
- * Simple keyword meaning check used when live AI grading fails.
- * Same GradeResult shape as the live grader — not a second AI call.
+ * Keyword/synonym fallback when live grading fails after Gateway failover.
+ * Returns a normal GradeResult — never throws for a known word.
  */
-export function gradeVocabularyLocally(request: GradeRequest): GradeResult {
+export function gradeVocabularyLocally(
+  request: VocabularyGradeRequest,
+): GradeResult {
   const word = mysteryWords[request.wordId];
-
   if (!word) {
     throw new GradeError("fatal", "Unknown mystery word.");
   }
 
-  const explanation = request.explanation.trim();
+  const childAnswer = request.childAnswer.trim();
   const priorCount = request.priorAttempts?.length ?? 0;
 
-  if (isLocallyCorrect(word, explanation)) {
+  if (isLocallyCorrect(word, childAnswer)) {
     return {
       correct: true,
-      reason: `Yes — that matches what "${word.word}" means.`,
+      reason: `Yes — ${word.word} is about ${word.coreIdea}.`,
       hint: null,
     };
   }
@@ -44,10 +45,10 @@ export function gradeVocabularyLocally(request: GradeRequest): GradeResult {
   return {
     correct: false,
     reason: buildLocalMissReason({
-      kind: "vocab",
+      kind: "vocabulary",
       word: word.word,
       coreIdea: word.coreIdea,
-      answer: explanation,
+      childAnswer,
     }),
     hint: hintForAttempt(word.hints, priorCount),
   };

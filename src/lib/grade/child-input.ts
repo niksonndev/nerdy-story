@@ -28,7 +28,7 @@ export const childAnswerSchema = z
   .pipe(z.string().min(1).max(CHILD_ANSWER_MAX_LENGTH));
 
 export const priorAttemptSchema = z.object({
-  explanation: childAnswerSchema,
+  childAnswer: childAnswerSchema,
   reason: z
     .string()
     .transform(sanitizePriorAttemptMeta)

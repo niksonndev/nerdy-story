@@ -76,8 +76,8 @@ export function matchesAcceptKeywords(
 }
 
 /** Token overlap vs a target text — same thresholds as vocabulary local grading. */
-export function hasContentOverlap(answer: string, target: string): boolean {
-  const answerTokens = contentTokens(answer);
+export function hasContentOverlap(childAnswer: string, target: string): boolean {
+  const answerTokens = contentTokens(childAnswer);
   const targetTokens = contentTokens(target);
   if (answerTokens.size === 0 || targetTokens.size === 0) {
     return false;
@@ -108,8 +108,8 @@ const MEANINGLESS_TOKENS = new Set([
 ]);
 
 export type LocalMissReasonOptions =
-  | { kind: "vocab"; word: string; coreIdea: string; answer: string }
-  | { kind: "comprehension"; coreIdea: string; answer: string };
+  | { kind: "vocabulary"; word: string; coreIdea: string; childAnswer: string }
+  | { kind: "comprehension"; coreIdea: string; childAnswer: string };
 
 function capitalizeWord(word: string): string {
   if (word.length === 0) return word;
@@ -117,8 +117,8 @@ function capitalizeWord(word: string): string {
 }
 
 /** Pick a kid-facing phrase from the child's answer for local miss-reason copy. */
-export function extractChildIdea(answer: string, coreIdea: string): string {
-  const answerTokens = normalizeTokens(answer);
+export function extractChildIdea(childAnswer: string, coreIdea: string): string {
+  const answerTokens = normalizeTokens(childAnswer);
   const coreIdeaTokens = contentTokens(coreIdea);
   const remaining = answerTokens.filter(
     (token) =>
@@ -140,9 +140,9 @@ export function extractChildIdea(answer: string, coreIdea: string): string {
 
 /** Build MVP miss-reason copy for server local grading fallback. */
 export function buildLocalMissReason(options: LocalMissReasonOptions): string {
-  const childIdea = extractChildIdea(options.answer, options.coreIdea);
+  const childIdea = extractChildIdea(options.childAnswer, options.coreIdea);
 
-  if (options.kind === "vocab") {
+  if (options.kind === "vocabulary") {
     return `${capitalizeWord(options.word)} is about ${options.coreIdea}, not exactly about ${childIdea}.`;
   }
 

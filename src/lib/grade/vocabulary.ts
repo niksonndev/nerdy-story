@@ -7,9 +7,9 @@ import {
 } from "@/lib/grade/child-input";
 import {
   buildChildAnswerMessage,
-  buildVocabTrustedContext,
+  buildVocabularyTrustedContext,
   gradeResultSchema,
-  VOCAB_GRADER_SYSTEM,
+  VOCABULARY_GRADER_SYSTEM,
 } from "@/lib/grade/prompts";
 import {
   GRADE_FALLBACK_MODELS,
@@ -18,27 +18,27 @@ import {
   GRADE_TEMPERATURE,
   GradeError,
   type GradeLiveOptions,
-  type GradeRequest,
+  type VocabularyGradeRequest,
   type GradeResult,
 } from "@/lib/grade/shared";
 import { gradeVocabularyLocally } from "@/lib/grade/vocabulary-local";
 import { mysteryWords } from "@/lib/story-data";
 
-export const gradeRequestSchema = z.object({
+export const vocabularyGradeRequestSchema = z.object({
   wordId: z.string().min(1),
-  explanation: childAnswerSchema,
+  childAnswer: childAnswerSchema,
   priorAttempts: priorAttemptsSchema,
 });
 
-export type { GradeRequest };
+export type { VocabularyGradeRequest };
 
 /**
  * Live AI meaning check via AI Gateway. Throws on provider/parse failure.
  * Production omits `options` (primary model + Gateway failover). Evals pass an
  * explicit model with `failoverModels: []` to isolate one model's calibration.
  */
-export async function gradeExplanationLive(
-  request: GradeRequest,
+export async function gradeVocabularyLive(
+  request: VocabularyGradeRequest,
   options?: GradeLiveOptions,
 ): Promise<GradeResult> {
   const word = mysteryWords[request.wordId];
@@ -57,13 +57,13 @@ export async function gradeExplanationLive(
       description:
         "Whether the child's explanation matches the mystery word's meaning.",
     }),
-    system: VOCAB_GRADER_SYSTEM,
+    system: VOCABULARY_GRADER_SYSTEM,
     messages: [
       {
         role: "user",
-        content: buildVocabTrustedContext(word, request.priorAttempts),
+        content: buildVocabularyTrustedContext(word, request.priorAttempts),
       },
-      { role: "user", content: buildChildAnswerMessage(request.explanation) },
+      { role: "user", content: buildChildAnswerMessage(request.childAnswer) },
     ],
     providerOptions: {
       gateway: {
@@ -85,11 +85,11 @@ export async function gradeExplanationLive(
  * After the live call fails (failover already attempted inside generateText),
  * returns a local keyword GradeResult instead of throwing.
  */
-export async function gradeExplanation(
-  request: GradeRequest,
+export async function gradeVocabulary(
+  request: VocabularyGradeRequest,
 ): Promise<GradeResult> {
   try {
-    return await gradeExplanationLive(request);
+    return await gradeVocabularyLive(request);
   } catch (error) {
     if (error instanceof GradeError) throw error;
     // Gateway already tried primary + failover models inside generateText.

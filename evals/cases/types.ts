@@ -1,7 +1,7 @@
 import type { GradeAttempt } from "@/lib/grade/shared"
 
 /** Vocabulary reject reason (see REASON_FIELD_DESCRIPTION in prompts.ts). */
-export type VocabReasonTag = "wrong-concept"
+export type VocabularyReasonTag = "wrong-concept"
 
 /** Comprehension reject reasons (see REASON_FIELD_DESCRIPTION in prompts.ts). */
 export type ComprehensionReasonTag =
@@ -10,7 +10,7 @@ export type ComprehensionReasonTag =
   | "wrong-cause"
   | "ungrounded"
 
-export type ReasonTag = VocabReasonTag | ComprehensionReasonTag
+export type ReasonTag = VocabularyReasonTag | ComprehensionReasonTag
 
 export type EvalCategory =
   | "accept-simple"

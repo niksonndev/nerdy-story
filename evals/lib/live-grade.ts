@@ -1,6 +1,6 @@
 import { gradeComprehensionLive } from "@/lib/grade/comprehension"
 import type { GradeResult } from "@/lib/grade/shared"
-import { gradeExplanationLive } from "@/lib/grade/vocabulary"
+import { gradeVocabularyLive } from "@/lib/grade/vocabulary"
 
 import type { GradeEvalCase } from "../cases/types"
 
@@ -14,10 +14,10 @@ export async function gradeCase(
   model: string,
 ): Promise<GradeResult> {
   if (evalCase.wordId) {
-    return gradeExplanationLive(
+    return gradeVocabularyLive(
       {
         wordId: evalCase.wordId,
-        explanation: evalCase.childAnswer,
+        childAnswer: evalCase.childAnswer,
         priorAttempts: evalCase.priorAttempts,
       },
       { model, failoverModels: [] },
@@ -28,7 +28,7 @@ export async function gradeCase(
     return gradeComprehensionLive(
       {
         challengeId: evalCase.challengeId,
-        answer: evalCase.childAnswer,
+        childAnswer: evalCase.childAnswer,
         priorAttempts: evalCase.priorAttempts,
       },
       { model, failoverModels: [] },

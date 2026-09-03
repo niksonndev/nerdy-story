@@ -15,15 +15,15 @@ export function fallbackHintFor(
   return hints[Math.min(attemptIndex, hints.length - 1)] ?? null;
 }
 
-export async function requestVocabGrade(
+export async function requestVocabularyGrade(
   wordId: string,
-  explanation: string,
+  childAnswer: string,
   priorAttempts: GradeAttempt[],
 ): Promise<GradeResult> {
   const response = await fetch("/api/grade-vocabulary", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ wordId, explanation, priorAttempts }),
+    body: JSON.stringify({ wordId, childAnswer, priorAttempts }),
   });
   if (!response.ok) {
     throw new GradeRequestError();
@@ -33,13 +33,13 @@ export async function requestVocabGrade(
 
 export async function requestComprehensionGrade(
   challengeId: string,
-  answer: string,
+  childAnswer: string,
   priorAttempts: GradeAttempt[],
 ): Promise<GradeResult> {
   const response = await fetch("/api/grade-comprehension", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ challengeId, answer, priorAttempts }),
+    body: JSON.stringify({ challengeId, childAnswer, priorAttempts }),
   });
   if (!response.ok) {
     throw new GradeRequestError();

@@ -26,7 +26,7 @@ import { comprehensionChallenges } from "@/lib/story-data";
 
 export const comprehensionGradeRequestSchema = z.object({
   challengeId: z.string().min(1),
-  answer: childAnswerSchema,
+  childAnswer: childAnswerSchema,
   priorAttempts: priorAttemptsSchema,
 });
 
@@ -66,7 +66,7 @@ export async function gradeComprehensionLive(
           request.priorAttempts,
         ),
       },
-      { role: "user", content: buildChildAnswerMessage(request.answer) },
+      { role: "user", content: buildChildAnswerMessage(request.childAnswer) },
     ],
     providerOptions: {
       gateway: {

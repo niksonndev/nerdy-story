@@ -5,8 +5,8 @@ import {
   type GradeErrorKind,
 } from "@/lib/grade/shared";
 import {
-  gradeExplanation,
-  gradeRequestSchema,
+  gradeVocabulary,
+  vocabularyGradeRequestSchema,
 } from "@/lib/grade/vocabulary";
 
 function errorResponse(kind: GradeErrorKind) {
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const parsed = gradeRequestSchema.safeParse(raw);
+  const parsed = vocabularyGradeRequestSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request body." },
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await gradeExplanation(parsed.data);
+    const result = await gradeVocabulary(parsed.data);
     return NextResponse.json(result);
   } catch (error) {
     if (isGradeError(error)) {

@@ -25,13 +25,13 @@ describe("extractChildIdea", () => {
 });
 
 describe("buildLocalMissReason", () => {
-  it("builds vocab miss copy in MVP shape", () => {
+  it("builds vocabulary miss copy in MVP shape", () => {
     expect(
       buildLocalMissReason({
-        kind: "vocab",
+        kind: "vocabulary",
         word: "canopy",
         coreIdea: "treetops high in the forest",
-        answer: "a kind of tasty fruit",
+        childAnswer: "a kind of tasty fruit",
       }),
     ).toBe(
       "Canopy is about treetops high in the forest, not exactly about fruit.",
@@ -43,7 +43,7 @@ describe("buildLocalMissReason", () => {
       buildLocalMissReason({
         kind: "comprehension",
         coreIdea: "clues on the branch",
-        answer: "because they heard monkeys",
+        childAnswer: "because they heard monkeys",
       }),
     ).toBe(
       "This part is about clues on the branch, not exactly about monkeys.",
@@ -55,7 +55,7 @@ describe("buildLocalMissReason", () => {
       buildLocalMissReason({
         kind: "comprehension",
         coreIdea: "clues on the branch",
-        answer: "idk",
+        childAnswer: "idk",
       }),
     ).toBe(
       "This part is about clues on the branch, not exactly about what you said.",
