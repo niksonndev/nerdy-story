@@ -73,6 +73,8 @@ export function StoryReader() {
   };
 
   const showReaderPage = hasStarted || isEntranceTransitioning;
+  const challengeOpen =
+    activeWordId !== null || activeComprehensionId !== null;
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -90,21 +92,26 @@ export function StoryReader() {
         />
       ) : (
         <>
-          {showReaderPage ? (
-            <StoryEntrancePageLayer>
-              <StoryPageView ref={pageViewRef} {...storyPageProps} />
-            </StoryEntrancePageLayer>
-          ) : null}
+          <div
+            className="relative flex min-h-0 flex-1 flex-col"
+            {...(challengeOpen ? { inert: true } : {})}
+          >
+            {showReaderPage ? (
+              <StoryEntrancePageLayer>
+                <StoryPageView ref={pageViewRef} {...storyPageProps} />
+              </StoryEntrancePageLayer>
+            ) : null}
 
-          {!hasStarted ? (
-            <StoryCoverEntrance
-              isTransitioning={isEntranceTransitioning}
-              onStartReading={beginEntranceTransition}
-              onEntranceComplete={() =>
-                completeEntranceTransition(handleStartReading)
-              }
-            />
-          ) : null}
+            {!hasStarted ? (
+              <StoryCoverEntrance
+                isTransitioning={isEntranceTransitioning}
+                onStartReading={beginEntranceTransition}
+                onEntranceComplete={() =>
+                  completeEntranceTransition(handleStartReading)
+                }
+              />
+            ) : null}
+          </div>
 
           {hasStarted ? (
             <>

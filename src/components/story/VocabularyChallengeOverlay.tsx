@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useId, useRef } from "react";
 import { X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
 import { DictionaryScanLoader } from "@/components/story/loading/DictionaryScanLoader";
+import {
+  dialogCloseButtonClassName,
+  useDialogA11y,
+} from "@/lib/a11y/use-dialog-a11y";
 import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
 import { type MysteryWord } from "@/lib/story-data";
 import { type ChallengePhase } from "@/lib/story/types";
@@ -36,13 +40,23 @@ export function VocabularyChallengeOverlay({
   onCheck,
   onClose,
 }: VocabularyChallengeOverlayProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const reduceMotion = useReducedMotion();
+  const titleId = useId();
+  const instructionsId = useId();
+  const feedbackId = useId();
 
-  useEffect(() => {
-    if (open && phase === "prompt") {
-      inputRef.current?.focus();
-    }
-  }, [open, phase]);
+  useDialogA11y({
+    open: open && word !== null,
+    onClose,
+    containerRef: dialogRef,
+    initialFocusRef: phase === "prompt" ? inputRef : undefined,
+  });
+
+  const spring = reduceMotion
+    ? { duration: 0.01 }
+    : { type: "spring" as const, stiffness: 320, damping: 26 };
 
   return (
     <AnimatePresence>
@@ -52,7 +66,7 @@ export function VocabularyChallengeOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
         >
           <div
             className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
@@ -61,20 +75,27 @@ export function VocabularyChallengeOverlay({
           />
 
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label={`Word challenge: ${word.word}`}
-            initial={{ opacity: 0, scale: 0.92, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
-            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            aria-labelledby={phase === "prompt" ? titleId : undefined}
+            aria-describedby={
+              phase === "prompt"
+                ? `${instructionsId}${missReason ? ` ${feedbackId}` : ""}`
+                : undefined
+            }
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 16 }}
+            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 8 }}
+            transition={spring}
             className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
           >
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute right-3 top-3 flex size-11 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors hover:bg-muted/80 hover:text-foreground"
+              className={dialogCloseButtonClassName}
             >
               <X className="size-6" aria-hidden />
             </button>
@@ -88,6 +109,7 @@ export function VocabularyChallengeOverlay({
                 word={word}
                 reason={acceptedReason}
                 onClose={onClose}
+                reduceMotion={Boolean(reduceMotion)}
               />
             ) : phase === "reveal" ? (
               <RevealState word={word} onClose={onClose} />
@@ -98,6 +120,9 @@ export function VocabularyChallengeOverlay({
                 missReason={missReason}
                 hintText={hintText}
                 inputRef={inputRef}
+                titleId={titleId}
+                instructionsId={instructionsId}
+                feedbackId={feedbackId}
                 onChange={onChange}
                 onCheck={onCheck}
               />
@@ -115,6 +140,9 @@ function PromptState({
   missReason,
   hintText,
   inputRef,
+  titleId,
+  instructionsId,
+  feedbackId,
   onChange,
   onCheck,
 }: {
@@ -123,9 +151,14 @@ function PromptState({
   missReason: string | null;
   hintText: string | null;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
+  titleId: string;
+  instructionsId: string;
+  feedbackId: string;
   onChange: (value: string) => void;
   onCheck: () => void;
 }) {
+  const answerFieldId = useId();
+
   return (
     <form
       onSubmit={(event) => {
@@ -134,32 +167,53 @@ function PromptState({
         onCheck();
       }}
     >
-      <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic">
+      <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
         Mystery word
       </p>
-      <h2 className="mt-1 font-heading text-4xl font-bold text-foreground">
+      <h2
+        id={titleId}
+        className="mt-1 font-heading text-4xl font-bold text-foreground"
+      >
         {word.word}
       </h2>
-      <p className="mt-4 text-lg leading-relaxed text-foreground/90">
+      <p
+        id={instructionsId}
+        className="mt-4 text-lg leading-relaxed text-foreground/90"
+      >
         Explain what you understand by{" "}
-        <span className="font-semibold text-magic">{word.word}</span>.
+        <span className="font-semibold text-magic-ink">{word.word}</span>.
       </p>
 
-      {missReason ? (
-        <div className="mt-4 rounded-2xl bg-accent/60 p-4 text-foreground/90">
-          <p className="font-heading font-semibold text-reward">
-            Try another idea!
-          </p>
-          <p className="mt-1 leading-relaxed">{missReason}</p>
-          {hintText ? (
-            <p className="mt-2 leading-relaxed">
-              <span className="font-semibold">Hint:</span> {hintText}
+      <div
+        id={feedbackId}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="mt-4"
+      >
+        {missReason ? (
+          <div className="rounded-2xl border-2 border-dashed border-reward/50 bg-accent/60 p-4 text-foreground/90">
+            <p className="font-heading font-semibold text-foreground">
+              <span aria-hidden className="mr-1.5 text-reward">
+                {"\u21BB"}
+              </span>
+              Try another idea!
             </p>
-          ) : null}
-        </div>
-      ) : null}
+            <p className="mt-1 leading-relaxed">{missReason}</p>
+            {hintText ? (
+              <p className="mt-2 leading-relaxed">
+                <span className="font-semibold">Hint:</span> {hintText}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
 
+      <label htmlFor={answerFieldId} className="sr-only">
+        Your idea for {word.word}
+      </label>
       <textarea
+        id={answerFieldId}
         ref={inputRef}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -172,7 +226,7 @@ function PromptState({
         rows={3}
         maxLength={CHILD_ANSWER_MAX_LENGTH}
         placeholder="Type your idea here..."
-        className="mt-4 w-full resize-none rounded-2xl border-2 border-border bg-background p-4 text-lg text-foreground outline-none placeholder:text-muted-foreground focus:border-magic"
+        className="mt-4 w-full resize-none rounded-2xl border-2 border-border bg-background p-4 font-sans text-lg text-foreground outline-none placeholder:text-muted-foreground focus:border-magic focus-visible:ring-3 focus-visible:ring-ring/50"
       />
 
       <Button
@@ -191,28 +245,36 @@ function AcceptedState({
   word,
   reason,
   onClose,
+  reduceMotion,
 }: {
   word: MysteryWord;
   reason: string | null;
   onClose: () => void;
+  reduceMotion: boolean;
 }) {
   return (
     <div className="text-center">
       <motion.div
-        initial={{ scale: 0.4, opacity: 0 }}
+        initial={reduceMotion ? false : { scale: 0.4, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 400, damping: 18 }}
+        transition={
+          reduceMotion
+            ? { duration: 0.01 }
+            : { type: "spring", stiffness: 400, damping: 18 }
+        }
         className="mx-auto text-5xl"
         aria-hidden
       >
         {"\uD83C\uDF1F"}
       </motion.div>
-      <h2 className="mt-3 font-heading text-2xl font-bold text-magic">
-        You got it!
-      </h2>
-      <p className="mt-3 text-lg leading-relaxed text-foreground/90">
-        {reason ?? `A ${word.word} is a safe, covered place.`}
-      </p>
+      <div role="status" aria-live="polite" aria-atomic="true">
+        <h2 className="mt-3 font-heading text-2xl font-bold text-magic-ink">
+          You got it!
+        </h2>
+        <p className="mt-3 text-lg leading-relaxed text-foreground/90">
+          {reason ?? `A ${word.word} is a safe, covered place.`}
+        </p>
+      </div>
       <Button size="kid" className="mt-6 w-full" onClick={onClose}>
         Keep reading
       </Button>
@@ -229,15 +291,17 @@ function RevealState({
 }) {
   return (
     <div className="text-center">
-      <p className="font-heading text-sm font-semibold uppercase tracking-wide text-reward">
-        Here&apos;s what it means
-      </p>
-      <h2 className="mt-1 font-heading text-3xl font-bold text-foreground">
-        {word.word}
-      </h2>
-      <p className="mt-4 text-lg leading-relaxed text-foreground/90">
-        {word.meaningReveal}
-      </p>
+      <div role="status" aria-live="polite" aria-atomic="true">
+        <p className="font-heading text-sm font-semibold uppercase tracking-wide text-reward-ink">
+          Here&apos;s what it means
+        </p>
+        <h2 className="mt-1 font-heading text-3xl font-bold text-foreground">
+          {word.word}
+        </h2>
+        <p className="mt-4 text-lg leading-relaxed text-foreground/90">
+          {word.meaningReveal}
+        </p>
+      </div>
       <Button size="kid" className="mt-6 w-full" onClick={onClose}>
         Got it
       </Button>

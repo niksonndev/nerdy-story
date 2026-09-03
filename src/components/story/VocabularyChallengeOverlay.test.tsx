@@ -66,10 +66,18 @@ describe("VocabularyChallengeOverlay", () => {
     expect(check).toBeDisabled();
 
     await user.type(
-      screen.getByPlaceholderText("Type your idea here..."),
+      screen.getByLabelText(/Your idea for canopy/i),
       "leafy roof",
     );
     expect(onChange).toHaveBeenCalled();
+  });
+
+  it("closes on Escape", async () => {
+    const user = userEvent.setup();
+    const { onClose } = renderVocabulary();
+
+    await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it("submits via Check when the field has a value", async () => {
@@ -87,16 +95,13 @@ describe("VocabularyChallengeOverlay", () => {
       hintText: "Think about the very top of the forest.",
     });
 
-    expect(screen.getByText("Try another idea!")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Canopy is about treetops high in the forest, not exactly about fruit.",
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Hint:/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Think about the very top of the forest/),
-    ).toBeInTheDocument();
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("Try another idea!");
+    expect(status).toHaveTextContent(
+      "Canopy is about treetops high in the forest, not exactly about fruit.",
+    );
+    expect(status).toHaveTextContent(/Hint:/);
+    expect(status).toHaveTextContent(/Think about the very top of the forest/);
   });
 
   it("shows the waiting dictionary state", () => {

@@ -60,7 +60,18 @@ describe("ComprehensionChallengeOverlay", () => {
     expect(
       screen.getByRole("heading", { name: trackClues.question }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/Your answer to the story question/i),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Check" })).toBeDisabled();
+  });
+
+  it("closes on Escape", async () => {
+    const user = userEvent.setup();
+    const { onClose } = renderComp();
+
+    await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it("submits via Check when the field has a value", async () => {
