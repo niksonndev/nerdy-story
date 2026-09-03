@@ -72,10 +72,6 @@ export function EndingBeat({
 
   useEffect(() => {
     if (view !== "beat" || phase !== "coloring") return;
-    if (coloringMs === 0) {
-      setPhase("celebration");
-      return;
-    }
     const timer = window.setTimeout(
       () => setPhase("celebration"),
       coloringMs,
@@ -86,13 +82,8 @@ export function EndingBeat({
   useEffect(() => {
     if (view !== "beat" || phase !== "celebration") return;
 
-    if (reduceMotion) {
-      setDisplayCount(wordsLearned);
-      return;
-    }
-
     const controls = animate(0, wordsLearned, {
-      duration: Math.min(1.2, 0.4 + wordsLearned * 0.25),
+      duration: reduceMotion ? 0 : Math.min(1.2, 0.4 + wordsLearned * 0.25),
       ease: "easeOut",
       onUpdate: (value) => setDisplayCount(Math.round(value)),
     });
