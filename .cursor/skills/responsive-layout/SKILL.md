@@ -30,8 +30,11 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
 
 - Mobile: `aspect-ratio: 4/5`, full-bleed block above the text (`max-sm:` only —
   does not apply at tablet/desktop)
-- Tablet + desktop **story pages** (`sm:` / 640px+): `aspect-ratio: 7/3`
-  banner strip with `object-cover` (~24% vertical crop on ~16:9 landscape assets)
+- Tablet + desktop **story pages** (`sm:` / 640px+): book card with fixed flip viewport
+  height `min(52rem, calc(100dvh - 6.5rem))` (fits under Words learned + `mt-4` + `mb-8`
+  so the page itself does not scroll), banner `aspect-ratio: 7/3` with `object-cover`
+  (~24% vertical crop on ~16:9 landscape assets); the whole sheet scrolls as one
+  unit when content overflows (image + text + controls) — no nested title/text pane
 - Tablet **cover** (`sm:`–`lg:` / 640–1023px): `aspect-ratio: 3/1` banner strip
   with `object-cover` (stacked above text)
 - Desktop **cover** (`lg:` / 1024px+): left column ~58% width,
@@ -44,10 +47,10 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
 - Full-screen single column, edge-to-edge
 - Image container per "Image container rule" above, full-bleed width
 - Text below image, comfortable reading width, generous padding
-- Reading progression: split bottom bar pinned to the bottom of the
-  viewport — ghost ← (~25%) when history exists + primary **Next Page**
-  (~75% / flex-1); story text scrolls above if needed. Decision pages: no
-  footer Previous; ← chevron floats top-left over the illustration
+- Reading progression: split bottom bar under the story text (ghost ← + **Next Page**);
+  controls sit directly under the copy (`mt-6`); when the flip sheet overflows, image +
+  text + controls scroll together. Decision pages: no footer Previous; ← chevron floats
+  top-left over the illustration
 - Mystery-word modal: full-screen takeover (not a floating card)
 - Touch targets: ≥56px tall for primary CTAs; secondary back ≥44px
   (per storybook-interaction-design)

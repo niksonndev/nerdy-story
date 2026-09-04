@@ -11,7 +11,7 @@ Optional interactions on a page:
 - **Vocabulary:** mystery word segments; Next Page / branch stay gated until every mystery word on the page is resolved
 - **Comprehension:** `comprehensionId`; Next Page stays enabled, but the first press opens the challenge overlay instead of turning the page
 
-State lives in [`StoryReader`](../src/components/story/StoryReader.tsx) (`pageId` → `storyPagesById`). Page turns (Next Page and branch picks) use the shared CSS exit → advance → enter animation in [`StoryPageView`](../src/components/story/StoryPageView.tsx).
+State lives in [`StoryReader`](../src/components/story/StoryReader.tsx) (`pageId` → `storyPagesById`). Page turns (Next Page, Previous Page, and branch picks) use [`react-pageflip`](../src/components/story/StoryFlipBook.tsx) on a **session spine** of sheets: optional previous (visit history), current page, and an optional **peek** next page. Peek exists only when a linear forward turn is allowed (`peekNextPageIdFor` in [`page-helpers.ts`](../src/lib/story/page-helpers.ts)) — no peek while vocab-gated, comprehension unresolved, on a branch page, or on a last page. Turns are **button-driven only** (no corner-drag / click-to-flip). Cover entrance and EndingBeat stay outside the flip book.
 
 ## Cover screen
 

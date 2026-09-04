@@ -24,6 +24,7 @@ Compose the story screen as a single storybook page (illustration + readable tex
 
 - One clear primary action per active state. On reading pages that action is **Next Page**. **Previous Page** is secondary when the child has navigated forward at least once (ghost ← on mobile reading; outline **Previous Page** on sm+ reading; ← / **← Back** floating over the illustration on decision pages — never a competing primary CTA).
 - **Previous Page** is available when visit history is non-empty, no challenge overlay is open, and the page turn is idle. It does **not** require vocab resolution on the current page. Hidden on the first page; disabled while an overlay is open or mid page-turn.
+- Page turns are **button-driven only** (Next Page / Previous / branch). No corner-drag, swipe, or click-to-flip — peek-spine gating still blocks forward turns when vocab/comprehension is unresolved.
 - Mystery words are visually highlighted in the story text; tapping/encountering one opens the vocab challenge as an overlay/modal (story page stays underneath).
 - While a challenge overlay is open, hide or disable Next Page and Previous Page. Vocab must not advance from inside the overlay. Comprehension advances only via Keep going / Got it after resolve.
 - Vocabulary resolution paths: (1) accepted explanation → words-learned increments; show grade `reason` on the success beat; overlay closes; Next Page unlocks. (2) rejected with retries left → “Try another idea!” + soft about/not-exactly reason + answer-aware hint from the grade response (live AI or server local keyword fallback); stay in overlay; try again. (3) grade **HTTP request** failed → burn attempt; fixed short reason + story hint (never expose request/SDK failure); stay in overlay unless retry limit. (4) retry limit reached → reveal the word’s meaning in kid-friendly language; overlay closes; Next Page unlocks (no words-learned increment).
@@ -57,6 +58,7 @@ For flow per MVP screen, see [screens.md](screens.md).
 - [ ] Meaning/answer reveal is kid-friendly; words-learned increments only on accepted vocab answers
 - [ ] One clear primary action per active state; controls ≥56px
 - [ ] Previous Page shown only with visit history; disabled with overlays / mid page-turn; not gated on current-page vocab
+- [ ] Page turns are button-only; peek spine still blocks gated forward turns
 - [ ] Branch re-choice after Previous clears path-specific challenge progress (shared progress kept)
 - [ ] Encouraging why-feedback; no grade/score shame
 - [ ] Chrome copy at 7–9 reading level
