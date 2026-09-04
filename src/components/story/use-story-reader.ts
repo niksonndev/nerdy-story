@@ -14,7 +14,10 @@ import {
   playCorrectSfx,
   playStoryCompleteSfx,
 } from "@/lib/speech/play-sfx";
-import { mysteryWordIdsFor } from "@/lib/story/page-helpers";
+import {
+  mysteryWordIdsFor,
+  peekNextPageIdFor,
+} from "@/lib/story/page-helpers";
 import {
   DEFAULT_LEARNED_WORD_IDS,
   type EndingPageId,
@@ -102,6 +105,11 @@ export function useStoryReader() {
     activeComprehensionId === null;
 
   const wordsLearned = learnedWordIds.length;
+  const peekNextPageId = peekNextPageIdFor({
+    page,
+    canAdvance,
+    resolvedComprehensionIds,
+  });
   const activeWord: MysteryWord | null = activeWordId
     ? mysteryWords[activeWordId]
     : null;
@@ -347,11 +355,14 @@ export function useStoryReader() {
     pageViewRef,
     page,
     pageId,
+    pageHistory,
     beatSession,
     wordsLearned,
     learnedWords,
     learnedWordIds,
     resolvedWordIds,
+    resolvedComprehensionIds,
+    peekNextPageId,
     canAdvance,
     canGoBack,
     isLastPage,

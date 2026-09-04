@@ -16,10 +16,12 @@ export function StoryReader() {
     pageViewRef,
     page,
     pageId,
+    pageHistory,
     beatSession,
     wordsLearned,
     learnedWordIds,
     resolvedWordIds,
+    resolvedComprehensionIds,
     canAdvance,
     canGoBack,
     isLastPage,
@@ -61,6 +63,8 @@ export function StoryReader() {
 
   const storyPageProps = {
     page,
+    pageHistory,
+    resolvedComprehensionIds,
     wordsLearned,
     resolvedWordIds,
     canAdvance,

@@ -13,13 +13,24 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 
 import { BranchChoice } from "@/components/story/BranchChoice";
+import {
+  StoryFlipBook,
+  type StoryFlipBookHandle,
+} from "@/components/story/StoryFlipBook";
 import { SceneImage } from "@/components/story/scene-image";
 import { Button } from "@/components/ui/button";
-import { type StoryPage } from "@/lib/story/story-data";
+import {
+  flipCurrentIndex,
+  flipSheetIdsFor,
+  peekNextPageIdFor,
+} from "@/lib/story/page-helpers";
+import { storyPagesById, type StoryPage } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
 
 type StoryPageViewProps = {
   page: StoryPage;
+  pageHistory: string[];
+  resolvedComprehensionIds: string[];
   wordsLearned: number;
   resolvedWordIds: string[];
   canAdvance: boolean;
@@ -36,17 +47,14 @@ export type StoryPageViewHandle = {
   advanceTo: (nextPageId: string) => void;
 };
 
-type PageTurnPhase = "idle" | "exit" | "enter";
-type PageTurnDirection = "forward" | "back";
-
-const PAGE_TURN_MS = 350;
-
 export const StoryPageView = forwardRef<
   StoryPageViewHandle,
   StoryPageViewProps
 >(function StoryPageView(
   {
     page,
+    pageHistory,
+    resolvedComprehensionIds,
     wordsLearned,
     resolvedWordIds,
     canAdvance,
@@ -59,56 +67,108 @@ export const StoryPageView = forwardRef<
   },
   ref,
 ) {
-  const [turnPhase, setTurnPhase] = useState<PageTurnPhase>("idle");
-  const [turnDirection, setTurnDirection] =
-    useState<PageTurnDirection>("forward");
-  const pendingPageId = useRef<string | null>(null);
+  const flipRef = useRef<StoryFlipBookHandle>(null);
+  const [pendingPeekId, setPendingPeekId] = useState<string | null>(null);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const pendingAdvanceId = useRef<string | null>(null);
   const pendingRetreat = useRef(false);
   const reduceMotion = useReducedMotion();
-  const turnMs = reduceMotion ? 0 : PAGE_TURN_MS;
-  const advancePage = useEffectEvent(() => {
-    if (pendingRetreat.current) {
-      pendingRetreat.current = false;
-      onPreviousPage();
-      return;
-    }
-    const nextId = pendingPageId.current;
-    pendingPageId.current = null;
-    if (nextId) onChoosePath(nextId);
+
+  const peekNextPageId = peekNextPageIdFor({
+    page,
+    canAdvance,
+    resolvedComprehensionIds,
   });
 
-  useEffect(() => {
-    if (turnPhase !== "exit") return;
-    const nextPhase: PageTurnPhase = turnMs === 0 ? "idle" : "enter";
-    const timer = window.setTimeout(() => {
-      advancePage();
-      setTurnPhase(nextPhase);
-    }, turnMs);
-    return () => window.clearTimeout(timer);
-  }, [turnPhase, turnMs]);
+  // Session caught up to the pending peek — clear without an effect.
+  const activePendingPeek =
+    pendingPeekId !== null && page.id === pendingPeekId ? null : pendingPeekId;
+  if (pendingPeekId !== activePendingPeek) {
+    setPendingPeekId(activePendingPeek);
+  }
 
+  const sheetIds = flipSheetIdsFor({
+    pageId: page.id,
+    pageHistory,
+    peekNextPageId,
+    pendingPeekId: activePendingPeek,
+  });
+  const currentIndex = flipCurrentIndex(pageHistory.length);
+
+  const runPendingFlip = useEffectEvent(() => {
+    const advanceId = pendingAdvanceId.current;
+    if (advanceId) {
+      const started = flipRef.current?.flipNext() ?? false;
+      if (!started) {
+        pendingAdvanceId.current = null;
+        setPendingPeekId(null);
+        onChoosePath(advanceId);
+        return;
+      }
+      pendingAdvanceId.current = null;
+      return;
+    }
+    if (pendingRetreat.current) {
+      pendingRetreat.current = false;
+      const started = flipRef.current?.flipPrev() ?? false;
+      if (!started) {
+        onPreviousPage();
+      }
+    }
+  });
+
+  // After a branch pick (or any advance that needed a pending peek sheet),
+  // wait for the spine to include the target, then flip.
   useEffect(() => {
-    if (turnPhase !== "enter") return;
+    if (!pendingPeekId) return;
+    if (!sheetIds.includes(pendingPeekId)) return;
     const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setTurnPhase("idle"));
+      runPendingFlip();
     });
     return () => cancelAnimationFrame(frame);
-  }, [turnPhase]);
+  }, [pendingPeekId, sheetIds]);
 
   function requestAdvance(nextPageId: string) {
-    if (turnPhase !== "idle" || !canAdvance) return;
-    pendingRetreat.current = false;
-    pendingPageId.current = nextPageId;
-    setTurnDirection("forward");
-    setTurnPhase("exit");
+    if (isFlipping || !canAdvance) return;
+    if (!storyPagesById[nextPageId]) return;
+
+    if (reduceMotion) {
+      setPendingPeekId(null);
+      onChoosePath(nextPageId);
+      return;
+    }
+
+    const alreadyPeek =
+      peekNextPageId === nextPageId || pendingPeekId === nextPageId;
+    if (alreadyPeek && sheetIds.includes(nextPageId)) {
+      const started = flipRef.current?.flipNext() ?? false;
+      if (!started) {
+        // Flip engine not ready — advance without animation.
+        onChoosePath(nextPageId);
+      }
+      return;
+    }
+
+    pendingAdvanceId.current = nextPageId;
+    setPendingPeekId(nextPageId);
   }
 
   function requestRetreat() {
-    if (turnPhase !== "idle" || !canGoBack) return;
-    pendingPageId.current = null;
-    pendingRetreat.current = true;
-    setTurnDirection("back");
-    setTurnPhase("exit");
+    if (isFlipping || !canGoBack) return;
+
+    if (reduceMotion) {
+      onPreviousPage();
+      return;
+    }
+
+    if (currentIndex > 0) {
+      const started = flipRef.current?.flipPrev() ?? false;
+      if (!started) {
+        onPreviousPage();
+      }
+      return;
+    }
+    onPreviousPage();
   }
 
   useImperativeHandle(ref, () => ({
@@ -123,18 +183,24 @@ export const StoryPageView = forwardRef<
     requestAdvance(page.nextPageId);
   }
 
-  const progressionReady = canAdvance && turnPhase === "idle";
-  const previousReady = canGoBack && turnPhase === "idle";
-  const isDecision = Boolean(page.choice);
-  const showDecisionBack = isDecision && canGoBack;
-  const previousDisabled = !previousReady;
+  function handleFlipTo(pageId: string, direction: "forward" | "back") {
+    setPendingPeekId(null);
+    if (direction === "forward") {
+      onChoosePath(pageId);
+    } else {
+      onPreviousPage();
+    }
+  }
+
+  const progressionReady = canAdvance && !isFlipping;
+  const previousReady = canGoBack && !isFlipping;
 
   return (
     <div
       className={cn(
         "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
-        // Reading pages: fill the phone viewport so the split bar can sit at the bottom
-        !isDecision && "max-sm:h-dvh max-sm:overflow-y-hidden",
+        // Reading pages: fill the phone viewport so the flip book can size itself
+        "max-sm:h-dvh max-sm:overflow-y-hidden",
       )}
     >
       {/* Mobile: glass chip floats top-center over the scene (stable across page turns) */}
@@ -145,129 +211,168 @@ export const StoryPageView = forwardRef<
         />
       </div>
 
-      <div className="relative z-10 hidden justify-center px-5 pt-4 sm:flex sm:pt-6">
+      <div className="relative z-10 hidden shrink-0 justify-center px-5 pt-4 sm:flex sm:pt-6">
         <WordsLearned count={wordsLearned} />
       </div>
 
-      <article
+      <div
         className={cn(
-          "relative z-10 flex w-full flex-col",
-          isDecision ? "flex-none" : "min-h-0 max-sm:flex-1",
-          // Tablet: narrower stacked book card (~700px); desktop widens (~900px)
-          "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
+          "relative z-10 flex min-h-0 w-full flex-1 flex-col",
+          // Tablet/desktop: height = leftover viewport after HUD + mt-4 + mb-8 (~6.5rem)
+          "sm:mx-auto sm:mb-8 sm:mt-4 sm:h-[min(52rem,calc(100dvh-6.5rem))] sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
           "lg:max-w-225",
-          "origin-center will-change-transform",
-          !reduceMotion &&
-            turnPhase === "exit" &&
-            turnDirection === "forward" &&
-            "translate-x-[-12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
-          !reduceMotion &&
-            turnPhase === "exit" &&
-            turnDirection === "back" &&
-            "translate-x-[12%] scale-[0.96] opacity-0 transition-[opacity,transform] duration-350 ease-out",
-          !reduceMotion &&
-            turnPhase === "enter" &&
-            turnDirection === "forward" &&
-            "translate-x-[12%] opacity-0 transition-none",
-          !reduceMotion &&
-            turnPhase === "enter" &&
-            turnDirection === "back" &&
-            "translate-x-[-12%] opacity-0 transition-none",
-          (reduceMotion || turnPhase === "idle") &&
-            "translate-x-0 scale-100 opacity-100",
-          !reduceMotion &&
-            turnPhase === "idle" &&
-            "transition-[opacity,transform] duration-350 ease-out",
         )}
       >
-        <div
-          className={cn(
-            "flex flex-col",
-            !isDecision && "min-h-0 max-sm:flex-1",
-          )}
-        >
-          <SceneImage
-            src={page.image}
-            alt={page.imageAlt ?? page.title}
-            backControl={
-              showDecisionBack ? (
-                <>
-                  <PreviousControl
-                    variant="ghostIcon"
-                    disabled={previousDisabled}
-                    onClick={requestRetreat}
-                    className="absolute top-3 left-3 z-20 sm:hidden"
-                  />
-                  <PreviousControl
-                    variant="backLink"
-                    disabled={previousDisabled}
-                    onClick={requestRetreat}
-                    className="absolute top-3 left-3 z-20 hidden sm:inline-flex"
-                  />
-                </>
-              ) : null
-            }
-          />
-
-          <div
-            className={cn(
-              "flex min-w-0 flex-col px-5 pt-6",
-              !isDecision && "min-h-0 max-sm:flex-1 max-sm:pb-0",
-              isDecision && "pb-8",
-              "sm:flex-none sm:px-10 sm:pb-8 sm:pt-8",
-            )}
-          >
-            <div
-              className={cn(
-                !isDecision &&
-                  "flex flex-col max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto",
-              )}
-            >
-              <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
-                {page.title}
-              </h1>
-
-              <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
-                {page.segments.map((segment, index) => {
-                  if (segment.type === "mystery") {
-                    const isResolved = resolvedWordIds.includes(segment.wordId);
-                    return (
-                      <MysteryWord
-                        key={index}
-                        label={segment.content}
-                        resolved={isResolved}
-                        onClick={() => onMysteryClick(segment.wordId)}
-                      />
-                    );
-                  }
-                  return <span key={index}>{segment.content}</span>;
-                })}
-              </p>
-            </div>
-
-            <PageProgression
-              page={page}
-              isLastPage={isLastPage}
-              canAdvance={progressionReady}
-              canGoBack={canGoBack}
-              previousDisabled={previousDisabled}
-              vocabGated={!canAdvance}
-              onNextPage={handleNextPage}
-              onPreviousPage={requestRetreat}
-              onChoosePath={requestAdvance}
-              className={cn(
-                "relative z-10 mt-6 flex w-full",
-                !isDecision &&
-                  "max-sm:mt-auto max-sm:shrink-0 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-4",
-                "sm:mt-auto sm:pt-8",
-              )}
-            />
-          </div>
-        </div>
-      </article>
+        <StoryFlipBook
+          ref={flipRef}
+          bookKey={page.id}
+          sheetIds={sheetIds}
+          currentIndex={currentIndex}
+          onFlipTo={handleFlipTo}
+          onFlippingChange={setIsFlipping}
+          className="min-h-0 flex-1"
+          renderSheet={(pageId, isCurrent) => {
+            const sheetPage = storyPagesById[pageId];
+            if (!sheetPage) return null;
+            return (
+              <StoryPageSheet
+                page={sheetPage}
+                interactive={isCurrent}
+                isLastPage={
+                  isCurrent
+                    ? isLastPage
+                    : !sheetPage.nextPageId && !sheetPage.choice
+                }
+                canAdvance={isCurrent && progressionReady}
+                canGoBack={isCurrent && previousReady}
+                previousDisabled={!previousReady}
+                vocabGated={isCurrent && !canAdvance}
+                resolvedWordIds={resolvedWordIds}
+                onMysteryClick={onMysteryClick}
+                onNextPage={handleNextPage}
+                onPreviousPage={requestRetreat}
+                onChoosePath={requestAdvance}
+              />
+            );
+          }}
+        />
+      </div>
     </div>
   );
 });
+
+function StoryPageSheet({
+  page,
+  interactive,
+  isLastPage,
+  canAdvance,
+  canGoBack,
+  previousDisabled,
+  vocabGated,
+  resolvedWordIds,
+  onMysteryClick,
+  onNextPage,
+  onPreviousPage,
+  onChoosePath,
+}: {
+  page: StoryPage;
+  interactive: boolean;
+  isLastPage: boolean;
+  canAdvance: boolean;
+  canGoBack: boolean;
+  previousDisabled: boolean;
+  vocabGated: boolean;
+  resolvedWordIds: string[];
+  onMysteryClick: (wordId: string) => void;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  onChoosePath: (nextPageId: string) => void;
+}) {
+  const isDecision = Boolean(page.choice);
+  const showDecisionBack = isDecision && canGoBack;
+
+  return (
+    <article
+      className={cn(
+        "h-full w-full overflow-y-auto bg-card",
+        !interactive && "pointer-events-none select-none",
+      )}
+      {...(!interactive ? { inert: true } : {})}
+    >
+      {/* Whole sheet scrolls when content overflows; no stretch/pin gap under text */}
+      <div className="flex flex-col">
+        <SceneImage
+          src={page.image}
+          alt={page.imageAlt ?? page.title}
+          backControl={
+            showDecisionBack ? (
+              <>
+                <PreviousControl
+                  variant="ghostIcon"
+                  disabled={previousDisabled}
+                  onClick={onPreviousPage}
+                  className="absolute top-3 left-3 z-20 sm:hidden"
+                />
+                <PreviousControl
+                  variant="backLink"
+                  disabled={previousDisabled}
+                  onClick={onPreviousPage}
+                  className="absolute top-3 left-3 z-20 hidden sm:inline-flex"
+                />
+              </>
+            ) : null
+          }
+        />
+
+        <div
+          className={cn(
+            "flex min-w-0 flex-col px-5 pt-6",
+            isDecision ? "pb-8" : "pb-0",
+            "sm:px-10 sm:pb-8 sm:pt-8",
+          )}
+        >
+          <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
+            {page.title}
+          </h1>
+
+          <p className="mt-6 max-w-[65ch] text-lg leading-[1.75] text-foreground/90 sm:text-xl sm:leading-[1.8]">
+            {page.segments.map((segment, index) => {
+              if (segment.type === "mystery") {
+                const isResolved = resolvedWordIds.includes(segment.wordId);
+                return (
+                  <MysteryWord
+                    key={index}
+                    label={segment.content}
+                    resolved={isResolved}
+                    onClick={() => onMysteryClick(segment.wordId)}
+                  />
+                );
+              }
+              return <span key={index}>{segment.content}</span>;
+            })}
+          </p>
+
+          <PageProgression
+            page={page}
+            isLastPage={isLastPage}
+            canAdvance={canAdvance}
+            canGoBack={canGoBack}
+            previousDisabled={previousDisabled}
+            vocabGated={vocabGated}
+            onNextPage={onNextPage}
+            onPreviousPage={onPreviousPage}
+            onChoosePath={onChoosePath}
+            className={cn(
+              "relative z-10 mt-4 flex w-full shrink-0",
+              !isDecision &&
+                "max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-4",
+            )}
+          />
+        </div>
+      </div>
+    </article>
+  );
+}
 
 function PreviousControl({
   variant,
