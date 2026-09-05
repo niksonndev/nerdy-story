@@ -121,8 +121,6 @@ export const StoryFlipBook = forwardRef<
       }
     },
     flipPrev() {
-      // flipPrev() is a no-op with disableFlipByClick in portrait (left-edge
-      // point fails the corner check). turnToPrevPage still fires `flip`.
       const flip = bookRef.current?.pageFlip?.();
       if (!flip) {
         onFlippingChangeRef.current?.(false);
@@ -130,7 +128,11 @@ export const StoryFlipBook = forwardRef<
       }
       onFlippingChangeRef.current?.(true);
       try {
-        flip.turnToPrevPage();
+        if (reduceMotion) {
+          flip.turnToPrevPage();
+        } else {
+          flip.flipPrev("bottom");
+        }
         return true;
       } catch {
         onFlippingChangeRef.current?.(false);
