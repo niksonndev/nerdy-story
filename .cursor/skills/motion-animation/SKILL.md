@@ -23,14 +23,14 @@ Subtle presence only.
 
 Apply through `StoryFlipBook` / `StoryPageView` only. Keep it quick (~500ms flip). When reduced motion is preferred, skip the curl and advance immediately.
 
-1. **Button-driven only:** **Next Page** / Previous / branch / comprehension Keep going call `flipNext()` / `turnToPrevPage` (or instant turn when reduced motion). No corner-drag, swipe, or click-to-flip.
+1. **Button-driven only:** **Next Page** / Previous / branch / comprehension Keep going call `flipNext()` / `flipPrev()` (or instant `turnTo*` when reduced motion). No corner-drag, swipe, or click-to-flip. `page-flip` is patched so portrait Previous is a geometric mirror of Next: the **current** sheet peels from the left, previous sits underneath (`patches/page-flip@2.0.7.patch`).
 2. **Spine gating:** sheets are `[prev?, current, peek?]`. No peek while vocab-gated, comprehension pending, on a branch page, or on a last page — the engine physically cannot flip forward.
 
 Gate Next Page / Previous while a flip is in progress so controls cannot double-fire. First paint of page 1 should not run a turn animation. Cover entrance and EndingBeat stay outside the flip book.
 
 ## When motion is allowed
 
-- Page / scene change on **Next Page** — react-pageflip curl per contract above (instant when reduced motion)
+- Page / scene change on **Next Page** / Previous — react-pageflip curl per contract above (instant when reduced motion)
 - CTA press feedback
 - Words-learned increment (soft success pulse / count bump)
 - Sequenced ending beat: book-coloring → count-up → chapter unlock (short-circuit coloring + count-up when reduced motion)
@@ -52,7 +52,7 @@ Gate Next Page / Previous while a flip is in progress so controls cannot double-
 ## Pre-ship checklist
 
 - [ ] Motion / transitions are subtle and purposeful
-- [ ] Next Page uses react-pageflip on the book container (~500ms; instant when reduced motion)
+- [ ] Next Page / Previous use react-pageflip on the book container (~500ms; instant when reduced motion)
 - [ ] Ending beat is sequenced: coloring → count-up → unlock
 - [ ] `prefers-reduced-motion` collapses page-turn + Motion springs
 - [ ] No looping decoration, confetti, or layout thrash
