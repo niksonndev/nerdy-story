@@ -13,10 +13,8 @@ import { cn } from "@/lib/utils";
 export function StoryPageSheet({
   page,
   interactive,
-  isLastPage,
   canAdvance,
   canGoBack,
-  vocabGated,
   resolvedWordIds,
   onMysteryClick,
   onNextPage,
@@ -25,10 +23,8 @@ export function StoryPageSheet({
 }: {
   page: StoryPage;
   interactive: boolean;
-  isLastPage: boolean;
   canAdvance: boolean;
   canGoBack: boolean;
-  vocabGated: boolean;
   resolvedWordIds: string[];
   onMysteryClick: (wordId: string) => void;
   onNextPage: () => void;
@@ -101,10 +97,9 @@ export function StoryPageSheet({
 
           <PageProgression
             page={page}
-            isLastPage={isLastPage}
             canAdvance={canAdvance}
             canGoBack={canGoBack}
-            vocabGated={vocabGated}
+            vocabGated={interactive && !canAdvance}
             onNextPage={onNextPage}
             onPreviousPage={onPreviousPage}
             onChoosePath={onChoosePath}
@@ -187,7 +182,6 @@ function PreviousControl({
 
 function PageProgression({
   page,
-  isLastPage,
   canAdvance,
   canGoBack,
   vocabGated,
@@ -197,7 +191,6 @@ function PageProgression({
   className,
 }: {
   page: StoryPage;
-  isLastPage: boolean;
   canAdvance: boolean;
   canGoBack: boolean;
   vocabGated: boolean;
@@ -207,6 +200,7 @@ function PageProgression({
   className?: string;
 }) {
   const nextHintId = useId();
+  const isLastPage = !page.nextPageId && !page.choice;
   if (page.choice) {
     return (
       <div className={cn("flex w-full flex-col gap-3", className)}>

@@ -1,29 +1,18 @@
 import type { GradeAttempt } from "@/lib/grade/shared";
-import { MAX_ATTEMPTS, STORY_START_ID } from "@/lib/story/story-data";
+import {
+  BRANCH_PAGE_ID,
+  ENDING_PAGE_IDS,
+  MAX_ATTEMPTS,
+  PATH_SPECIFIC_CHALLENGE_IDS,
+  PATH_SPECIFIC_COMPREHENSION_IDS,
+  PATH_SPECIFIC_WORD_IDS,
+  STORY_START_ID,
+  isPathPageId,
+} from "@/lib/story/story-data";
 
 export type ChallengePhase = "prompt" | "waiting" | "accepted" | "reveal";
 
-export const ENDING_PAGE_IDS = ["page-7a", "page-7b"] as const;
-
-export const BRANCH_PAGE_ID = "page-5";
-
-const PATH_PAGE_IDS = ["page-6a", "page-6b"] as const;
-
-const ENDING_PAGE_ID_SET = new Set<string>(ENDING_PAGE_IDS);
-const PATH_PAGE_ID_SET = new Set<string>(PATH_PAGE_IDS);
-const PATH_SPECIFIC_WORD_IDS = new Set(["camouflage", "nocturnal"]);
-const PATH_SPECIFIC_COMPREHENSION_IDS = new Set([
-  "tracks-choice-outcome",
-  "guide-choice-outcome",
-]);
-const PATH_SPECIFIC_CHALLENGE_IDS = new Set([
-  ...PATH_SPECIFIC_WORD_IDS,
-  ...PATH_SPECIFIC_COMPREHENSION_IDS,
-]);
-
-export function isPathPageId(pageId: string): boolean {
-  return PATH_PAGE_ID_SET.has(pageId);
-}
+const ENDING_PAGE_ID_SET = new Set(ENDING_PAGE_IDS);
 
 function withoutPathSpecificProgress(state: StorySessionState): Pick<
   StorySessionState,
@@ -159,9 +148,12 @@ export type ChallengeProgress = {
   phase: ChallengePhase;
   childAnswer: string;
   priorAttempts: GradeAttempt[];
+  acceptedReason: string | null;
+};
+
+export type ChallengeProgressView = ChallengeProgress & {
   missReason: string | null;
   hintText: string | null;
-  acceptedReason: string | null;
 };
 
 export type ChallengeUiState = {
@@ -174,18 +166,38 @@ function defaultChallengeProgress(): ChallengeProgress {
     phase: "prompt",
     childAnswer: "",
     priorAttempts: [],
-    missReason: null,
-    hintText: null,
     acceptedReason: null,
   };
+}
+
+function storedProgressFor(
+  state: ChallengeUiState,
+  id: string,
+): ChallengeProgress {
+  return state.progressById[id] ?? defaultChallengeProgress();
+}
+
+function missFeedbackFor(progress: ChallengeProgress): {
+  missReason: string | null;
+  hintText: string | null;
+} {
+  if (progress.phase !== "prompt") {
+    return { missReason: null, hintText: null };
+  }
+  const last = progress.priorAttempts.at(-1);
+  if (!last) return { missReason: null, hintText: null };
+  return { missReason: last.reason, hintText: last.hint };
 }
 
 export function challengeProgressFor(
   state: ChallengeUiState,
   id: string | null = state.open?.id ?? null,
-): ChallengeProgress {
-  if (!id) return defaultChallengeProgress();
-  return state.progressById[id] ?? defaultChallengeProgress();
+): ChallengeProgressView {
+  if (!id) {
+    return { ...defaultChallengeProgress(), missReason: null, hintText: null };
+  }
+  const progress = storedProgressFor(state, id);
+  return { ...progress, ...missFeedbackFor(progress) };
 }
 
 function patchCurrent(
@@ -193,7 +205,7 @@ function patchCurrent(
   next: ChallengeProgress | ((current: ChallengeProgress) => ChallengeProgress),
 ): ChallengeUiState {
   if (!state.open) return state;
-  const current = challengeProgressFor(state);
+  const current = storedProgressFor(state, state.open.id);
   const progress = typeof next === "function" ? next(current) : next;
   return {
     ...state,
@@ -268,8 +280,6 @@ export function challengeUiReducer(
         return {
           ...current,
           priorAttempts,
-          missReason: action.reason,
-          hintText: action.hint,
           childAnswer: "",
           phase: "prompt",
         };
@@ -278,7 +288,6 @@ export function challengeUiReducer(
       return patchCurrent(state, (current) => ({
         ...current,
         acceptedReason: action.reason,
-        hintText: null,
         phase: "accepted",
       }));
     case "close":

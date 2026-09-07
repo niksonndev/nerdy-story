@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  BRANCH_PAGE_ID,
   challengeProgressFor,
   challengeUiReducer,
   initialChallengeUi,
   initialStorySession,
   storySessionReducer,
 } from "@/lib/story/reader-state";
+import { BRANCH_PAGE_ID } from "@/lib/story/story-data";
 
 describe("challengeUiReducer", () => {
   it("restores reason, hint, and prior attempts after close then reopen", () => {
@@ -41,10 +41,6 @@ describe("challengeUiReducer", () => {
               hint: "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
             },
           ],
-          missReason:
-            "Canopy is about treetops high in the forest, not exactly about fruit.",
-          hintText:
-            "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
           acceptedReason: null,
         },
       },

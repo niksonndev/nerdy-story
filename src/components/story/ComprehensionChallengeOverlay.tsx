@@ -9,7 +9,7 @@ import {
   ChallengeOverlayFields,
   ChallengePhaseSwitch,
   ChallengeRevealState,
-} from "@/components/story/ChallengeDialog";
+} from "@/components/story/ChallengeUi";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
 import { StoryPuzzleLoader } from "@/components/story/loading/StoryPuzzleLoader";
 import { type ComprehensionChallenge } from "@/lib/story/story-data";

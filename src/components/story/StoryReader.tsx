@@ -23,7 +23,6 @@ export function StoryReader() {
     resolvedComprehensionIds,
     canAdvance,
     canGoBack,
-    isLastPage,
     showEndingBeat,
     exploredEndingIds,
     hasStarted,
@@ -34,9 +33,7 @@ export function StoryReader() {
     handleBeforeNextPage,
     handleVocabularyCheck,
     handleComprehensionCheck,
-    closeVocabularyChallenge,
-    closeComprehensionChallenge,
-    continueComprehension,
+    closeChallenge,
     handleReadAgain,
     handleDiscoverAlternateEnding,
     handleStartReading,
@@ -49,23 +46,18 @@ export function StoryReader() {
     completeEntranceTransition,
   } = useStoryEntrance();
 
-  const storyPageProps = {
-    page,
-    pageHistory,
-    resolvedComprehensionIds,
-    wordsLearned: learnedWordIds.length,
-    resolvedWordIds,
-    canAdvance,
-    canGoBack,
-    isLastPage,
-    onMysteryClick: openVocabularyChallenge,
-    onChoosePath: goToPage,
-    onPreviousPage: goToPreviousPage,
-    onBeforeNextPage: handleBeforeNextPage,
+  const overlayFields = {
+    phase: overlay.phase,
+    value: overlay.childAnswer,
+    missReason: overlay.missReason,
+    hintText: overlay.hintText,
+    acceptedReason: overlay.acceptedReason,
+    onChange: setChildAnswer,
   };
 
   const showReaderPage = hasStarted || isEntranceTransitioning;
-  const challengeOpen = overlay.kind !== null;
+  const challengeOpen =
+    overlay.word !== null || overlay.comprehension !== null;
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -85,7 +77,20 @@ export function StoryReader() {
           >
             {showReaderPage ? (
               <StoryEntrancePageLayer>
-                <StoryPageView ref={pageViewRef} {...storyPageProps} />
+                <StoryPageView
+                  ref={pageViewRef}
+                  page={page}
+                  pageHistory={pageHistory}
+                  resolvedComprehensionIds={resolvedComprehensionIds}
+                  wordsLearned={learnedWordIds.length}
+                  resolvedWordIds={resolvedWordIds}
+                  canAdvance={canAdvance}
+                  canGoBack={canGoBack}
+                  onMysteryClick={openVocabularyChallenge}
+                  onChoosePath={goToPage}
+                  onPreviousPage={goToPreviousPage}
+                  onBeforeNextPage={handleBeforeNextPage}
+                />
               </StoryEntrancePageLayer>
             ) : null}
 
@@ -105,28 +110,18 @@ export function StoryReader() {
               <VocabularyChallengeOverlay
                 open={overlay.word !== null}
                 word={overlay.word}
-                phase={overlay.phase}
-                value={overlay.childAnswer}
-                missReason={overlay.missReason}
-                hintText={overlay.hintText}
-                acceptedReason={overlay.acceptedReason}
-                onChange={setChildAnswer}
+                {...overlayFields}
                 onCheck={handleVocabularyCheck}
-                onClose={closeVocabularyChallenge}
+                onClose={() => closeChallenge()}
               />
 
               <ComprehensionChallengeOverlay
                 open={overlay.comprehension !== null}
                 challenge={overlay.comprehension}
-                phase={overlay.phase}
-                value={overlay.childAnswer}
-                missReason={overlay.missReason}
-                hintText={overlay.hintText}
-                acceptedReason={overlay.acceptedReason}
-                onChange={setChildAnswer}
+                {...overlayFields}
                 onCheck={handleComprehensionCheck}
-                onContinue={continueComprehension}
-                onClose={closeComprehensionChallenge}
+                onContinue={() => closeChallenge({ advance: true })}
+                onClose={() => closeChallenge()}
               />
             </>
           ) : null}

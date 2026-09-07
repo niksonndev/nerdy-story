@@ -9,7 +9,7 @@ import {
   ChallengeOverlayFields,
   ChallengePhaseSwitch,
   ChallengeRevealState,
-} from "@/components/story/ChallengeDialog";
+} from "@/components/story/ChallengeUi";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
 import { DictionaryScanLoader } from "@/components/story/loading/DictionaryScanLoader";
 import { SpeakableMysteryWord } from "@/components/story/SpeakableMysteryWord";
@@ -65,7 +65,7 @@ export function VocabularyChallengeOverlay({
           }
           accepted={
             <ChallengeAcceptedState
-              reason={acceptedReason ?? `A ${word.word} is a safe, covered place.`}
+              reason={acceptedReason ?? "That matches what this word means."}
               continueLabel="Keep reading"
               onContinue={onClose}
             />

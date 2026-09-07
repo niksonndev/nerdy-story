@@ -23,7 +23,6 @@ function renderDecision(resolvedWordIds: string[]) {
       resolvedWordIds={resolvedWordIds}
       canAdvance={resolvedWordIds.includes("cautious")}
       canGoBack
-      isLastPage={false}
       onMysteryClick={() => {}}
       onChoosePath={() => {}}
       onPreviousPage={() => {}}
@@ -48,7 +47,6 @@ describe("StoryPageView flip book key", () => {
         resolvedWordIds={["canopy", "cautious"]}
         canAdvance
         canGoBack
-        isLastPage={false}
         onMysteryClick={() => {}}
         onChoosePath={() => {}}
         onPreviousPage={() => {}}

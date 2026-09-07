@@ -13,24 +13,24 @@ import {
 } from "@/lib/speech/play-sfx";
 import { mysteryWordIdsFor } from "@/lib/story/page-helpers";
 import {
-  BRANCH_PAGE_ID,
   challengeProgressFor,
   challengeUiReducer,
   initialChallengeUi,
   initialStorySession,
-  isPathPageId,
   storySessionReducer,
 } from "@/lib/story/reader-state";
 import {
+  BRANCH_PAGE_ID,
   MAX_ATTEMPTS,
   comprehensionChallenges,
+  isPathPageId,
   mysteryWords,
   storyPagesById,
 } from "@/lib/story/story-data";
 
 export function useStoryReader() {
   const pageViewRef = useRef<StoryPageViewHandle>(null);
-  const pendingAdvanceId = useRef<string | null>(null);
+  const pendingComprehensionAdvanceId = useRef<string | null>(null);
 
   const [session, dispatchSession] = useReducer(
     storySessionReducer,
@@ -53,31 +53,20 @@ export function useStoryReader() {
   } = session;
 
   const progress = challengeProgressFor(challenge);
-  const {
-    phase,
-    childAnswer,
-    priorAttempts,
-    missReason,
-    hintText,
-    acceptedReason,
-  } = progress;
+  const overlayWord =
+    challenge.open?.kind === "vocabulary" && challenge.open.id
+      ? (mysteryWords[challenge.open.id] ?? null)
+      : null;
+  const overlayComprehension =
+    challenge.open?.kind === "comprehension" && challenge.open.id
+      ? (comprehensionChallenges[challenge.open.id] ?? null)
+      : null;
 
   const page = storyPagesById[pageId];
   const isLastPage = !page.nextPageId && !page.choice;
   const pageWordIds = mysteryWordIdsFor(page);
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
-  const challengeKind = challenge.open?.kind ?? null;
-  const challengeId = challenge.open?.id ?? null;
-  const overlayWord =
-    challengeKind === "vocabulary" && challengeId
-      ? (mysteryWords[challengeId] ?? null)
-      : null;
-  const overlayComprehension =
-    challengeKind === "comprehension" && challengeId
-      ? (comprehensionChallenges[challengeId] ?? null)
-      : null;
-  const canGoBack =
-    pageHistory.length > 0 && challenge.open === null;
+  const canGoBack = pageHistory.length > 0 && challenge.open === null;
   const showEndingBeat = isLastPage && canAdvance && challenge.open === null;
 
   function openVocabularyChallenge(wordId: string) {
@@ -95,7 +84,9 @@ export function useStoryReader() {
     reason: string,
     hint: string | null,
   ) {
-    const nextCount = priorAttempts.length + 1;
+    const nextCount = progress.priorAttempts.length + 1;
+    const challengeId = challenge.open?.id ?? null;
+    const challengeKind = challenge.open?.kind ?? null;
     dispatchChallenge({
       type: "recordFailedAttempt",
       submitted,
@@ -124,10 +115,10 @@ export function useStoryReader() {
     ) => Promise<GradeResult>;
     onCorrect: (id: string) => void;
   }) {
-    if (!options.id || childAnswer.trim().length === 0) return;
+    if (!options.id || progress.childAnswer.trim().length === 0) return;
     dispatchChallenge({ type: "setWaiting" });
 
-    const submittedChildAnswer = childAnswer
+    const submittedChildAnswer = progress.childAnswer
       .trim()
       .slice(0, CHILD_ANSWER_MAX_LENGTH);
     let result: GradeResult;
@@ -137,7 +128,7 @@ export function useStoryReader() {
       recordFailedAttempt(
         submittedChildAnswer,
         "Not quite — try another way.",
-        hintForAttempt(options.hints, priorAttempts.length),
+        hintForAttempt(options.hints, progress.priorAttempts.length),
       );
       return;
     }
@@ -161,7 +152,7 @@ export function useStoryReader() {
       id: overlayWord?.id ?? null,
       hints: overlayWord?.hints ?? [],
       requestGrade: (id, answer) =>
-        requestVocabularyGrade(id, answer, priorAttempts),
+        requestVocabularyGrade(id, answer, progress.priorAttempts),
       onCorrect: (id) =>
         dispatchSession({ type: "acceptWord", wordId: id }),
     });
@@ -172,7 +163,7 @@ export function useStoryReader() {
       id: overlayComprehension?.id ?? null,
       hints: overlayComprehension?.hints ?? [],
       requestGrade: (id, answer) =>
-        requestComprehensionGrade(id, answer, priorAttempts),
+        requestComprehensionGrade(id, answer, progress.priorAttempts),
       onCorrect: (id) =>
         dispatchSession({
           type: "resolveComprehension",
@@ -181,25 +172,20 @@ export function useStoryReader() {
     });
   }
 
-  function closeVocabularyChallenge() {
+  function closeChallenge(options?: { advance?: boolean }) {
+    const nextPageId = options?.advance
+      ? pendingComprehensionAdvanceId.current
+      : null;
+    const kind = challenge.open?.kind;
+    pendingComprehensionAdvanceId.current = null;
     dispatchChallenge({ type: "close" });
-    if (isLastPage && canAdvance) {
+    if (options?.advance && nextPageId) {
+      pageViewRef.current?.advanceTo(nextPageId);
+      return;
+    }
+    if (kind === "vocabulary" && isLastPage && canAdvance) {
       playStoryCompleteSfx();
       dispatchSession({ type: "recordEndingExplored", pageId });
-    }
-  }
-
-  function closeComprehensionChallenge() {
-    pendingAdvanceId.current = null;
-    dispatchChallenge({ type: "close" });
-  }
-
-  function continueComprehension() {
-    const nextPageId = pendingAdvanceId.current;
-    pendingAdvanceId.current = null;
-    dispatchChallenge({ type: "close" });
-    if (nextPageId) {
-      pageViewRef.current?.advanceTo(nextPageId);
     }
   }
 
@@ -213,7 +199,7 @@ export function useStoryReader() {
 
   function goToPreviousPage() {
     if (!canGoBack) return;
-    pendingAdvanceId.current = null;
+    pendingComprehensionAdvanceId.current = null;
     dispatchSession({ type: "goToPreviousPage" });
   }
 
@@ -223,7 +209,7 @@ export function useStoryReader() {
       comprehensionId &&
       !resolvedComprehensionIds.includes(comprehensionId)
     ) {
-      pendingAdvanceId.current = nextPageId;
+      pendingComprehensionAdvanceId.current = nextPageId;
       openComprehensionChallenge(comprehensionId);
       return false;
     }
@@ -235,13 +221,13 @@ export function useStoryReader() {
   }
 
   function handleReadAgain() {
-    pendingAdvanceId.current = null;
+    pendingComprehensionAdvanceId.current = null;
     dispatchSession({ type: "readAgain" });
     dispatchChallenge({ type: "reset" });
   }
 
   function handleDiscoverAlternateEnding() {
-    pendingAdvanceId.current = null;
+    pendingComprehensionAdvanceId.current = null;
     dispatchSession({ type: "jumpToBranch" });
     dispatchChallenge({ type: "reset" });
   }
@@ -261,19 +247,17 @@ export function useStoryReader() {
     resolvedComprehensionIds,
     canAdvance,
     canGoBack,
-    isLastPage,
     showEndingBeat,
     exploredEndingIds,
     hasStarted,
     overlay: {
-      kind: challengeKind,
       word: overlayWord,
       comprehension: overlayComprehension,
-      phase,
-      childAnswer,
-      missReason,
-      hintText,
-      acceptedReason,
+      phase: progress.phase,
+      childAnswer: progress.childAnswer,
+      missReason: progress.missReason,
+      hintText: progress.hintText,
+      acceptedReason: progress.acceptedReason,
     },
     openVocabularyChallenge,
     goToPage,
@@ -281,9 +265,7 @@ export function useStoryReader() {
     handleBeforeNextPage,
     handleVocabularyCheck,
     handleComprehensionCheck,
-    closeVocabularyChallenge,
-    closeComprehensionChallenge,
-    continueComprehension,
+    closeChallenge,
     handleReadAgain,
     handleDiscoverAlternateEnding,
     handleStartReading,

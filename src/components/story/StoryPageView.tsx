@@ -15,6 +15,7 @@ import {
   type StoryFlipBookHandle,
 } from "@/components/story/StoryFlipBook";
 import { StoryPageSheet } from "@/components/story/StoryPageSheet";
+import { StorybookShell } from "@/components/story/storybook-shell";
 import { WordsLearned } from "@/components/story/WordsLearned";
 import {
   flipBookKeyFor,
@@ -24,7 +25,6 @@ import {
   peekNextPageIdFor,
 } from "@/lib/story/page-helpers";
 import { storyPagesById, type StoryPage } from "@/lib/story/story-data";
-import { cn } from "@/lib/utils";
 
 type StoryPageViewProps = {
   page: StoryPage;
@@ -34,7 +34,6 @@ type StoryPageViewProps = {
   resolvedWordIds: string[];
   canAdvance: boolean;
   canGoBack: boolean;
-  isLastPage: boolean;
   onMysteryClick: (wordId: string) => void;
   onChoosePath: (nextPageId: string) => void;
   onPreviousPage: () => void;
@@ -58,7 +57,6 @@ export const StoryPageView = forwardRef<
     resolvedWordIds,
     canAdvance,
     canGoBack,
-    isLastPage,
     onMysteryClick,
     onChoosePath,
     onPreviousPage,
@@ -69,7 +67,7 @@ export const StoryPageView = forwardRef<
   const flipRef = useRef<StoryFlipBookHandle>(null);
   const [pendingPeekId, setPendingPeekId] = useState<string | null>(null);
   const [isFlipping, setIsFlipping] = useState(false);
-  const pendingAdvanceId = useRef<string | null>(null);
+  const pendingFlipPageId = useRef<string | null>(null);
   const pendingRetreat = useRef(false);
   const reduceMotion = useReducedMotion();
 
@@ -100,11 +98,11 @@ export const StoryPageView = forwardRef<
   });
 
   const runPendingFlip = useEffectEvent(() => {
-    const advanceId = pendingAdvanceId.current;
+    const advanceId = pendingFlipPageId.current;
     if (advanceId) {
       const started = flipRef.current?.flipNext() ?? false;
       if (started) {
-        pendingAdvanceId.current = null;
+        pendingFlipPageId.current = null;
         return "started";
       }
       return "retry";
@@ -143,8 +141,8 @@ export const StoryPageView = forwardRef<
       if (result === "started" || result === "idle") return;
       attempts += 1;
       if (attempts >= maxAttempts) {
-        const advanceId = pendingAdvanceId.current;
-        pendingAdvanceId.current = null;
+        const advanceId = pendingFlipPageId.current;
+        pendingFlipPageId.current = null;
         setPendingPeekId(null);
         if (advanceId) commitPendingAdvance(advanceId);
         return;
@@ -174,13 +172,13 @@ export const StoryPageView = forwardRef<
     if (alreadyPeek && sheetIds.includes(nextPageId)) {
       const started = flipRef.current?.flipNext() ?? false;
       if (!started) {
-        pendingAdvanceId.current = nextPageId;
+        pendingFlipPageId.current = nextPageId;
         setPendingPeekId(nextPageId);
       }
       return;
     }
 
-    pendingAdvanceId.current = nextPageId;
+    pendingFlipPageId.current = nextPageId;
     setPendingPeekId(nextPageId);
   }
 
@@ -227,66 +225,52 @@ export const StoryPageView = forwardRef<
   const previousReady = canGoBack && !isFlipping;
 
   return (
-    <div
-      className={cn(
-        "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
-        // Reading pages: fill the phone viewport so the flip book can size itself
-        "max-sm:h-dvh max-sm:overflow-y-hidden",
-      )}
+    <StorybookShell
+      cardAs="div"
+      frameClassName="max-sm:h-dvh max-sm:overflow-y-hidden"
+      cardClassName="flex min-h-0 flex-1 flex-col sm:mb-8 sm:mt-4 sm:h-[min(52rem,calc(100dvh-6.5rem))] sm:max-w-175 lg:max-w-225"
+      chrome={
+        <>
+          {/* Mobile: glass chip floats top-center over the scene (stable across page turns) */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-5 pt-[max(0.75rem,env(safe-area-inset-top))] sm:hidden">
+            <WordsLearned
+              count={wordsLearned}
+              className="pointer-events-auto bg-card/55 shadow-sm ring-1 ring-foreground/10 backdrop-blur-md"
+            />
+          </div>
+
+          <div className="relative z-10 hidden shrink-0 justify-center px-5 pt-4 sm:flex sm:pt-6">
+            <WordsLearned count={wordsLearned} />
+          </div>
+        </>
+      }
     >
-      {/* Mobile: glass chip floats top-center over the scene (stable across page turns) */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-5 pt-[max(0.75rem,env(safe-area-inset-top))] sm:hidden">
-        <WordsLearned
-          count={wordsLearned}
-          className="pointer-events-auto bg-card/55 shadow-sm ring-1 ring-foreground/10 backdrop-blur-md"
-        />
-      </div>
-
-      <div className="relative z-10 hidden shrink-0 justify-center px-5 pt-4 sm:flex sm:pt-6">
-        <WordsLearned count={wordsLearned} />
-      </div>
-
-      <div
-        className={cn(
-          "relative z-10 flex min-h-0 w-full flex-1 flex-col",
-          // Tablet/desktop: height = leftover viewport after HUD + mt-4 + mb-8 (~6.5rem)
-          "sm:mx-auto sm:mb-8 sm:mt-4 sm:h-[min(52rem,calc(100dvh-6.5rem))] sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
-          "lg:max-w-225",
-        )}
-      >
-        <StoryFlipBook
-          ref={flipRef}
-          bookKey={bookKey}
-          sheetIds={sheetIds}
-          currentIndex={currentIndex}
-          onFlipTo={handleFlipTo}
-          onFlippingChange={setIsFlipping}
-          className="min-h-0 flex-1"
-          renderSheet={(pageId, isCurrent) => {
-            const sheetPage = storyPagesById[pageId];
-            if (!sheetPage) return null;
-            return (
-              <StoryPageSheet
-                page={sheetPage}
-                interactive={isCurrent}
-                isLastPage={
-                  isCurrent
-                    ? isLastPage
-                    : !sheetPage.nextPageId && !sheetPage.choice
-                }
-                canAdvance={isCurrent && progressionReady}
-                canGoBack={isCurrent && previousReady}
-                vocabGated={isCurrent && !canAdvance}
-                resolvedWordIds={resolvedWordIds}
-                onMysteryClick={onMysteryClick}
-                onNextPage={handleNextPage}
-                onPreviousPage={requestRetreat}
-                onChoosePath={requestAdvance}
-              />
-            );
-          }}
-        />
-      </div>
-    </div>
+      <StoryFlipBook
+        ref={flipRef}
+        bookKey={bookKey}
+        sheetIds={sheetIds}
+        currentIndex={currentIndex}
+        onFlipTo={handleFlipTo}
+        onFlippingChange={setIsFlipping}
+        className="min-h-0 flex-1"
+        renderSheet={(pageId, isCurrent) => {
+          const sheetPage = storyPagesById[pageId];
+          if (!sheetPage) return null;
+          return (
+            <StoryPageSheet
+              page={sheetPage}
+              interactive={isCurrent}
+              canAdvance={isCurrent && progressionReady}
+              canGoBack={isCurrent && previousReady}
+              resolvedWordIds={resolvedWordIds}
+              onMysteryClick={onMysteryClick}
+              onNextPage={handleNextPage}
+              onPreviousPage={requestRetreat}
+              onChoosePath={requestAdvance}
+            />
+          );
+        }}
+      />
+    </StorybookShell>
   );
 });

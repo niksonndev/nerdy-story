@@ -4,17 +4,11 @@ import { useEffect, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
-import { ChallengeDialog } from "@/components/story/ChallengeDialog";
+import { ChallengeDialog } from "@/components/story/ChallengeUi";
 import { SpeakableMysteryWord } from "@/components/story/SpeakableMysteryWord";
 import { stopWordAudio } from "@/lib/speech/play-word-audio";
-import { ENDING_PAGE_IDS } from "@/lib/story/reader-state";
-import { mysteryWords } from "@/lib/story/story-data";
+import { ENDING_PAGE_IDS, mysteryWords } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
-
-const ENDING_LABELS: Record<(typeof ENDING_PAGE_IDS)[number], string> = {
-  "page-7a": "Ending 1",
-  "page-7b": "Ending 2",
-};
 
 export function CelebrationPhase({
   displayCount,
@@ -344,11 +338,11 @@ function EndingTracker({ exploredEndingIds }: { exploredEndingIds: string[] }) {
   return (
     <div
       className="flex flex-wrap items-center justify-center gap-2"
-      aria-label={`Ending progress: ${exploredCount} of 2 explored`}
+      aria-label={`Ending progress: ${exploredCount} of ${ENDING_PAGE_IDS.length} explored`}
     >
-      {ENDING_PAGE_IDS.map((id) => {
+      {ENDING_PAGE_IDS.map((id, index) => {
         const explored = exploredEndingIds.includes(id);
-        const label = ENDING_LABELS[id];
+        const label = `Ending ${index + 1}`;
 
         return (
           <span

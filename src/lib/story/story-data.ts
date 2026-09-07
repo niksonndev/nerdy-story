@@ -399,3 +399,64 @@ export const storySceneImages: string[] = [
     storyPages.flatMap((page) => (page.image ? [page.image] : [])),
   ),
 ];
+
+function mysteryWordIdsOn(page: StoryPage): string[] {
+  return page.segments
+    .filter(
+      (segment): segment is Extract<StorySegment, { type: "mystery" }> =>
+        segment.type === "mystery",
+    )
+    .map((segment) => segment.wordId);
+}
+
+function collectReachablePageIds(startIds: string[]): Set<string> {
+  const ids = new Set<string>();
+  const queue = [...startIds];
+  while (queue.length > 0) {
+    const id = queue.pop()!;
+    if (ids.has(id)) continue;
+    ids.add(id);
+    const page = storyPagesById[id];
+    if (!page) continue;
+    if (page.nextPageId) queue.push(page.nextPageId);
+    page.choice?.options.forEach((option) => queue.push(option.nextPageId));
+  }
+  return ids;
+}
+
+export const BRANCH_PAGE_ID =
+  storyPages.find((page) => page.choice)?.id ?? STORY_START_ID;
+
+export const PATH_PAGE_IDS =
+  storyPagesById[BRANCH_PAGE_ID]?.choice?.options.map(
+    (option) => option.nextPageId,
+  ) ?? [];
+
+export function isPathPageId(pageId: string): boolean {
+  return PATH_PAGE_IDS.includes(pageId);
+}
+
+export const ENDING_PAGE_IDS = storyPages
+  .filter((page) => !page.nextPageId && !page.choice)
+  .map((page) => page.id);
+
+const pathSubtreeIds = collectReachablePageIds(PATH_PAGE_IDS);
+
+export const PATH_SPECIFIC_WORD_IDS = new Set(
+  storyPages
+    .filter((page) => pathSubtreeIds.has(page.id))
+    .flatMap(mysteryWordIdsOn),
+);
+
+export const PATH_SPECIFIC_COMPREHENSION_IDS = new Set(
+  storyPages.flatMap((page) =>
+    pathSubtreeIds.has(page.id) && page.comprehensionId
+      ? [page.comprehensionId]
+      : [],
+  ),
+);
+
+export const PATH_SPECIFIC_CHALLENGE_IDS = new Set([
+  ...PATH_SPECIFIC_WORD_IDS,
+  ...PATH_SPECIFIC_COMPREHENSION_IDS,
+]);

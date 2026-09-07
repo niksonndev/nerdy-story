@@ -45,7 +45,7 @@ async function resolveCanopyAndGoToPage3(
     await hook.result.current.handleVocabularyCheck();
   });
   act(() => {
-    hook.result.current.closeVocabularyChallenge();
+    hook.result.current.closeChallenge();
     hook.result.current.goToPage("page-3");
   });
   expect(hook.result.current.pageId).toBe("page-3");
@@ -83,7 +83,7 @@ describe("useStoryReader", () => {
       expect(result.current.canAdvance).toBe(true);
 
       act(() => {
-        result.current.closeVocabularyChallenge();
+        result.current.closeChallenge();
       });
 
       expect(result.current.overlay.word).toBeNull();
@@ -146,7 +146,7 @@ describe("useStoryReader", () => {
       expect(result.current.canAdvance).toBe(true);
 
       act(() => {
-        result.current.closeVocabularyChallenge();
+        result.current.closeChallenge();
       });
 
       expect(result.current.overlay.word).toBeNull();
@@ -198,7 +198,7 @@ describe("useStoryReader", () => {
         await result.current.handleVocabularyCheck();
       });
       act(() => {
-        result.current.closeVocabularyChallenge();
+        result.current.closeChallenge();
       });
       act(() => {
         result.current.goToPage("page-6a");
@@ -227,7 +227,7 @@ describe("useStoryReader", () => {
       );
 
       act(() => {
-        result.current.closeVocabularyChallenge();
+        result.current.closeChallenge();
       });
       act(() => {
         result.current.goToPreviousPage();
@@ -303,7 +303,7 @@ describe("useStoryReader", () => {
       expect(result.current.learnedWordIds).toEqual(wordsBefore);
 
       act(() => {
-        result.current.continueComprehension();
+        result.current.closeChallenge({ advance: true });
       });
 
       let allowed = false;
@@ -371,7 +371,7 @@ describe("useStoryReader", () => {
       expect(result.current.learnedWordIds).toEqual(wordsBefore);
 
       act(() => {
-        result.current.continueComprehension();
+        result.current.closeChallenge({ advance: true });
       });
 
       let allowed = false;
@@ -406,7 +406,7 @@ describe("useStoryReader", () => {
       });
 
       act(() => {
-        result.current.continueComprehension();
+        result.current.closeChallenge({ advance: true });
       });
 
       expect(advanceTo).toHaveBeenCalledWith("page-4");
