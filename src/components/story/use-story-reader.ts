@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer, useRef } from "react";
+import { useReducer, useRef } from "react";
 
 import type { StoryPageViewHandle } from "@/components/story/StoryPageView";
 import {
@@ -19,15 +19,12 @@ import {
   peekNextPageIdFor,
 } from "@/lib/story/page-helpers";
 import {
-  DEFAULT_LEARNED_WORD_IDS,
-  type EndingPageId,
   challengeUiReducer,
   endingsExploredCount,
   initialChallengeUi,
   initialStorySession,
   storySessionReducer,
 } from "@/lib/story/reader-state";
-import type { EndingBeatView } from "@/lib/story/types";
 import {
   MAX_ATTEMPTS,
   comprehensionChallenges,
@@ -36,19 +33,6 @@ import {
   type ComprehensionChallenge,
   type MysteryWord,
 } from "@/lib/story/story-data";
-
-type DebugShowEndingBeatOptions = {
-  pageId?: EndingPageId;
-  learnedWordIds?: string[];
-  exploredEndingIds?: string[];
-  endingView?: EndingBeatView;
-};
-
-declare global {
-  interface Window {
-    __debugShowEndingBeat?: (options?: DebugShowEndingBeatOptions) => void;
-  }
-}
 
 export function useStoryReader() {
   const pageViewRef = useRef<StoryPageViewHandle>(null);
@@ -316,40 +300,6 @@ export function useStoryReader() {
   function setChildAnswer(value: string) {
     dispatchChallenge({ type: "setChildAnswer", childAnswer: value });
   }
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
-
-    window.__debugShowEndingBeat = (options = {}) => {
-      const debugPageId = options.pageId ?? "page-7a";
-      const debugLearnedWordIds =
-        options.learnedWordIds ?? DEFAULT_LEARNED_WORD_IDS[debugPageId];
-
-      pendingAdvanceId.current = null;
-      dispatchSession({
-        type: "debugShowEndingBeat",
-        pageId: debugPageId,
-        learnedWordIds: debugLearnedWordIds,
-        exploredEndingIds: options.exploredEndingIds ?? [debugPageId],
-        endingView: options.endingView ?? "beat",
-      });
-      dispatchChallenge({ type: "reset" });
-
-      console.info(
-        "[nerdy-story] Ending beat shown.",
-        "Try: __debugShowEndingBeat({ exploredEndingIds: ['page-7a','page-7b'] })",
-        "or: __debugShowEndingBeat({ endingView: 'chapter2' })",
-      );
-    };
-
-    console.info(
-      "[nerdy-story] Dev hook ready: __debugShowEndingBeat()",
-    );
-
-    return () => {
-      delete window.__debugShowEndingBeat;
-    };
-  }, []);
 
   return {
     pageViewRef,

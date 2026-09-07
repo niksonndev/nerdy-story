@@ -36,16 +36,6 @@ function withoutPathSpecificProgress(state: StorySessionState): Pick<
   };
 }
 
-export const ENDING_MYSTERY_WORD: Record<EndingPageId, string> = {
-  "page-7a": "camouflage",
-  "page-7b": "nocturnal",
-};
-
-export const DEFAULT_LEARNED_WORD_IDS: Record<EndingPageId, string[]> = {
-  "page-7a": ["canopy", "cautious", "camouflage"],
-  "page-7b": ["canopy", "cautious", "nocturnal"],
-};
-
 export type StorySessionState = {
   pageId: string;
   pageHistory: string[];
@@ -78,13 +68,6 @@ export type StorySessionAction =
   | { type: "resolveComprehension"; challengeId: string }
   | { type: "recordEndingExplored"; pageId: string }
   | { type: "setEndingView"; view: EndingBeatView }
-  | {
-      type: "debugShowEndingBeat";
-      pageId: EndingPageId;
-      learnedWordIds: string[];
-      exploredEndingIds: string[];
-      endingView: EndingBeatView;
-    }
   | { type: "readAgain" }
   | { type: "startReading" }
   | { type: "jumpToBranch" };
@@ -154,22 +137,6 @@ export function storySessionReducer(
       };
     case "setEndingView":
       return { ...state, endingView: action.view };
-    case "debugShowEndingBeat":
-      return {
-        ...state,
-        pageId: action.pageId,
-        pageHistory: [],
-        learnedWordIds: action.learnedWordIds,
-        exploredEndingIds: action.exploredEndingIds,
-        resolvedWordIds: [ENDING_MYSTERY_WORD[action.pageId]],
-        resolvedComprehensionIds: [
-          "track-clues",
-          "tracks-choice-outcome",
-          "guide-choice-outcome",
-        ],
-        endingView: action.endingView,
-        beatSession: state.beatSession + 1,
-      };
     case "readAgain":
       return {
         ...initialStorySession,
