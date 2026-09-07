@@ -174,6 +174,93 @@ describe("useStoryReader", () => {
       expect(result.current.canAdvance).toBe(false);
       expect(result.current.learnedWordIds).toEqual([]);
     });
+
+    it("clears path-specific challenge attempts when choosing a path again from the branch", async () => {
+      const hook = await startOnPage2();
+      await resolveCanopyAndGoToPage3(hook);
+      const { result } = hook;
+
+      act(() => {
+        result.current.goToPage("page-4");
+      });
+      act(() => {
+        result.current.goToPage("page-5");
+      });
+
+      act(() => {
+        result.current.openVocabularyChallenge("cautious");
+        result.current.setChildAnswer("being careful");
+      });
+      requestVocabularyGrade.mockResolvedValueOnce(
+        gradeOk("Yes — cautious is about being careful."),
+      );
+      await act(async () => {
+        await result.current.handleVocabularyCheck();
+      });
+      act(() => {
+        result.current.closeVocabularyChallenge();
+      });
+      act(() => {
+        result.current.goToPage("page-6a");
+      });
+      act(() => {
+        result.current.goToPage("page-7a");
+      });
+
+      act(() => {
+        result.current.openVocabularyChallenge("camouflage");
+        result.current.setChildAnswer("a costume");
+      });
+      requestVocabularyGrade.mockResolvedValueOnce(
+        gradeMiss(
+          "Camouflage is about blending in, not exactly about costumes.",
+          "Think about matching the colors around you.",
+        ),
+      );
+      await act(async () => {
+        await result.current.handleVocabularyCheck();
+      });
+
+      expect(result.current.phase).toBe("prompt");
+      expect(result.current.missReason).toBe(
+        "Camouflage is about blending in, not exactly about costumes.",
+      );
+
+      act(() => {
+        result.current.closeVocabularyChallenge();
+      });
+      act(() => {
+        result.current.goToPreviousPage();
+      });
+      act(() => {
+        result.current.goToPreviousPage();
+      });
+      expect(result.current.pageId).toBe("page-5");
+
+      act(() => {
+        result.current.goToPage("page-6b");
+      });
+      expect(result.current.pageId).toBe("page-6b");
+
+      act(() => {
+        result.current.goToPreviousPage();
+      });
+      act(() => {
+        result.current.goToPage("page-6a");
+      });
+      act(() => {
+        result.current.goToPage("page-7a");
+      });
+      act(() => {
+        result.current.openVocabularyChallenge("camouflage");
+      });
+
+      expect(result.current.pageId).toBe("page-7a");
+      expect(result.current.activeWordId).toBe("camouflage");
+      expect(result.current.phase).toBe("prompt");
+      expect(result.current.missReason).toBeNull();
+      expect(result.current.hintText).toBeNull();
+    });
   });
 
   describe("comprehension challenge", () => {

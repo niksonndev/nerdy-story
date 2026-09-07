@@ -16,6 +16,9 @@ import {
 } from "@/lib/speech/play-sfx";
 import { mysteryWordIdsFor } from "@/lib/story/page-helpers";
 import {
+  BRANCH_PAGE_ID,
+  PATH_PAGE_IDS,
+  challengeProgressFor,
   challengeUiReducer,
   initialChallengeUi,
   initialStorySession,
@@ -55,9 +58,8 @@ export function useStoryReader() {
     hasStarted,
   } = session;
 
+  const { kind: challengeKind, id: challengeId } = challenge;
   const {
-    kind: challengeKind,
-    id: challengeId,
     phase,
     childAnswer,
     attempts,
@@ -65,7 +67,7 @@ export function useStoryReader() {
     missReason,
     hintText,
     acceptedReason,
-  } = challenge;
+  } = challengeProgressFor(challenge);
 
   const page = storyPagesById[pageId];
   const isLastPage = !page.nextPageId && !page.choice;
@@ -221,6 +223,12 @@ export function useStoryReader() {
 
   function goToPage(nextPageId: string) {
     if (!canAdvance || !storyPagesById[nextPageId]) return;
+    const leavingBranchForPath =
+      pageId === BRANCH_PAGE_ID &&
+      PATH_PAGE_IDS.includes(nextPageId as (typeof PATH_PAGE_IDS)[number]);
+    if (leavingBranchForPath) {
+      dispatchChallenge({ type: "clearPathSpecific" });
+    }
     dispatchSession({ type: "goToPage", pageId: nextPageId });
   }
 

@@ -8,12 +8,17 @@ export type EndingPageId = (typeof ENDING_PAGE_IDS)[number];
 
 export const BRANCH_PAGE_ID = "page-5";
 
-const PATH_PAGE_IDS = ["page-6a", "page-6b"] as const;
+export const PATH_PAGE_IDS = ["page-6a", "page-6b"] as const;
 
 const PATH_SPECIFIC_WORD_IDS = ["camouflage", "nocturnal"] as const;
 const PATH_SPECIFIC_COMPREHENSION_IDS = [
   "tracks-choice-outcome",
   "guide-choice-outcome",
+] as const;
+
+const PATH_SPECIFIC_CHALLENGE_IDS = [
+  ...PATH_SPECIFIC_WORD_IDS,
+  ...PATH_SPECIFIC_COMPREHENSION_IDS,
 ] as const;
 
 function withoutPathSpecificProgress(state: StorySessionState): Pick<
@@ -169,7 +174,7 @@ export type ChallengeProgress = {
   acceptedReason: string | null;
 };
 
-export type ChallengeUiState = ChallengeProgress & {
+export type ChallengeUiState = {
   kind: ChallengeKind | null;
   id: string | null;
   progressById: Record<string, ChallengeProgress>;
@@ -187,47 +192,28 @@ function defaultChallengeProgress(): ChallengeProgress {
   };
 }
 
-function snapshotProgress({
-  phase,
-  childAnswer,
-  attempts,
-  priorAttempts,
-  missReason,
-  hintText,
-  acceptedReason,
-}: ChallengeUiState): ChallengeProgress {
-  return {
-    phase,
-    childAnswer,
-    attempts,
-    priorAttempts,
-    missReason,
-    hintText,
-    acceptedReason,
-  };
-}
-
-function closedChallengeUi(
-  progressById: Record<string, ChallengeProgress>,
-): ChallengeUiState {
-  return {
-    ...initialChallengeUi,
-    progressById,
-  };
-}
-
-function saveProgressForId(
+export function challengeProgressFor(
   state: ChallengeUiState,
-  id: string,
-): Record<string, ChallengeProgress> {
+  id: string | null = state.id,
+): ChallengeProgress {
+  if (!id) return defaultChallengeProgress();
+  return state.progressById[id] ?? defaultChallengeProgress();
+}
+
+function patchCurrent(
+  state: ChallengeUiState,
+  next: ChallengeProgress | ((current: ChallengeProgress) => ChallengeProgress),
+): ChallengeUiState {
+  if (!state.id) return state;
+  const current = challengeProgressFor(state);
+  const progress = typeof next === "function" ? next(current) : next;
   return {
-    ...state.progressById,
-    [id]: snapshotProgress(state),
+    ...state,
+    progressById: { ...state.progressById, [state.id]: progress },
   };
 }
 
 export const initialChallengeUi: ChallengeUiState = {
-  ...defaultChallengeProgress(),
   kind: null,
   id: null,
   progressById: {},
@@ -246,7 +232,8 @@ export type ChallengeUiAction =
       nextAttempts: number;
     }
   | { type: "accepted"; reason: string }
-  | { type: "close" };
+  | { type: "close" }
+  | { type: "clearPathSpecific" };
 
 export function challengeUiReducer(
   state: ChallengeUiState,
@@ -256,61 +243,78 @@ export function challengeUiReducer(
     case "reset":
       return initialChallengeUi;
     case "open": {
-      let progressById = state.progressById;
-      if (state.id) {
-        progressById = saveProgressForId(state, state.id);
-      }
-      const saved = progressById[action.id] ?? defaultChallengeProgress();
       return {
-        ...saved,
         kind: action.kind,
         id: action.id,
-        progressById,
+        progressById: {
+          ...state.progressById,
+          [action.id]:
+            state.progressById[action.id] ?? defaultChallengeProgress(),
+        },
       };
     }
     case "setChildAnswer":
-      return { ...state, childAnswer: action.childAnswer };
+      return patchCurrent(state, (current) => ({
+        ...current,
+        childAnswer: action.childAnswer,
+      }));
     case "setWaiting":
-      return { ...state, phase: "waiting" };
-    case "recordFailedAttempt": {
-      const priorAttempts = [
-        ...state.priorAttempts,
-        {
-          childAnswer: action.submitted,
-          reason: action.reason,
-          hint: action.hint,
-        },
-      ];
-      if (action.nextAttempts >= MAX_ATTEMPTS) {
+      return patchCurrent(state, (current) => ({
+        ...current,
+        phase: "waiting",
+      }));
+    case "recordFailedAttempt":
+      return patchCurrent(state, (current) => {
+        const priorAttempts = [
+          ...current.priorAttempts,
+          {
+            childAnswer: action.submitted,
+            reason: action.reason,
+            hint: action.hint,
+          },
+        ];
+        if (action.nextAttempts >= MAX_ATTEMPTS) {
+          return {
+            ...current,
+            priorAttempts,
+            attempts: action.nextAttempts,
+            phase: "reveal",
+          };
+        }
         return {
-          ...state,
+          ...current,
           priorAttempts,
           attempts: action.nextAttempts,
-          phase: "reveal",
+          missReason: action.reason,
+          hintText: action.hint,
+          childAnswer: "",
+          phase: "prompt",
         };
-      }
-      return {
-        ...state,
-        priorAttempts,
-        attempts: action.nextAttempts,
-        missReason: action.reason,
-        hintText: action.hint,
-        childAnswer: "",
-        phase: "prompt",
-      };
-    }
+      });
     case "accepted":
-      return {
-        ...state,
+      return patchCurrent(state, (current) => ({
+        ...current,
         acceptedReason: action.reason,
         hintText: null,
         phase: "accepted",
-      };
-    case "close": {
-      if (!state.id) {
-        return closedChallengeUi(state.progressById);
+      }));
+    case "close":
+      return { kind: null, id: null, progressById: state.progressById };
+    case "clearPathSpecific": {
+      const progressById = { ...state.progressById };
+      for (const id of PATH_SPECIFIC_CHALLENGE_IDS) {
+        delete progressById[id];
       }
-      return closedChallengeUi(saveProgressForId(state, state.id));
+      const stillOpen =
+        state.id !== null &&
+        !PATH_SPECIFIC_CHALLENGE_IDS.includes(
+          state.id as (typeof PATH_SPECIFIC_CHALLENGE_IDS)[number],
+        );
+      return {
+        kind: stillOpen ? state.kind : null,
+        id: stillOpen ? state.id : null,
+        progressById,
+      };
     }
   }
 }
