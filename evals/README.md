@@ -1,5 +1,10 @@
 # Grading evals
 
+These evals exist because the product *is* the grader: we need accept/reject
+calibration for 7–9 language, not a vibe check. Design intent:
+[docs/learning-design.md](../docs/learning-design.md). Pipeline:
+[docs/grading.md](../docs/grading.md).
+
 Live-model evals for the vocabulary and comprehension graders. Unlike the unit
 tests under `src/lib/grade/` (which mock the model and cover the local keyword
 fallback), these call the real grader through the Vercel AI Gateway.

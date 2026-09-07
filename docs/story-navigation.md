@@ -1,5 +1,7 @@
 # Story navigation
 
+Implementation notes for the reader (page ids, overlays, flip-book spine). Product “why” is in [learning-design.md](learning-design.md). Grading is in [grading.md](grading.md).
+
 The story reader advances by **page id**, not array order. Each page in [`src/lib/story/story-data.ts`](../src/lib/story/story-data.ts) either:
 
 - has `nextPageId` — linear **Next Page**
