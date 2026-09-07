@@ -1,4 +1,3 @@
-import { generateText, Output } from "ai";
 import { z } from "zod";
 
 import {
@@ -7,16 +6,14 @@ import {
 } from "@/lib/grade/child-input";
 import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
 import {
-  buildChildAnswerMessage,
+  gradeWithLocalFallback,
+  runLiveGrade,
+} from "@/lib/grade/live";
+import {
   buildComprehensionTrustedContext,
   COMPREHENSION_GRADER_SYSTEM,
-  gradeResultSchema,
 } from "@/lib/grade/prompts";
 import {
-  GRADE_FALLBACK_MODELS,
-  GRADE_MAX_OUTPUT_TOKENS,
-  GRADE_PRIMARY_MODEL,
-  GRADE_TEMPERATURE,
   GradeError,
   type ComprehensionGradeRequest,
   type GradeLiveOptions,
@@ -47,40 +44,19 @@ export async function gradeComprehensionLive(
     throw new GradeError("fatal", "Unknown comprehension challenge.");
   }
 
-  const { output } = await generateText({
-    model: options?.model ?? GRADE_PRIMARY_MODEL,
-    temperature: GRADE_TEMPERATURE,
-    maxOutputTokens: GRADE_MAX_OUTPUT_TOKENS,
-    output: Output.object({
-      schema: gradeResultSchema,
-      name: "ComprehensionGrade",
-      description:
-        "Whether the child's answer matches the expected story understanding.",
-    }),
+  return runLiveGrade({
     system: COMPREHENSION_GRADER_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: buildComprehensionTrustedContext(
-          challenge,
-          request.priorAttempts,
-        ),
-      },
-      { role: "user", content: buildChildAnswerMessage(request.childAnswer) },
-    ],
-    providerOptions: {
-      gateway: {
-        models: [...(options?.failoverModels ?? GRADE_FALLBACK_MODELS)],
-        tags: ["feature:comprehension-grade"],
-      },
-    },
+    trustedContext: buildComprehensionTrustedContext(
+      challenge,
+      request.priorAttempts,
+    ),
+    childAnswer: request.childAnswer,
+    outputName: "ComprehensionGrade",
+    outputDescription:
+      "Whether the child's answer matches the expected story understanding.",
+    tags: ["feature:comprehension-grade"],
+    liveOptions: options,
   });
-
-  return {
-    correct: output.correct,
-    reason: output.reason,
-    hint: output.correct ? null : output.hint,
-  };
 }
 
 /**
@@ -91,11 +67,8 @@ export async function gradeComprehensionLive(
 export async function gradeComprehension(
   request: ComprehensionGradeRequest,
 ): Promise<GradeResult> {
-  try {
-    return await gradeComprehensionLive(request);
-  } catch (error) {
-    if (error instanceof GradeError) throw error;
-    // Gateway already tried primary + failover models inside generateText.
-    return gradeComprehensionLocally(request);
-  }
+  return gradeWithLocalFallback(
+    () => gradeComprehensionLive(request),
+    () => gradeComprehensionLocally(request),
+  );
 }

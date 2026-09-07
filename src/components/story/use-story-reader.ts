@@ -127,8 +127,16 @@ export function useStoryReader() {
     }
   }
 
-  async function handleVocabularyCheck() {
-    if (!activeWordId || childAnswer.trim().length === 0) return;
+  async function submitGrade(options: {
+    id: string | null;
+    hints: string[];
+    requestGrade: (
+      id: string,
+      childAnswer: string,
+    ) => Promise<GradeResult>;
+    onCorrect: (id: string) => void;
+  }) {
+    if (!options.id || childAnswer.trim().length === 0) return;
     dispatchChallenge({ type: "setWaiting" });
 
     const submittedChildAnswer = childAnswer
@@ -136,17 +144,10 @@ export function useStoryReader() {
       .slice(0, CHILD_ANSWER_MAX_LENGTH);
     let result: GradeResult;
     try {
-      result = await requestVocabularyGrade(
-        activeWordId,
-        submittedChildAnswer,
-        priorAttempts,
-      );
+      result = await options.requestGrade(options.id, submittedChildAnswer);
     } catch {
       const nextAttempts = attempts + 1;
-      const hint = fallbackHintFor(
-        activeWord?.hints ?? [],
-        nextAttempts - 1,
-      );
+      const hint = fallbackHintFor(options.hints, nextAttempts - 1);
       recordFailedAttempt(
         submittedChildAnswer,
         "Not quite — try another way.",
@@ -158,7 +159,7 @@ export function useStoryReader() {
 
     if (result.correct) {
       playCorrectSfx();
-      dispatchSession({ type: "acceptWord", wordId: activeWordId });
+      options.onCorrect(options.id);
       dispatchChallenge({ type: "accepted", reason: result.reason });
       return;
     }
@@ -171,51 +172,29 @@ export function useStoryReader() {
     );
   }
 
+  async function handleVocabularyCheck() {
+    await submitGrade({
+      id: activeWordId,
+      hints: activeWord?.hints ?? [],
+      requestGrade: (id, answer) =>
+        requestVocabularyGrade(id, answer, priorAttempts),
+      onCorrect: (id) =>
+        dispatchSession({ type: "acceptWord", wordId: id }),
+    });
+  }
+
   async function handleComprehensionCheck() {
-    if (!activeComprehensionId || childAnswer.trim().length === 0) return;
-    dispatchChallenge({ type: "setWaiting" });
-
-    const submittedChildAnswer = childAnswer
-      .trim()
-      .slice(0, CHILD_ANSWER_MAX_LENGTH);
-    let result: GradeResult;
-    try {
-      result = await requestComprehensionGrade(
-        activeComprehensionId,
-        submittedChildAnswer,
-        priorAttempts,
-      );
-    } catch {
-      const nextAttempts = attempts + 1;
-      const hint = fallbackHintFor(
-        activeChallenge?.hints ?? [],
-        nextAttempts - 1,
-      );
-      recordFailedAttempt(
-        submittedChildAnswer,
-        "Not quite — try another way.",
-        hint,
-        nextAttempts,
-      );
-      return;
-    }
-
-    if (result.correct) {
-      playCorrectSfx();
-      dispatchSession({
-        type: "resolveComprehension",
-        challengeId: activeComprehensionId,
-      });
-      dispatchChallenge({ type: "accepted", reason: result.reason });
-      return;
-    }
-
-    recordFailedAttempt(
-      submittedChildAnswer,
-      result.reason,
-      result.hint,
-      attempts + 1,
-    );
+    await submitGrade({
+      id: activeComprehensionId,
+      hints: activeChallenge?.hints ?? [],
+      requestGrade: (id, answer) =>
+        requestComprehensionGrade(id, answer, priorAttempts),
+      onCorrect: (id) =>
+        dispatchSession({
+          type: "resolveComprehension",
+          challengeId: id,
+        }),
+    });
   }
 
   function closeVocabularyChallenge() {

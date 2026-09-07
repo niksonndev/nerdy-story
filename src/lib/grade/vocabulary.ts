@@ -1,4 +1,3 @@
-import { generateText, Output } from "ai";
 import { z } from "zod";
 
 import {
@@ -6,16 +5,14 @@ import {
   priorAttemptsSchema,
 } from "@/lib/grade/child-input";
 import {
-  buildChildAnswerMessage,
+  gradeWithLocalFallback,
+  runLiveGrade,
+} from "@/lib/grade/live";
+import {
   buildVocabularyTrustedContext,
-  gradeResultSchema,
   VOCABULARY_GRADER_SYSTEM,
 } from "@/lib/grade/prompts";
 import {
-  GRADE_FALLBACK_MODELS,
-  GRADE_MAX_OUTPUT_TOKENS,
-  GRADE_PRIMARY_MODEL,
-  GRADE_TEMPERATURE,
   GradeError,
   type GradeLiveOptions,
   type VocabularyGradeRequest,
@@ -47,37 +44,16 @@ export async function gradeVocabularyLive(
     throw new GradeError("fatal", "Unknown mystery word.");
   }
 
-  const { output } = await generateText({
-    model: options?.model ?? GRADE_PRIMARY_MODEL,
-    temperature: GRADE_TEMPERATURE,
-    maxOutputTokens: GRADE_MAX_OUTPUT_TOKENS,
-    output: Output.object({
-      schema: gradeResultSchema,
-      name: "VocabularyGrade",
-      description:
-        "Whether the child's explanation matches the mystery word's meaning.",
-    }),
+  return runLiveGrade({
     system: VOCABULARY_GRADER_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: buildVocabularyTrustedContext(word, request.priorAttempts),
-      },
-      { role: "user", content: buildChildAnswerMessage(request.childAnswer) },
-    ],
-    providerOptions: {
-      gateway: {
-        models: [...(options?.failoverModels ?? GRADE_FALLBACK_MODELS)],
-        tags: ["feature:vocabulary-grade"],
-      },
-    },
+    trustedContext: buildVocabularyTrustedContext(word, request.priorAttempts),
+    childAnswer: request.childAnswer,
+    outputName: "VocabularyGrade",
+    outputDescription:
+      "Whether the child's explanation matches the mystery word's meaning.",
+    tags: ["feature:vocabulary-grade"],
+    liveOptions: options,
   });
-
-  return {
-    correct: output.correct,
-    reason: output.reason,
-    hint: output.correct ? null : output.hint,
-  };
 }
 
 /**
@@ -88,11 +64,8 @@ export async function gradeVocabularyLive(
 export async function gradeVocabulary(
   request: VocabularyGradeRequest,
 ): Promise<GradeResult> {
-  try {
-    return await gradeVocabularyLive(request);
-  } catch (error) {
-    if (error instanceof GradeError) throw error;
-    // Gateway already tried primary + failover models inside generateText.
-    return gradeVocabularyLocally(request);
-  }
+  return gradeWithLocalFallback(
+    () => gradeVocabularyLive(request),
+    () => gradeVocabularyLocally(request),
+  );
 }
