@@ -41,7 +41,7 @@ export async function gradeComprehensionLive(
   const challenge = comprehensionChallenges[request.challengeId];
 
   if (!challenge) {
-    throw new GradeError("fatal", "Unknown comprehension challenge.");
+    throw new GradeError("Unknown comprehension challenge.");
   }
 
   return runLiveGrade({

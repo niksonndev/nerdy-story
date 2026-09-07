@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  isGradeError,
-  type GradeErrorKind,
-  type GradeResult,
-} from "@/lib/grade/shared";
+import { isGradeError, type GradeResult } from "@/lib/grade/shared";
 
 type ParseResult<T> =
   | { success: true; data: T }
@@ -13,19 +9,6 @@ type ParseResult<T> =
 type GradeRequestSchema<T> = {
   safeParse: (data: unknown) => ParseResult<T>;
 };
-
-function errorResponse(kind: GradeErrorKind) {
-  const retryable = kind === "retryable";
-  const status = kind === "structured" ? 422 : 503;
-  return NextResponse.json(
-    {
-      error: "Grading is temporarily unavailable.",
-      retryable,
-      code: kind,
-    },
-    { status },
-  );
-}
 
 /**
  * Shared POST wrapper for grade API routes. Keep two URLs; pass schema + grader.
@@ -59,9 +42,15 @@ export function createGradePostHandler<T>(options: {
       return NextResponse.json(result);
     } catch (error) {
       if (isGradeError(error)) {
-        return errorResponse(error.kind);
+        return NextResponse.json(
+          { error: "Invalid request body." },
+          { status: 400 },
+        );
       }
-      return errorResponse("retryable");
+      return NextResponse.json(
+        { error: "Grading is temporarily unavailable." },
+        { status: 503 },
+      );
     }
   };
 }

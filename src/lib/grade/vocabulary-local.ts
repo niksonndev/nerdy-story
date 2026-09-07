@@ -28,7 +28,7 @@ export function gradeVocabularyLocally(
 ): GradeResult {
   const word = mysteryWords[request.wordId];
   if (!word) {
-    throw new GradeError("fatal", "Unknown mystery word.");
+    throw new GradeError("Unknown mystery word.");
   }
 
   const childAnswer = request.childAnswer.trim();

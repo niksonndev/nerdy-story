@@ -63,31 +63,29 @@ describe("createGradePostHandler", () => {
     expect(grade).not.toHaveBeenCalled();
   });
 
-  it("maps GradeError kinds and unknown throws to error payloads", async () => {
-    const structured = createGradePostHandler({
+  it("maps GradeError and unknown throws to error payloads", async () => {
+    const unknownId = createGradePostHandler({
       schema: okSchema,
       grade: async () => {
-        throw new GradeError("structured", "bad output");
+        throw new GradeError("Unknown challenge.");
       },
     });
-    const structuredResponse = await structured(jsonRequest({ id: "x" }));
-    expect(structuredResponse.status).toBe(422);
-    expect(await structuredResponse.json()).toMatchObject({
-      retryable: false,
-      code: "structured",
+    const unknownResponse = await unknownId(jsonRequest({ id: "x" }));
+    expect(unknownResponse.status).toBe(400);
+    expect(await unknownResponse.json()).toEqual({
+      error: "Invalid request body.",
     });
 
-    const retryable = createGradePostHandler({
+    const unavailable = createGradePostHandler({
       schema: okSchema,
       grade: async () => {
         throw new Error("boom");
       },
     });
-    const retryableResponse = await retryable(jsonRequest({ id: "x" }));
-    expect(retryableResponse.status).toBe(503);
-    expect(await retryableResponse.json()).toMatchObject({
-      retryable: true,
-      code: "retryable",
+    const unavailableResponse = await unavailable(jsonRequest({ id: "x" }));
+    expect(unavailableResponse.status).toBe(503);
+    expect(await unavailableResponse.json()).toEqual({
+      error: "Grading is temporarily unavailable.",
     });
   });
 });

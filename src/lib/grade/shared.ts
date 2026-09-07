@@ -1,8 +1,3 @@
-import {
-  NoObjectGeneratedError,
-  NoOutputGeneratedError,
-} from "ai";
-
 import { priorAttemptSchema } from "@/lib/grade/child-input";
 import type { z } from "zod";
 
@@ -48,50 +43,13 @@ export type GradeLiveOptions = {
   failoverModels?: readonly string[];
 };
 
-export type GradeErrorKind = "structured" | "retryable" | "fatal";
-
 export class GradeError extends Error {
-  readonly kind: GradeErrorKind;
-
-  constructor(kind: GradeErrorKind, message: string, options?: { cause?: unknown }) {
+  constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
     this.name = "GradeError";
-    this.kind = kind;
   }
 }
 
 export function isGradeError(error: unknown): error is GradeError {
   return error instanceof GradeError;
-}
-
-function statusCodeOf(error: unknown): number | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const record = error as { statusCode?: unknown; cause?: unknown };
-  if (typeof record.statusCode === "number") return record.statusCode;
-  return statusCodeOf(record.cause);
-}
-
-/** Map thrown AI SDK / Gateway failures into GradeError kinds. */
-export function classifyGradeFailure(error: unknown): GradeError {
-  if (isGradeError(error)) return error;
-
-  if (
-    NoObjectGeneratedError.isInstance(error) ||
-    NoOutputGeneratedError.isInstance(error)
-  ) {
-    return new GradeError("structured", "Structured grade output was invalid.", {
-      cause: error,
-    });
-  }
-
-  const status = statusCodeOf(error);
-  if (status === 401 || status === 403) {
-    return new GradeError("fatal", "Grading authentication failed.", {
-      cause: error,
-    });
-  }
-
-  return new GradeError("retryable", "Grading provider request failed.", {
-    cause: error,
-  });
 }

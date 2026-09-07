@@ -35,7 +35,7 @@ export function gradeComprehensionLocally(
   const challenge = comprehensionChallenges[request.challengeId];
 
   if (!challenge) {
-    throw new GradeError("fatal", "Unknown comprehension challenge.");
+    throw new GradeError("Unknown comprehension challenge.");
   }
 
   const childAnswer = request.childAnswer.trim();

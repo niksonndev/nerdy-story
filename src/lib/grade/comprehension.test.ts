@@ -36,6 +36,7 @@ import {
 } from "@/lib/grade/child-input";
 import { gradeResultSchema } from "@/lib/grade/prompts";
 import {
+  GradeError,
   GRADE_FALLBACK_MODELS,
   GRADE_MAX_OUTPUT_TOKENS,
   GRADE_PRIMARY_MODEL,
@@ -190,13 +191,13 @@ describe("gradeComprehension", () => {
     generateText.mockReset();
   });
 
-  it("throws fatal GradeError for an unknown challenge without calling the model", async () => {
+  it("throws GradeError for an unknown challenge without calling the model", async () => {
     await expect(
       gradeComprehension({
         challengeId: "nope",
         childAnswer: "because they heard monkeys",
       }),
-    ).rejects.toMatchObject({ kind: "fatal" });
+    ).rejects.toThrow(GradeError);
     expect(generateText).not.toHaveBeenCalled();
   });
 

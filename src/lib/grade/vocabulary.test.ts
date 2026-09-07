@@ -26,7 +26,6 @@ vi.mock("ai", () => ({
 }));
 
 import {
-  classifyGradeFailure,
   GradeError,
   GRADE_FALLBACK_MODELS,
   GRADE_MAX_OUTPUT_TOKENS,
@@ -199,13 +198,13 @@ describe("gradeVocabulary", () => {
     generateText.mockReset();
   });
 
-  it("throws fatal GradeError for an unknown word without calling the model", async () => {
+  it("throws GradeError for an unknown word without calling the model", async () => {
     await expect(
       gradeVocabulary({
         wordId: "nope",
         childAnswer: "safe cover",
       }),
-    ).rejects.toMatchObject({ kind: "fatal" });
+    ).rejects.toThrow(GradeError);
     expect(generateText).not.toHaveBeenCalled();
   });
 
@@ -384,35 +383,5 @@ describe("gradeVocabulary", () => {
 
     expect(result.correct).toBe(false);
     expect(result.hint).toBe(mysteryWords.canopy.hints[0]);
-  });
-
-  it("classifies 403 provider errors as fatal", () => {
-    const error = Object.assign(new Error("forbidden"), { statusCode: 403 });
-    expect(classifyGradeFailure(error)).toMatchObject({ kind: "fatal" });
-  });
-
-  it("classifies unknown failures as retryable", () => {
-    expect(classifyGradeFailure(new Error("network down"))).toMatchObject({
-      kind: "retryable",
-    });
-  });
-
-  it("preserves an existing GradeError", () => {
-    const original = new GradeError("fatal", "auth");
-    expect(classifyGradeFailure(original)).toBe(original);
-  });
-
-  it("classifies NoObjectGeneratedError as structured", () => {
-    const error = Object.assign(new Error("no object"), {
-      name: "AI_NoObjectGeneratedError",
-    });
-    expect(classifyGradeFailure(error)).toMatchObject({ kind: "structured" });
-  });
-
-  it("classifies NoOutputGeneratedError as structured", () => {
-    const error = Object.assign(new Error("no output"), {
-      name: "AI_NoOutputGeneratedError",
-    });
-    expect(classifyGradeFailure(error)).toMatchObject({ kind: "structured" });
   });
 });
