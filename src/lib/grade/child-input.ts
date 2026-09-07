@@ -9,17 +9,19 @@ export const MAX_PRIOR_ATTEMPTS = MAX_ATTEMPTS - 1;
 const CONTROL_CHAR_PATTERN = /[\x00-\x1F\x7F]/g;
 const WHITESPACE_RUN_PATTERN = /\s+/g;
 
-/** Strip control chars, collapse whitespace, trim, and cap length. */
-export function sanitizeChildAnswer(raw: string): string {
+function sanitizeText(raw: string, maxLength: number): string {
   const withoutControls = raw.replace(CONTROL_CHAR_PATTERN, "");
   const collapsed = withoutControls.replace(WHITESPACE_RUN_PATTERN, " ").trim();
-  return collapsed.slice(0, CHILD_ANSWER_MAX_LENGTH);
+  return collapsed.slice(0, maxLength);
+}
+
+/** Strip control chars, collapse whitespace, trim, and cap length. */
+export function sanitizeChildAnswer(raw: string): string {
+  return sanitizeText(raw, CHILD_ANSWER_MAX_LENGTH);
 }
 
 function sanitizePriorAttemptMeta(raw: string): string {
-  const withoutControls = raw.replace(CONTROL_CHAR_PATTERN, "");
-  const collapsed = withoutControls.replace(WHITESPACE_RUN_PATTERN, " ").trim();
-  return collapsed.slice(0, PRIOR_ATTEMPT_META_MAX_LENGTH);
+  return sanitizeText(raw, PRIOR_ATTEMPT_META_MAX_LENGTH);
 }
 
 export const childAnswerSchema = z
