@@ -78,8 +78,7 @@ describe("useStoryReader", () => {
       expect(result.current.acceptedReason).toBe(
         "Yes — canopy is about the leafy roof of the forest.",
       );
-      expect(result.current.wordsLearned).toBe(1);
-      expect(result.current.learnedWordIds).toContain("canopy");
+      expect(result.current.learnedWordIds).toEqual(["canopy"]);
       expect(result.current.resolvedWordIds).toContain("canopy");
       expect(result.current.canAdvance).toBe(true);
 
@@ -118,7 +117,7 @@ describe("useStoryReader", () => {
         "Think about the very top of the forest.",
       );
       expect(result.current.canAdvance).toBe(false);
-      expect(result.current.wordsLearned).toBe(0);
+      expect(result.current.learnedWordIds).toEqual([]);
       expect(result.current.resolvedWordIds).not.toContain("canopy");
     });
 
@@ -143,8 +142,7 @@ describe("useStoryReader", () => {
 
       expect(result.current.phase).toBe("reveal");
       expect(result.current.resolvedWordIds).toContain("canopy");
-      expect(result.current.wordsLearned).toBe(0);
-      expect(result.current.learnedWordIds).not.toContain("canopy");
+      expect(result.current.learnedWordIds).toEqual([]);
       expect(result.current.canAdvance).toBe(true);
 
       act(() => {
@@ -174,7 +172,7 @@ describe("useStoryReader", () => {
       expect(result.current.missReason).toBe("Not quite — try another way.");
       expect(result.current.hintText).toBe(fallbackHintFor(canopyHints, 0));
       expect(result.current.canAdvance).toBe(false);
-      expect(result.current.wordsLearned).toBe(0);
+      expect(result.current.learnedWordIds).toEqual([]);
     });
   });
 
@@ -199,7 +197,7 @@ describe("useStoryReader", () => {
       const hook = await startOnPage2();
       await resolveCanopyAndGoToPage3(hook);
       const { result } = hook;
-      const wordsBefore = result.current.wordsLearned;
+      const wordsBefore = result.current.learnedWordIds;
 
       act(() => {
         result.current.handleBeforeNextPage("page-4");
@@ -215,7 +213,7 @@ describe("useStoryReader", () => {
       });
 
       expect(result.current.phase).toBe("accepted");
-      expect(result.current.wordsLearned).toBe(wordsBefore);
+      expect(result.current.learnedWordIds).toEqual(wordsBefore);
 
       act(() => {
         result.current.continueComprehension();
@@ -264,7 +262,7 @@ describe("useStoryReader", () => {
       const hook = await startOnPage2();
       await resolveCanopyAndGoToPage3(hook);
       const { result } = hook;
-      const wordsBefore = result.current.wordsLearned;
+      const wordsBefore = result.current.learnedWordIds;
 
       act(() => {
         result.current.handleBeforeNextPage("page-4");
@@ -283,7 +281,7 @@ describe("useStoryReader", () => {
       }
 
       expect(result.current.phase).toBe("reveal");
-      expect(result.current.wordsLearned).toBe(wordsBefore);
+      expect(result.current.learnedWordIds).toEqual(wordsBefore);
 
       act(() => {
         result.current.continueComprehension();

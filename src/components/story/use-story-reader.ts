@@ -14,13 +14,9 @@ import {
   playCorrectSfx,
   playStoryCompleteSfx,
 } from "@/lib/speech/play-sfx";
-import {
-  mysteryWordIdsFor,
-  peekNextPageIdFor,
-} from "@/lib/story/page-helpers";
+import { mysteryWordIdsFor } from "@/lib/story/page-helpers";
 import {
   challengeUiReducer,
-  endingsExploredCount,
   initialChallengeUi,
   initialStorySession,
   storySessionReducer,
@@ -88,21 +84,12 @@ export function useStoryReader() {
     activeWordId === null &&
     activeComprehensionId === null;
 
-  const wordsLearned = learnedWordIds.length;
-  const peekNextPageId = peekNextPageIdFor({
-    page,
-    canAdvance,
-    resolvedComprehensionIds,
-  });
   const activeWord: MysteryWord | null = activeWordId
     ? mysteryWords[activeWordId]
     : null;
   const activeChallenge: ComprehensionChallenge | null = activeComprehensionId
     ? comprehensionChallenges[activeComprehensionId]
     : null;
-  const learnedWords = learnedWordIds.map(
-    (wordId) => mysteryWords[wordId]?.word ?? wordId,
-  );
 
   function openVocabularyChallenge(wordId: string) {
     if (resolvedWordIds.includes(wordId)) return;
@@ -307,17 +294,13 @@ export function useStoryReader() {
     pageId,
     pageHistory,
     beatSession,
-    wordsLearned,
-    learnedWords,
     learnedWordIds,
     resolvedWordIds,
     resolvedComprehensionIds,
-    peekNextPageId,
     canAdvance,
     canGoBack,
     isLastPage,
     showEndingBeat,
-    endingsExplored: endingsExploredCount(exploredEndingIds),
     exploredEndingIds,
     endingView,
     activeWordId,

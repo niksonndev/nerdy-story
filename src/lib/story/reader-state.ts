@@ -246,7 +246,6 @@ export type ChallengeUiAction =
       nextAttempts: number;
     }
   | { type: "accepted"; reason: string }
-  | { type: "reveal" }
   | { type: "close" };
 
 export function challengeUiReducer(
@@ -307,8 +306,6 @@ export function challengeUiReducer(
         hintText: null,
         phase: "accepted",
       };
-    case "reveal":
-      return { ...state, phase: "reveal" };
     case "close": {
       if (!state.id) {
         return closedChallengeUi(state.progressById);
@@ -316,8 +313,4 @@ export function challengeUiReducer(
       return closedChallengeUi(saveProgressForId(state, state.id));
     }
   }
-}
-
-export function endingsExploredCount(exploredEndingIds: string[]): number {
-  return ENDING_PAGE_IDS.filter((id) => exploredEndingIds.includes(id)).length;
 }

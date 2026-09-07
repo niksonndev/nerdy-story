@@ -230,5 +230,3 @@ const FlipSheet = forwardRef<
     </div>
   );
 });
-
-export { FLIPPING_MS };

@@ -24,9 +24,7 @@ import { cn } from "@/lib/utils";
 export type EndingBeatPhase = "coloring" | "celebration";
 
 type EndingBeatProps = {
-  wordsLearned: number;
   learnedWordIds: string[];
-  endingsExplored: number;
   exploredEndingIds: string[];
   view: EndingBeatView;
   onReadAgain: () => void;
@@ -58,9 +56,7 @@ const ENDING_LABELS: Record<(typeof ENDING_PAGE_IDS)[number], string> = {
 };
 
 export function EndingBeat({
-  wordsLearned,
   learnedWordIds,
-  endingsExplored,
   exploredEndingIds,
   view,
   onReadAgain,
@@ -71,6 +67,8 @@ export function EndingBeat({
   const [displayCount, setDisplayCount] = useState(0);
   const reduceMotion = useReducedMotion();
   const coloringMs = reduceMotion ? 0 : COLORING_MS;
+  const wordsLearned = learnedWordIds.length;
+  const bothEndings = exploredEndingIds.length >= 2;
 
   useEffect(() => {
     if (view !== "beat" || phase !== "coloring") return;
@@ -92,8 +90,6 @@ export function EndingBeat({
 
     return () => controls.stop();
   }, [view, phase, wordsLearned, reduceMotion]);
-
-  const bothEndings = endingsExplored >= 2;
 
   return (
     <div
@@ -128,7 +124,6 @@ export function EndingBeat({
             ) : (
               <CelebrationPhase
                 key="celebration"
-                wordsLearned={wordsLearned}
                 displayCount={displayCount}
                 learnedWordIds={learnedWordIds}
                 exploredEndingIds={exploredEndingIds}
@@ -222,7 +217,6 @@ function BookColoring() {
 }
 
 function CelebrationPhase({
-  wordsLearned,
   displayCount,
   learnedWordIds,
   exploredEndingIds,
@@ -231,7 +225,6 @@ function CelebrationPhase({
   onDiscoverAlternateEnding,
   onReadChapter2,
 }: {
-  wordsLearned: number;
   displayCount: number;
   learnedWordIds: string[];
   exploredEndingIds: string[];
@@ -282,7 +275,6 @@ function CelebrationPhase({
           <CelebrationHeader bothEndings={bothEndings} />
 
           <CelebrationRecap
-            wordsLearned={wordsLearned}
             displayCount={displayCount}
             learnedWordIds={learnedWordIds}
             exploredEndingIds={exploredEndingIds}
@@ -344,17 +336,16 @@ function RecapSectionLabel({
 }
 
 function CelebrationRecap({
-  wordsLearned,
   displayCount,
   learnedWordIds,
   exploredEndingIds,
 }: {
-  wordsLearned: number;
   displayCount: number;
   learnedWordIds: string[];
   exploredEndingIds: string[];
 }) {
-  const showWordsSection = wordsLearned > 0 || learnedWordIds.length > 0;
+  const wordsLearned = learnedWordIds.length;
+  const showWordsSection = wordsLearned > 0;
 
   return (
     <section aria-label="Your recap" className="shrink-0">
@@ -379,9 +370,7 @@ function CelebrationRecap({
               </motion.span>{" "}
               new {wordsLearned === 1 ? "word" : "words"} mastered!
             </p>
-            {learnedWordIds.length > 0 ? (
-              <LearnedWordPills learnedWordIds={learnedWordIds} />
-            ) : null}
+            <LearnedWordPills learnedWordIds={learnedWordIds} />
           </div>
         ) : (
           <p className="font-sans text-xl leading-relaxed text-foreground/90 sm:text-3xl">

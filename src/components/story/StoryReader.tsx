@@ -18,7 +18,6 @@ export function StoryReader() {
     pageId,
     pageHistory,
     beatSession,
-    wordsLearned,
     learnedWordIds,
     resolvedWordIds,
     resolvedComprehensionIds,
@@ -26,7 +25,6 @@ export function StoryReader() {
     canGoBack,
     isLastPage,
     showEndingBeat,
-    endingsExplored,
     exploredEndingIds,
     endingView,
     hasStarted,
@@ -65,7 +63,7 @@ export function StoryReader() {
     page,
     pageHistory,
     resolvedComprehensionIds,
-    wordsLearned,
+    wordsLearned: learnedWordIds.length,
     resolvedWordIds,
     canAdvance,
     canGoBack,
@@ -85,9 +83,7 @@ export function StoryReader() {
       {showEndingBeat ? (
         <EndingBeat
           key={`${pageId}-${beatSession}`}
-          wordsLearned={wordsLearned}
           learnedWordIds={learnedWordIds}
-          endingsExplored={endingsExplored}
           exploredEndingIds={exploredEndingIds}
           view={endingView}
           onReadAgain={handleReadAgain}
