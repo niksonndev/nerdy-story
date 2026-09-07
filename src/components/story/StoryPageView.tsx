@@ -276,7 +276,6 @@ export const StoryPageView = forwardRef<
                 }
                 canAdvance={isCurrent && progressionReady}
                 canGoBack={isCurrent && previousReady}
-                previousDisabled={!previousReady}
                 vocabGated={isCurrent && !canAdvance}
                 resolvedWordIds={resolvedWordIds}
                 onMysteryClick={onMysteryClick}

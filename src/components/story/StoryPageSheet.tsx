@@ -16,7 +16,6 @@ export function StoryPageSheet({
   isLastPage,
   canAdvance,
   canGoBack,
-  previousDisabled,
   vocabGated,
   resolvedWordIds,
   onMysteryClick,
@@ -29,7 +28,6 @@ export function StoryPageSheet({
   isLastPage: boolean;
   canAdvance: boolean;
   canGoBack: boolean;
-  previousDisabled: boolean;
   vocabGated: boolean;
   resolvedWordIds: string[];
   onMysteryClick: (wordId: string) => void;
@@ -58,13 +56,13 @@ export function StoryPageSheet({
               <>
                 <PreviousControl
                   variant="ghostIcon"
-                  disabled={previousDisabled}
+                  disabled={!canGoBack}
                   onClick={onPreviousPage}
                   className="absolute top-3 left-3 z-20 sm:hidden"
                 />
                 <PreviousControl
                   variant="backLink"
-                  disabled={previousDisabled}
+                  disabled={!canGoBack}
                   onClick={onPreviousPage}
                   className="absolute top-3 left-3 z-20 hidden sm:inline-flex"
                 />
@@ -106,7 +104,6 @@ export function StoryPageSheet({
             isLastPage={isLastPage}
             canAdvance={canAdvance}
             canGoBack={canGoBack}
-            previousDisabled={previousDisabled}
             vocabGated={vocabGated}
             onNextPage={onNextPage}
             onPreviousPage={onPreviousPage}
@@ -193,7 +190,6 @@ function PageProgression({
   isLastPage,
   canAdvance,
   canGoBack,
-  previousDisabled,
   vocabGated,
   onNextPage,
   onPreviousPage,
@@ -204,7 +200,6 @@ function PageProgression({
   isLastPage: boolean;
   canAdvance: boolean;
   canGoBack: boolean;
-  previousDisabled: boolean;
   vocabGated: boolean;
   onNextPage: () => void;
   onPreviousPage: () => void;
@@ -230,13 +225,13 @@ function PageProgression({
       <div className={cn("flex w-full items-center", className)}>
         <PreviousControl
           variant="ghostIcon"
-          disabled={previousDisabled}
+          disabled={!canGoBack}
           onClick={onPreviousPage}
           className="sm:hidden"
         />
         <PreviousControl
           variant="outline"
-          disabled={previousDisabled}
+          disabled={!canGoBack}
           onClick={onPreviousPage}
           className="hidden sm:inline-flex"
         />
@@ -256,13 +251,13 @@ function PageProgression({
         <>
           <PreviousControl
             variant="ghostIcon"
-            disabled={previousDisabled}
+            disabled={!canGoBack}
             onClick={onPreviousPage}
             className="sm:hidden"
           />
           <PreviousControl
             variant="outline"
-            disabled={previousDisabled}
+            disabled={!canGoBack}
             onClick={onPreviousPage}
             className="hidden sm:inline-flex"
           />
