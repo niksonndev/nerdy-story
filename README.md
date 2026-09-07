@@ -1,48 +1,99 @@
 # nerdy-story
 
-English reading literacy app for kids — narrative-driven and AI-powered.
+An interactive storybook for ages **7–9** (2nd–3rd grade). Kids read a rainforest adventure, explain mystery words in their own language, and answer story questions — graded for meaning, not spelling.
 
-**Age band:** 7–9 years old / 2nd–3rd grade reading level. All story text, vocabulary difficulty, and sentence complexity are calibrated to this band.
+Built for Nerdy **Prompt 03 — English Reading Game**: literacy through narrative, not a worksheet with a plot on top.
 
-## Core loop
+## The learning problem
 
-- Pre-written interactive story with embedded **vocabulary** and **comprehension** challenge mechanics
-- Challenge answers are graded live via **Vercel AI Gateway** — semantic match (word meaning or story understanding), plus a live **hint** on wrong answers (same call). If that live call still fails, the server falls back to a **local keyword matcher** and returns a normal grade (same response shape). Client **pre-written hints** apply only when the grade HTTP request itself fails (transport / non-OK). Story definitions, soft progression, and words-learned stay the same either way.
-- Words learned (session count of correctly graded **vocab** challenge words), feedback after each grade, and a closing unlock beat for the demo
+Most “reading games” for this age do one of two things:
 
-### Grading models
+- **Quiz the story** — multiple choice, score, shame. Kids hunt for the right bubble instead of making meaning.
+- **Tell the story** — pretty pages, no check that the child understood the word or the why.
 
-Uses `openai/gpt-oss-120b` for evaluating kids' answers — strong semantic grading at low cost on Vercel AI Gateway free tier. Falls back to `google/gemini-3.1-flash-lite` (different provider) on rate limits/errors.
+Fluency research is blunt: rereading helps, producing a word’s meaning helps more than recognizing it, and comprehension is explaining a causal link — not picking option C.
 
-## Demo / MVP constraints
+**nerdy-story** is a short, pre-written story (*Mia and the Hidden Sloth*) with two embedded mechanics:
 
-- **Deadline:** September 18 — deliverable is a 2–3 minute demo video
-- Build the smallest version of the full loop that demos well
-- Out of MVP scope: playable chapter 2, settings, auth, persistence
+| Skill | What the child does | What we refuse |
+| --- | --- | --- |
+| **Vocabulary** | “Explain what you understand by *canopy*.” | Multiple choice, “use it in a sentence” |
+| **Comprehension** | Open-ended question about *this* page | Auto-quiz on page enter, gradebook scores |
+| **Fluency** | A real branch (“what if I’d chosen the other path?”) so reread is tempting | Gating the fork on a “correct” choice |
 
-## How to run
+AI grades whether the explanation matches the idea. The story text itself is **not** generated live — reading level stays under our control.
 
-Requires [Bun](https://bun.sh). Vocabulary and comprehension grading use **Vercel AI Gateway** (primary `openai/gpt-oss-120b`, failover `google/gemini-3.1-flash-lite`; `temperature` 0, `maxOutputTokens` 1024). If Gateway/OIDC fails after that failover, the API still returns a grade via the local keyword matcher so the loop is not blocked — live AI remains the intended grader. Educational logic does not depend on a specific provider. Local auth is `VERCEL_OIDC_TOKEN` from a linked project:
+## The loop (one sitting)
+
+Five challenges per playthrough: **3 vocabulary + 2 comprehension**.
+
+1. Cover → **Start Reading** into a page-turn storybook.
+2. Tap a highlighted mystery word → overlay → type an explanation → live grade (reason + hint on a miss).
+3. **Next Page** on a comprehension page opens a story question (never auto-opens). After resolve, the page turns.
+4. At the fork, both paths are narratively valid. Vocab #3 and the second comprehension item are path-specific; the child still sees exactly 3 + 2.
+5. Ending beat: book-coloring → live **words learned** (correct vocab only) → chapter-2 unlock (stub — the demo shows the unlock, not a second chapter).
+
+Soft progression: after a retry limit, we reveal the meaning / answer and let them continue. A child is never trapped on a perfect answer. Reveals do **not** count as words learned.
+
+## Where AI is — and isn’t
+
+**AI grades kid language.** That is the product.
+
+- Open-ended answers → structured result: `correct`, a short kid-friendly **reason**, and on misses a **hint** that nudges without dumping the definition.
+- Calibrated for 7–9: accept simplified phrasing, synonyms, imperfect grammar, and *partial-but-correct* understanding; reject a different concept, a parroted passage, or a vague answer that would fit any word.
+- Primary model `openai/gpt-oss-120b` via **Vercel AI Gateway**, failover to `google/gemini-3.1-flash-lite`. Credentials stay server-side (`POST /api/grade-vocabulary`, `POST /api/grade-comprehension`).
+- If live grading still fails, a **local keyword matcher** returns the same grade shape (HTTP 200). The child never sees “the AI is down.”
+- Prompt injection: child text is untrusted, isolated from the system prompt, sanitized.
+
+**AI does not write the story.** Pre-written pages keep 2nd–3rd grade accuracy and make the demo reliable.
+
+Grading is tested two ways: Vitest with a mocked model (plus the local fallback), and an opt-in live eval suite (~125 cases per domain: accept, reject, boundary, gaming). See [docs/grading.md](docs/grading.md) and [evals/README.md](evals/README.md).
+
+## Try it (about two minutes)
+
+Requires [Bun](https://bun.sh) and a [Vercel](https://vercel.com)-linked project (OIDC for AI Gateway).
 
 ```bash
-vercel link   # once
+vercel link          # once
 vercel env pull
 bun install
 bun run dev
 ```
 
-OIDC tokens expire ~12 hours — run `vercel env pull` again if live grading auth fails locally (the local matcher still grades). On Vercel, OIDC is automatic.
-
 Open [http://localhost:3000](http://localhost:3000).
+
+OIDC tokens expire ~12 hours — `vercel env pull` again if live auth fails locally. The local matcher still grades, so the loop is never blocked. On Vercel, OIDC is automatic.
+
+**Walkthrough for reviewers**
+
+1. Start *Mia and the Hidden Sloth*.
+2. On page 2, tap **canopy** — explain it in kid words (“the leafy roof”). Watch words-learned tick.
+3. On page 3, press **Next Page** — that’s the first comprehension overlay (clues on the branch). Miss once to see the hint; or answer well and keep going.
+4. At **Two Paths**, pick either option (not a quiz).
+5. Finish the ending vocab word → coloring beat → words learned → “chapter unlocked.”
+6. Optional: discover the other ending to show the reread loop.
 
 | Command | What it does |
 | --- | --- |
-| `bun run dev` | Start the Next.js dev server |
+| `bun run dev` | Next.js dev server |
 | `bun run build` | Production build |
 | `bun run start` | Serve the production build |
-| `bun run test` | Run Vitest (use `bun run test`, not `bun test`) |
+| `bun run test` | Vitest (use this, not `bun test`) |
+| `bun run eval` | Live grader evals — needs `RUN_LIVE_EVALS=1` |
 | `bun run lint` | ESLint |
 
-## Agent constraints
+## Stack
 
-Full product, tech stack, and process decisions for AI agents live in [`.cursor/rules/product-mvp.mdc`](.cursor/rules/product-mvp.mdc).
+Next.js App Router (Bun) · TypeScript · Vercel AI Gateway · Tailwind + shadcn · Motion · Vitest.
+
+Plain React state for the session. No accounts, no persistence — the demo is one sitting.
+
+## Design notes
+
+- [Learning design](docs/learning-design.md) — fluency, vocab, comprehension, feedback
+- [Grading](docs/grading.md) — models, fallback, evals
+- [Story navigation](docs/story-navigation.md) — page graph and overlay rules
+
+## Out of scope (on purpose)
+
+Playable chapter 2, settings, auth, saved progress, and live-generated story text. The smallest full loop that demos the pedagogy.
