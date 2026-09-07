@@ -38,7 +38,7 @@ export type StoryFlipBookHandle = {
 };
 
 type StoryFlipBookProps = {
-  /** Remount key — typically the current story page id. */
+  /** Remount key — page id plus this page's vocab-resolve bits. */
   bookKey: string;
   sheetIds: string[];
   currentIndex: number;

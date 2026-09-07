@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  flipBookKeyFor,
   flipCurrentIndex,
   flipSheetIdsFor,
   peekNextPageIdFor,
@@ -106,5 +107,44 @@ describe("flipCurrentIndex", () => {
   it("is 0 on the first page and 1 when history exists", () => {
     expect(flipCurrentIndex(0)).toBe(0);
     expect(flipCurrentIndex(2)).toBe(1);
+  });
+});
+
+describe("flipBookKeyFor", () => {
+  it("stays stable on pages with no mystery words", () => {
+    expect(
+      flipBookKeyFor({
+        pageId: "page-1",
+        pageWordIds: [],
+        resolvedWordIds: ["canopy"],
+      }),
+    ).toBe("page-1:");
+  });
+
+  it("changes when the current page's mystery word is resolved (branch page)", () => {
+    const unresolved = flipBookKeyFor({
+      pageId: "page-5",
+      pageWordIds: ["cautious"],
+      resolvedWordIds: ["canopy"],
+    });
+    const resolved = flipBookKeyFor({
+      pageId: "page-5",
+      pageWordIds: ["cautious"],
+      resolvedWordIds: ["canopy", "cautious"],
+    });
+
+    expect(unresolved).toBe("page-5:0");
+    expect(resolved).toBe("page-5:1");
+    expect(unresolved).not.toBe(resolved);
+  });
+
+  it("ignores resolved words that are not on the current page", () => {
+    expect(
+      flipBookKeyFor({
+        pageId: "page-5",
+        pageWordIds: ["cautious"],
+        resolvedWordIds: ["canopy", "camouflage"],
+      }),
+    ).toBe("page-5:0");
   });
 });

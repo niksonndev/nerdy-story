@@ -20,8 +20,10 @@ import {
 import { SceneImage } from "@/components/story/scene-image";
 import { Button } from "@/components/ui/button";
 import {
+  flipBookKeyFor,
   flipCurrentIndex,
   flipSheetIdsFor,
+  mysteryWordIdsFor,
   peekNextPageIdFor,
 } from "@/lib/story/page-helpers";
 import { storyPagesById, type StoryPage } from "@/lib/story/story-data";
@@ -94,6 +96,11 @@ export const StoryPageView = forwardRef<
     pendingPeekId: activePendingPeek,
   });
   const currentIndex = flipCurrentIndex(pageHistory.length);
+  const bookKey = flipBookKeyFor({
+    pageId: page.id,
+    pageWordIds: mysteryWordIdsFor(page),
+    resolvedWordIds,
+  });
 
   const runPendingFlip = useEffectEvent(() => {
     const advanceId = pendingAdvanceId.current;
@@ -225,7 +232,7 @@ export const StoryPageView = forwardRef<
       >
         <StoryFlipBook
           ref={flipRef}
-          bookKey={page.id}
+          bookKey={bookKey}
           sheetIds={sheetIds}
           currentIndex={currentIndex}
           onFlipTo={handleFlipTo}

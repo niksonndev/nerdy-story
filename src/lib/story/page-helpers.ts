@@ -56,3 +56,25 @@ export function flipSheetIdsFor({
 export function flipCurrentIndex(pageHistoryLength: number): number {
   return pageHistoryLength > 0 ? 1 : 0;
 }
+
+/**
+ * Remount token for HTMLFlipBook. With `renderOnlyPageLengthChange`, the
+ * library keeps stale sheet clones unless the child count changes. Branch
+ * and last pages never gain a peek, so resolving a mystery word would
+ * otherwise leave in-page chrome (resolved word, branch CTAs) stuck.
+ * Overlay is open at resolve time, so the remount is hidden.
+ */
+export function flipBookKeyFor({
+  pageId,
+  pageWordIds,
+  resolvedWordIds,
+}: {
+  pageId: string;
+  pageWordIds: string[];
+  resolvedWordIds: string[];
+}): string {
+  const resolvedBits = pageWordIds
+    .map((id) => (resolvedWordIds.includes(id) ? "1" : "0"))
+    .join("");
+  return `${pageId}:${resolvedBits}`;
+}
