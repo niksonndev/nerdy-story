@@ -22,6 +22,7 @@ type HTMLFlipBookHandle = {
     turnToNextPage: () => void;
     turnToPrevPage: () => void;
     getCurrentPageIndex: () => number;
+    getPageCount: () => number;
   } | null;
 };
 
@@ -107,6 +108,10 @@ export const StoryFlipBook = forwardRef<
         onFlippingChangeRef.current?.(false);
         return false;
       }
+      if (flip.getCurrentPageIndex() >= flip.getPageCount() - 1) {
+        onFlippingChangeRef.current?.(false);
+        return false;
+      }
       onFlippingChangeRef.current?.(true);
       try {
         if (reduceMotion) {
@@ -123,6 +128,10 @@ export const StoryFlipBook = forwardRef<
     flipPrev() {
       const flip = bookRef.current?.pageFlip?.();
       if (!flip) {
+        onFlippingChangeRef.current?.(false);
+        return false;
+      }
+      if (flip.getCurrentPageIndex() <= 0) {
         onFlippingChangeRef.current?.(false);
         return false;
       }

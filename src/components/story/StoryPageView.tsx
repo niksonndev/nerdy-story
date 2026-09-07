@@ -106,14 +106,11 @@ export const StoryPageView = forwardRef<
     const advanceId = pendingAdvanceId.current;
     if (advanceId) {
       const started = flipRef.current?.flipNext() ?? false;
-      if (!started) {
+      if (started) {
         pendingAdvanceId.current = null;
-        setPendingPeekId(null);
-        onChoosePath(advanceId);
-        return;
+        return "started";
       }
-      pendingAdvanceId.current = null;
-      return;
+      return "retry";
     }
     if (pendingRetreat.current) {
       pendingRetreat.current = false;
@@ -121,18 +118,48 @@ export const StoryPageView = forwardRef<
       if (!started) {
         onPreviousPage();
       }
+      return "started";
     }
+    return "idle";
+  });
+
+  const commitPendingAdvance = useEffectEvent((advanceId: string) => {
+    onChoosePath(advanceId);
   });
 
   // After a branch pick (or any advance that needed a pending peek sheet),
-  // wait for the spine to include the target, then flip.
+  // wait until page-flip has actually loaded that sheet — React spine length
+  // updates a frame before the engine, and flipping too early peels the
+  // decision page onto the next image.
   useEffect(() => {
     if (!pendingPeekId) return;
     if (!sheetIds.includes(pendingPeekId)) return;
-    const frame = requestAnimationFrame(() => {
-      runPendingFlip();
-    });
-    return () => cancelAnimationFrame(frame);
+
+    const maxAttempts = 30;
+    let attempts = 0;
+    let frame = 0;
+    let cancelled = false;
+
+    function tryFlip() {
+      if (cancelled) return;
+      const result = runPendingFlip();
+      if (result === "started" || result === "idle") return;
+      attempts += 1;
+      if (attempts >= maxAttempts) {
+        const advanceId = pendingAdvanceId.current;
+        pendingAdvanceId.current = null;
+        setPendingPeekId(null);
+        if (advanceId) commitPendingAdvance(advanceId);
+        return;
+      }
+      frame = requestAnimationFrame(tryFlip);
+    }
+
+    frame = requestAnimationFrame(tryFlip);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
   }, [pendingPeekId, sheetIds]);
 
   function requestAdvance(nextPageId: string) {
@@ -150,8 +177,8 @@ export const StoryPageView = forwardRef<
     if (alreadyPeek && sheetIds.includes(nextPageId)) {
       const started = flipRef.current?.flipNext() ?? false;
       if (!started) {
-        // Flip engine not ready — advance without animation.
-        onChoosePath(nextPageId);
+        pendingAdvanceId.current = nextPageId;
+        setPendingPeekId(nextPageId);
       }
       return;
     }
