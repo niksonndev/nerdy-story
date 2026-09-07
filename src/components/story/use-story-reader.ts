@@ -3,12 +3,9 @@
 import { useReducer, useRef } from "react";
 
 import type { StoryPageViewHandle } from "@/components/story/StoryPageView";
-import {
-  fallbackHintFor,
-  requestComprehensionGrade,
-  requestVocabularyGrade,
-} from "@/lib/grade/client";
+import { requestComprehensionGrade, requestVocabularyGrade } from "@/lib/grade/client";
 import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
+import { hintForAttempt } from "@/lib/grade/local-helpers";
 import type { GradeResult } from "@/lib/grade/shared";
 import {
   playCorrectSfx,
@@ -17,11 +14,11 @@ import {
 import { mysteryWordIdsFor } from "@/lib/story/page-helpers";
 import {
   BRANCH_PAGE_ID,
-  PATH_PAGE_IDS,
   challengeProgressFor,
   challengeUiReducer,
   initialChallengeUi,
   initialStorySession,
+  isPathPageId,
   storySessionReducer,
 } from "@/lib/story/reader-state";
 import {
@@ -29,8 +26,6 @@ import {
   comprehensionChallenges,
   mysteryWords,
   storyPagesById,
-  type ComprehensionChallenge,
-  type MysteryWord,
 } from "@/lib/story/story-data";
 
 export function useStoryReader() {
@@ -51,47 +46,39 @@ export function useStoryReader() {
     pageHistory,
     learnedWordIds,
     exploredEndingIds,
-    endingView,
     beatSession,
     resolvedWordIds,
     resolvedComprehensionIds,
     hasStarted,
   } = session;
 
-  const { kind: challengeKind, id: challengeId } = challenge;
+  const progress = challengeProgressFor(challenge);
   const {
     phase,
     childAnswer,
-    attempts,
     priorAttempts,
     missReason,
     hintText,
     acceptedReason,
-  } = challengeProgressFor(challenge);
+  } = progress;
 
   const page = storyPagesById[pageId];
   const isLastPage = !page.nextPageId && !page.choice;
   const pageWordIds = mysteryWordIdsFor(page);
   const canAdvance = pageWordIds.every((id) => resolvedWordIds.includes(id));
-  const activeWordId = challengeKind === "vocabulary" ? challengeId : null;
-  const activeComprehensionId =
-    challengeKind === "comprehension" ? challengeId : null;
+  const challengeKind = challenge.open?.kind ?? null;
+  const challengeId = challenge.open?.id ?? null;
+  const overlayWord =
+    challengeKind === "vocabulary" && challengeId
+      ? (mysteryWords[challengeId] ?? null)
+      : null;
+  const overlayComprehension =
+    challengeKind === "comprehension" && challengeId
+      ? (comprehensionChallenges[challengeId] ?? null)
+      : null;
   const canGoBack =
-    pageHistory.length > 0 &&
-    activeWordId === null &&
-    activeComprehensionId === null;
-  const showEndingBeat =
-    isLastPage &&
-    canAdvance &&
-    activeWordId === null &&
-    activeComprehensionId === null;
-
-  const activeWord: MysteryWord | null = activeWordId
-    ? mysteryWords[activeWordId]
-    : null;
-  const activeChallenge: ComprehensionChallenge | null = activeComprehensionId
-    ? comprehensionChallenges[activeComprehensionId]
-    : null;
+    pageHistory.length > 0 && challenge.open === null;
+  const showEndingBeat = isLastPage && canAdvance && challenge.open === null;
 
   function openVocabularyChallenge(wordId: string) {
     if (resolvedWordIds.includes(wordId)) return;
@@ -107,17 +94,16 @@ export function useStoryReader() {
     submitted: string,
     reason: string,
     hint: string | null,
-    nextAttempts: number,
   ) {
+    const nextCount = priorAttempts.length + 1;
     dispatchChallenge({
       type: "recordFailedAttempt",
       submitted,
       reason,
       hint,
-      nextAttempts,
     });
 
-    if (nextAttempts >= MAX_ATTEMPTS && challengeId) {
+    if (nextCount >= MAX_ATTEMPTS && challengeId) {
       if (challengeKind === "vocabulary") {
         dispatchSession({ type: "resolveWord", wordId: challengeId });
       } else if (challengeKind === "comprehension") {
@@ -148,13 +134,10 @@ export function useStoryReader() {
     try {
       result = await options.requestGrade(options.id, submittedChildAnswer);
     } catch {
-      const nextAttempts = attempts + 1;
-      const hint = fallbackHintFor(options.hints, nextAttempts - 1);
       recordFailedAttempt(
         submittedChildAnswer,
         "Not quite — try another way.",
-        hint,
-        nextAttempts,
+        hintForAttempt(options.hints, priorAttempts.length),
       );
       return;
     }
@@ -170,14 +153,13 @@ export function useStoryReader() {
       submittedChildAnswer,
       result.reason,
       result.hint,
-      attempts + 1,
     );
   }
 
   async function handleVocabularyCheck() {
     await submitGrade({
-      id: activeWordId,
-      hints: activeWord?.hints ?? [],
+      id: overlayWord?.id ?? null,
+      hints: overlayWord?.hints ?? [],
       requestGrade: (id, answer) =>
         requestVocabularyGrade(id, answer, priorAttempts),
       onCorrect: (id) =>
@@ -187,8 +169,8 @@ export function useStoryReader() {
 
   async function handleComprehensionCheck() {
     await submitGrade({
-      id: activeComprehensionId,
-      hints: activeChallenge?.hints ?? [],
+      id: overlayComprehension?.id ?? null,
+      hints: overlayComprehension?.hints ?? [],
       requestGrade: (id, answer) =>
         requestComprehensionGrade(id, answer, priorAttempts),
       onCorrect: (id) =>
@@ -223,10 +205,7 @@ export function useStoryReader() {
 
   function goToPage(nextPageId: string) {
     if (!canAdvance || !storyPagesById[nextPageId]) return;
-    const leavingBranchForPath =
-      pageId === BRANCH_PAGE_ID &&
-      PATH_PAGE_IDS.includes(nextPageId as (typeof PATH_PAGE_IDS)[number]);
-    if (leavingBranchForPath) {
+    if (pageId === BRANCH_PAGE_ID && isPathPageId(nextPageId)) {
       dispatchChallenge({ type: "clearPathSpecific" });
     }
     dispatchSession({ type: "goToPage", pageId: nextPageId });
@@ -267,10 +246,6 @@ export function useStoryReader() {
     dispatchChallenge({ type: "reset" });
   }
 
-  function handleReadChapter2() {
-    dispatchSession({ type: "setEndingView", view: "chapter2" });
-  }
-
   function setChildAnswer(value: string) {
     dispatchChallenge({ type: "setChildAnswer", childAnswer: value });
   }
@@ -289,16 +264,17 @@ export function useStoryReader() {
     isLastPage,
     showEndingBeat,
     exploredEndingIds,
-    endingView,
-    activeWordId,
-    activeComprehensionId,
-    activeWord,
-    activeChallenge,
-    phase,
-    childAnswer,
-    missReason,
-    hintText,
-    acceptedReason,
+    hasStarted,
+    overlay: {
+      kind: challengeKind,
+      word: overlayWord,
+      comprehension: overlayComprehension,
+      phase,
+      childAnswer,
+      missReason,
+      hintText,
+      acceptedReason,
+    },
     openVocabularyChallenge,
     goToPage,
     goToPreviousPage,
@@ -310,9 +286,7 @@ export function useStoryReader() {
     continueComprehension,
     handleReadAgain,
     handleDiscoverAlternateEnding,
-    handleReadChapter2,
     handleStartReading,
-    hasStarted,
     setChildAnswer,
   };
 }

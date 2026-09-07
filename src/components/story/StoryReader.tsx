@@ -6,7 +6,7 @@ import {
   StoryCoverEntrance,
   StoryEntrancePageLayer,
   useStoryEntrance,
-} from "@/components/story/StoryCoverEntrance";
+} from "@/components/story/StoryCoverView";
 import { StoryPageView } from "@/components/story/StoryPageView";
 import { useStoryReader } from "@/components/story/use-story-reader";
 import { VocabularyChallengeOverlay } from "@/components/story/VocabularyChallengeOverlay";
@@ -26,17 +26,8 @@ export function StoryReader() {
     isLastPage,
     showEndingBeat,
     exploredEndingIds,
-    endingView,
     hasStarted,
-    activeWordId,
-    activeComprehensionId,
-    activeWord,
-    activeChallenge,
-    phase,
-    childAnswer,
-    missReason,
-    hintText,
-    acceptedReason,
+    overlay,
     openVocabularyChallenge,
     goToPage,
     goToPreviousPage,
@@ -48,7 +39,6 @@ export function StoryReader() {
     continueComprehension,
     handleReadAgain,
     handleDiscoverAlternateEnding,
-    handleReadChapter2,
     handleStartReading,
     setChildAnswer,
   } = useStoryReader();
@@ -75,8 +65,7 @@ export function StoryReader() {
   };
 
   const showReaderPage = hasStarted || isEntranceTransitioning;
-  const challengeOpen =
-    activeWordId !== null || activeComprehensionId !== null;
+  const challengeOpen = overlay.kind !== null;
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -85,10 +74,8 @@ export function StoryReader() {
           key={`${pageId}-${beatSession}`}
           learnedWordIds={learnedWordIds}
           exploredEndingIds={exploredEndingIds}
-          view={endingView}
           onReadAgain={handleReadAgain}
           onDiscoverAlternateEnding={handleDiscoverAlternateEnding}
-          onReadChapter2={handleReadChapter2}
         />
       ) : (
         <>
@@ -116,26 +103,26 @@ export function StoryReader() {
           {hasStarted ? (
             <>
               <VocabularyChallengeOverlay
-                open={activeWordId !== null}
-                word={activeWord}
-                phase={phase}
-                value={childAnswer}
-                missReason={missReason}
-                hintText={hintText}
-                acceptedReason={acceptedReason}
+                open={overlay.word !== null}
+                word={overlay.word}
+                phase={overlay.phase}
+                value={overlay.childAnswer}
+                missReason={overlay.missReason}
+                hintText={overlay.hintText}
+                acceptedReason={overlay.acceptedReason}
                 onChange={setChildAnswer}
                 onCheck={handleVocabularyCheck}
                 onClose={closeVocabularyChallenge}
               />
 
               <ComprehensionChallengeOverlay
-                open={activeComprehensionId !== null}
-                challenge={activeChallenge}
-                phase={phase}
-                value={childAnswer}
-                missReason={missReason}
-                hintText={hintText}
-                acceptedReason={acceptedReason}
+                open={overlay.comprehension !== null}
+                challenge={overlay.comprehension}
+                phase={overlay.phase}
+                value={overlay.childAnswer}
+                missReason={overlay.missReason}
+                hintText={overlay.hintText}
+                acceptedReason={overlay.acceptedReason}
                 onChange={setChildAnswer}
                 onCheck={handleComprehensionCheck}
                 onContinue={continueComprehension}

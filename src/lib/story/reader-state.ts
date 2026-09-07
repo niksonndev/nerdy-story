@@ -1,25 +1,29 @@
 import type { GradeAttempt } from "@/lib/grade/shared";
 import { MAX_ATTEMPTS, STORY_START_ID } from "@/lib/story/story-data";
-import type { ChallengePhase, EndingBeatView } from "@/lib/story/types";
+
+export type ChallengePhase = "prompt" | "waiting" | "accepted" | "reveal";
 
 export const ENDING_PAGE_IDS = ["page-7a", "page-7b"] as const;
 
-export type EndingPageId = (typeof ENDING_PAGE_IDS)[number];
-
 export const BRANCH_PAGE_ID = "page-5";
 
-export const PATH_PAGE_IDS = ["page-6a", "page-6b"] as const;
+const PATH_PAGE_IDS = ["page-6a", "page-6b"] as const;
 
-const PATH_SPECIFIC_WORD_IDS = ["camouflage", "nocturnal"] as const;
-const PATH_SPECIFIC_COMPREHENSION_IDS = [
+const ENDING_PAGE_ID_SET = new Set<string>(ENDING_PAGE_IDS);
+const PATH_PAGE_ID_SET = new Set<string>(PATH_PAGE_IDS);
+const PATH_SPECIFIC_WORD_IDS = new Set(["camouflage", "nocturnal"]);
+const PATH_SPECIFIC_COMPREHENSION_IDS = new Set([
   "tracks-choice-outcome",
   "guide-choice-outcome",
-] as const;
-
-const PATH_SPECIFIC_CHALLENGE_IDS = [
+]);
+const PATH_SPECIFIC_CHALLENGE_IDS = new Set([
   ...PATH_SPECIFIC_WORD_IDS,
   ...PATH_SPECIFIC_COMPREHENSION_IDS,
-] as const;
+]);
+
+export function isPathPageId(pageId: string): boolean {
+  return PATH_PAGE_ID_SET.has(pageId);
+}
 
 function withoutPathSpecificProgress(state: StorySessionState): Pick<
   StorySessionState,
@@ -27,16 +31,10 @@ function withoutPathSpecificProgress(state: StorySessionState): Pick<
 > {
   return {
     resolvedWordIds: state.resolvedWordIds.filter(
-      (id) =>
-        !PATH_SPECIFIC_WORD_IDS.includes(
-          id as (typeof PATH_SPECIFIC_WORD_IDS)[number],
-        ),
+      (id) => !PATH_SPECIFIC_WORD_IDS.has(id),
     ),
     resolvedComprehensionIds: state.resolvedComprehensionIds.filter(
-      (id) =>
-        !PATH_SPECIFIC_COMPREHENSION_IDS.includes(
-          id as (typeof PATH_SPECIFIC_COMPREHENSION_IDS)[number],
-        ),
+      (id) => !PATH_SPECIFIC_COMPREHENSION_IDS.has(id),
     ),
   };
 }
@@ -46,7 +44,6 @@ export type StorySessionState = {
   pageHistory: string[];
   learnedWordIds: string[];
   exploredEndingIds: string[];
-  endingView: EndingBeatView;
   beatSession: number;
   resolvedWordIds: string[];
   resolvedComprehensionIds: string[];
@@ -58,7 +55,6 @@ export const initialStorySession: StorySessionState = {
   pageHistory: [],
   learnedWordIds: [],
   exploredEndingIds: [],
-  endingView: "beat",
   beatSession: 0,
   resolvedWordIds: [],
   resolvedComprehensionIds: [],
@@ -72,7 +68,6 @@ export type StorySessionAction =
   | { type: "acceptWord"; wordId: string }
   | { type: "resolveComprehension"; challengeId: string }
   | { type: "recordEndingExplored"; pageId: string }
-  | { type: "setEndingView"; view: EndingBeatView }
   | { type: "readAgain" }
   | { type: "startReading" }
   | { type: "jumpToBranch" };
@@ -88,10 +83,7 @@ export function storySessionReducer(
   switch (action.type) {
     case "goToPage": {
       const leavingBranchForPath =
-        state.pageId === BRANCH_PAGE_ID &&
-        PATH_PAGE_IDS.includes(
-          action.pageId as (typeof PATH_PAGE_IDS)[number],
-        );
+        state.pageId === BRANCH_PAGE_ID && isPathPageId(action.pageId);
       return {
         ...state,
         ...(leavingBranchForPath
@@ -127,9 +119,7 @@ export function storySessionReducer(
         ),
       };
     case "recordEndingExplored":
-      if (
-        !ENDING_PAGE_IDS.includes(action.pageId as EndingPageId)
-      ) {
+      if (!ENDING_PAGE_ID_SET.has(action.pageId)) {
         return state;
       }
       return {
@@ -138,10 +128,7 @@ export function storySessionReducer(
           state.exploredEndingIds,
           action.pageId,
         ),
-        endingView: "beat",
       };
-    case "setEndingView":
-      return { ...state, endingView: action.view };
     case "readAgain":
       return {
         ...initialStorySession,
@@ -155,7 +142,6 @@ export function storySessionReducer(
         ...state,
         pageId: BRANCH_PAGE_ID,
         pageHistory: [],
-        endingView: "beat",
         ...withoutPathSpecificProgress(state),
         beatSession: state.beatSession + 1,
       };
@@ -164,10 +150,14 @@ export function storySessionReducer(
 
 export type ChallengeKind = "vocabulary" | "comprehension";
 
+export type OpenChallenge = {
+  kind: ChallengeKind;
+  id: string;
+};
+
 export type ChallengeProgress = {
   phase: ChallengePhase;
   childAnswer: string;
-  attempts: number;
   priorAttempts: GradeAttempt[];
   missReason: string | null;
   hintText: string | null;
@@ -175,8 +165,7 @@ export type ChallengeProgress = {
 };
 
 export type ChallengeUiState = {
-  kind: ChallengeKind | null;
-  id: string | null;
+  open: OpenChallenge | null;
   progressById: Record<string, ChallengeProgress>;
 };
 
@@ -184,7 +173,6 @@ function defaultChallengeProgress(): ChallengeProgress {
   return {
     phase: "prompt",
     childAnswer: "",
-    attempts: 0,
     priorAttempts: [],
     missReason: null,
     hintText: null,
@@ -194,7 +182,7 @@ function defaultChallengeProgress(): ChallengeProgress {
 
 export function challengeProgressFor(
   state: ChallengeUiState,
-  id: string | null = state.id,
+  id: string | null = state.open?.id ?? null,
 ): ChallengeProgress {
   if (!id) return defaultChallengeProgress();
   return state.progressById[id] ?? defaultChallengeProgress();
@@ -204,18 +192,17 @@ function patchCurrent(
   state: ChallengeUiState,
   next: ChallengeProgress | ((current: ChallengeProgress) => ChallengeProgress),
 ): ChallengeUiState {
-  if (!state.id) return state;
+  if (!state.open) return state;
   const current = challengeProgressFor(state);
   const progress = typeof next === "function" ? next(current) : next;
   return {
     ...state,
-    progressById: { ...state.progressById, [state.id]: progress },
+    progressById: { ...state.progressById, [state.open.id]: progress },
   };
 }
 
 export const initialChallengeUi: ChallengeUiState = {
-  kind: null,
-  id: null,
+  open: null,
   progressById: {},
 };
 
@@ -229,7 +216,6 @@ export type ChallengeUiAction =
       submitted: string;
       reason: string;
       hint: string | null;
-      nextAttempts: number;
     }
   | { type: "accepted"; reason: string }
   | { type: "close" }
@@ -244,8 +230,7 @@ export function challengeUiReducer(
       return initialChallengeUi;
     case "open": {
       return {
-        kind: action.kind,
-        id: action.id,
+        open: { kind: action.kind, id: action.id },
         progressById: {
           ...state.progressById,
           [action.id]:
@@ -273,18 +258,16 @@ export function challengeUiReducer(
             hint: action.hint,
           },
         ];
-        if (action.nextAttempts >= MAX_ATTEMPTS) {
+        if (priorAttempts.length >= MAX_ATTEMPTS) {
           return {
             ...current,
             priorAttempts,
-            attempts: action.nextAttempts,
             phase: "reveal",
           };
         }
         return {
           ...current,
           priorAttempts,
-          attempts: action.nextAttempts,
           missReason: action.reason,
           hintText: action.hint,
           childAnswer: "",
@@ -299,20 +282,17 @@ export function challengeUiReducer(
         phase: "accepted",
       }));
     case "close":
-      return { kind: null, id: null, progressById: state.progressById };
+      return { open: null, progressById: state.progressById };
     case "clearPathSpecific": {
       const progressById = { ...state.progressById };
       for (const id of PATH_SPECIFIC_CHALLENGE_IDS) {
         delete progressById[id];
       }
       const stillOpen =
-        state.id !== null &&
-        !PATH_SPECIFIC_CHALLENGE_IDS.includes(
-          state.id as (typeof PATH_SPECIFIC_CHALLENGE_IDS)[number],
-        );
+        state.open !== null &&
+        !PATH_SPECIFIC_CHALLENGE_IDS.has(state.open.id);
       return {
-        kind: stillOpen ? state.kind : null,
-        id: stillOpen ? state.id : null,
+        open: stillOpen ? state.open : null,
         progressById,
       };
     }

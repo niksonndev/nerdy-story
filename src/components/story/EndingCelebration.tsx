@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { X } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useState, type ReactNode } from "react";
+import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import { ChallengeDialog } from "@/components/story/ChallengeDialog";
 import { SpeakableMysteryWord } from "@/components/story/SpeakableMysteryWord";
-import {
-  dialogCloseButtonClassName,
-  useDialogA11y,
-} from "@/lib/a11y/use-dialog-a11y";
 import { stopWordAudio } from "@/lib/speech/play-word-audio";
 import { ENDING_PAGE_IDS } from "@/lib/story/reader-state";
 import { mysteryWords } from "@/lib/story/story-data";
@@ -24,7 +20,6 @@ export function CelebrationPhase({
   displayCount,
   learnedWordIds,
   exploredEndingIds,
-  bothEndings,
   onReadAgain,
   onDiscoverAlternateEnding,
   onReadChapter2,
@@ -32,12 +27,12 @@ export function CelebrationPhase({
   displayCount: number;
   learnedWordIds: string[];
   exploredEndingIds: string[];
-  bothEndings: boolean;
   onReadAgain: () => void;
   onDiscoverAlternateEnding: () => void;
   onReadChapter2: () => void;
 }) {
   const [showExplorePrompt, setShowExplorePrompt] = useState(false);
+  const bothEndings = exploredEndingIds.length >= 2;
 
   function handleContinueToChapter2() {
     if (bothEndings) {
@@ -281,18 +276,7 @@ function CelebrationActions({
 
 function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
   const [activeWordId, setActiveWordId] = useState<string | null>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const reduceMotion = useReducedMotion();
-
   const activeWord = activeWordId ? mysteryWords[activeWordId] : null;
-
-  useDialogA11y({
-    open: activeWordId !== null,
-    onClose: () => setActiveWordId(null),
-    containerRef: dialogRef,
-    initialFocusRef: closeButtonRef,
-  });
 
   useEffect(() => {
     if (activeWordId === null) return;
@@ -300,10 +284,6 @@ function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
   }, [activeWordId]);
 
   if (learnedWordIds.length === 0) return null;
-
-  const spring = reduceMotion
-    ? { duration: 0.01 }
-    : { type: "spring" as const, stiffness: 320, damping: 26 };
 
   return (
     <>
@@ -332,64 +312,26 @@ function LearnedWordPills({ learnedWordIds }: { learnedWordIds: string[] }) {
         })}
       </ul>
 
-      <AnimatePresence>
+      <ChallengeDialog
+        open={activeWord !== null}
+        onClose={() => setActiveWordId(null)}
+        aria-label={activeWord ? `Definition: ${activeWord.word}` : undefined}
+      >
         {activeWord ? (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
-          >
-            <div
-              className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-              onClick={() => setActiveWordId(null)}
-              aria-hidden
-            />
-
-            <motion.div
-              ref={dialogRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label={`Definition: ${activeWord.word}`}
-              initial={
-                reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 16 }
-              }
-              animate={
-                reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }
-              }
-              exit={
-                reduceMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, scale: 0.95, y: 8 }
-              }
-              transition={spring}
-              className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
-            >
-              <button
-                ref={closeButtonRef}
-                type="button"
-                onClick={() => setActiveWordId(null)}
-                aria-label="Close"
-                className={dialogCloseButtonClassName}
-              >
-                <X className="size-6" aria-hidden />
-              </button>
-
-              <h2>
-                <SpeakableMysteryWord
-                  wordId={activeWord.id}
-                  word={activeWord.word}
-                  className="font-heading text-2xl font-bold text-foreground"
-                />
-              </h2>
-              <p className="mt-4 text-lg leading-relaxed text-foreground/90">
-                {activeWord.meaningReveal}
-              </p>
-            </motion.div>
-          </motion.div>
+          <>
+            <h2>
+              <SpeakableMysteryWord
+                wordId={activeWord.id}
+                word={activeWord.word}
+                className="font-heading text-2xl font-bold text-foreground"
+              />
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-foreground/90">
+              {activeWord.meaningReveal}
+            </p>
+          </>
         ) : null}
-      </AnimatePresence>
+      </ChallengeDialog>
     </>
   );
 }
@@ -438,97 +380,41 @@ function ExploreFirstPrompt({
   onSkip: () => void;
   onClose: () => void;
 }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const reduceMotion = useReducedMotion();
-
-  useDialogA11y({
-    open,
-    onClose,
-    containerRef: dialogRef,
-    initialFocusRef: closeButtonRef,
-  });
-
-  const spring = reduceMotion
-    ? { duration: 0.01 }
-    : { type: "spring" as const, stiffness: 320, damping: 26 };
-
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
+    <ChallengeDialog
+      open={open}
+      onClose={onClose}
+      placement="bottom"
+      aria-labelledby="explore-first-title"
+    >
+      <h2
+        id="explore-first-title"
+        className="font-heading text-2xl font-bold text-foreground"
+      >
+        Unexplored Path Ahead!
+      </h2>
+      <p className="mt-4 text-lg leading-relaxed text-foreground/90">
+        You still have 1 hidden ending left in this chapter. Want to jump
+        back to your last choice and see what happens?
+      </p>
+
+      <div className="mt-8 flex w-full flex-col gap-3">
+        <Button
+          size="kid"
+          className="w-full min-h-14 text-xl sm:text-2xl"
+          onClick={onDiscover}
         >
-          <div
-            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-            onClick={onClose}
-            aria-hidden
-          />
-
-          <motion.div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="explore-first-title"
-            initial={
-              reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }
-            }
-            animate={
-              reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }
-            }
-            exit={
-              reduceMotion
-                ? { opacity: 0 }
-                : { opacity: 0, y: 16, scale: 0.98 }
-            }
-            transition={spring}
-            className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
-          >
-            <button
-              ref={closeButtonRef}
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className={dialogCloseButtonClassName}
-            >
-              <X className="size-6" aria-hidden />
-            </button>
-
-            <h2
-              id="explore-first-title"
-              className="font-heading text-2xl font-bold text-foreground"
-            >
-              Unexplored Path Ahead!
-            </h2>
-            <p className="mt-4 text-lg leading-relaxed text-foreground/90">
-              You still have 1 hidden ending left in this chapter. Want to jump
-              back to your last choice and see what happens?
-            </p>
-
-            <div className="mt-8 flex w-full flex-col gap-3">
-              <Button
-                size="kid"
-                className="w-full min-h-14 text-xl sm:text-2xl"
-                onClick={onDiscover}
-              >
-                Discover new ending
-              </Button>
-              <Button
-                size="kid"
-                variant="ghost"
-                className="w-full min-h-14 text-xl sm:text-2xl text-muted-foreground"
-                onClick={onSkip}
-              >
-                Skip to Chapter 2 Anyway
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+          Discover new ending
+        </Button>
+        <Button
+          size="kid"
+          variant="ghost"
+          className="w-full min-h-14 text-xl sm:text-2xl text-muted-foreground"
+          onClick={onSkip}
+        >
+          Skip to Chapter 2 Anyway
+        </Button>
+      </div>
+    </ChallengeDialog>
   );
 }

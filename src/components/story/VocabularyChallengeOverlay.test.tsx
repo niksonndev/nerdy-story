@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VocabularyChallengeOverlay } from "@/components/story/VocabularyChallengeOverlay";
 import { playWordAudio, stopWordAudio } from "@/lib/speech/play-word-audio";
 import { mysteryWords } from "@/lib/story/story-data";
-import type { ChallengePhase } from "@/lib/story/types";
+import type { ChallengePhase } from "@/lib/story/reader-state";
 
 vi.mock("@/lib/speech/play-word-audio", () => ({
   canPlayMysteryWord: () => true,

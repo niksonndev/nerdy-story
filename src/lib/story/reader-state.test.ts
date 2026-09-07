@@ -10,7 +10,7 @@ import {
 } from "@/lib/story/reader-state";
 
 describe("challengeUiReducer", () => {
-  it("restores reason, hint, and attempts after close then reopen", () => {
+  it("restores reason, hint, and prior attempts after close then reopen", () => {
     let state = challengeUiReducer(initialChallengeUi, {
       type: "open",
       kind: "vocabulary",
@@ -23,19 +23,16 @@ describe("challengeUiReducer", () => {
       reason:
         "Canopy is about treetops high in the forest, not exactly about fruit.",
       hint: "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
-      nextAttempts: 1,
     });
 
     state = challengeUiReducer(state, { type: "close" });
 
     expect(state).toEqual({
-      kind: null,
-      id: null,
+      open: null,
       progressById: {
         canopy: {
           phase: "prompt",
           childAnswer: "",
-          attempts: 1,
           priorAttempts: [
             {
               childAnswer: "a banana",
@@ -52,7 +49,7 @@ describe("challengeUiReducer", () => {
         },
       },
     });
-    expect(challengeProgressFor(state).attempts).toBe(0);
+    expect(challengeProgressFor(state).priorAttempts).toHaveLength(0);
 
     state = challengeUiReducer(state, {
       type: "open",
@@ -61,14 +58,13 @@ describe("challengeUiReducer", () => {
     });
 
     const progress = challengeProgressFor(state);
-    expect(progress.attempts).toBe(1);
+    expect(progress.priorAttempts).toHaveLength(1);
     expect(progress.missReason).toBe(
       "Canopy is about treetops high in the forest, not exactly about fruit.",
     );
     expect(progress.hintText).toBe(
       "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
     );
-    expect(progress.priorAttempts).toHaveLength(1);
   });
 
   it("preserves progress on word A when switching to word B and back", () => {
@@ -83,7 +79,6 @@ describe("challengeUiReducer", () => {
       submitted: "a banana",
       reason: "Not quite about fruit.",
       hint: "Hint for canopy.",
-      nextAttempts: 1,
     });
 
     state = challengeUiReducer(state, {
@@ -92,17 +87,16 @@ describe("challengeUiReducer", () => {
       id: "cautious",
     });
 
-    expect(state.id).toBe("cautious");
-    expect(challengeProgressFor(state).attempts).toBe(0);
+    expect(state.open).toEqual({ kind: "vocabulary", id: "cautious" });
+    expect(challengeProgressFor(state).priorAttempts).toHaveLength(0);
     expect(challengeProgressFor(state).missReason).toBeNull();
-    expect(state.progressById.canopy?.attempts).toBe(1);
+    expect(state.progressById.canopy?.priorAttempts).toHaveLength(1);
 
     state = challengeUiReducer(state, {
       type: "recordFailedAttempt",
       submitted: "cozy blanket",
       reason: "Cautious is about being careful, not exactly about cozy things.",
       hint: "Hint for cautious.",
-      nextAttempts: 1,
     });
 
     state = challengeUiReducer(state, {
@@ -111,12 +105,12 @@ describe("challengeUiReducer", () => {
       id: "canopy",
     });
 
-    expect(state.id).toBe("canopy");
+    expect(state.open).toEqual({ kind: "vocabulary", id: "canopy" });
     const canopy = challengeProgressFor(state);
-    expect(canopy.attempts).toBe(1);
+    expect(canopy.priorAttempts).toHaveLength(1);
     expect(canopy.missReason).toBe("Not quite about fruit.");
     expect(canopy.hintText).toBe("Hint for canopy.");
-    expect(state.progressById.cautious?.attempts).toBe(1);
+    expect(state.progressById.cautious?.priorAttempts).toHaveLength(1);
   });
 
   it("clears progressById on reset", () => {
@@ -131,7 +125,6 @@ describe("challengeUiReducer", () => {
       submitted: "they heard birds",
       reason: "This part is about clues on the branch, not birds.",
       hint: "Look again at what Grandpa Elias noticed on the branch.",
-      nextAttempts: 1,
     });
 
     state = challengeUiReducer(state, { type: "close" });
@@ -155,7 +148,6 @@ describe("challengeUiReducer", () => {
       submitted: "a banana",
       reason: "Not quite.",
       hint: "Try again.",
-      nextAttempts: 1,
     });
     state = challengeUiReducer(state, { type: "close" });
     state = challengeUiReducer(state, {
@@ -164,7 +156,7 @@ describe("challengeUiReducer", () => {
       id: "canopy",
     });
 
-    expect(challengeProgressFor(state).attempts).toBe(1);
+    expect(challengeProgressFor(state).priorAttempts).toHaveLength(1);
 
     state = challengeUiReducer(state, { type: "reset" });
 
@@ -175,7 +167,7 @@ describe("challengeUiReducer", () => {
     });
 
     const progress = challengeProgressFor(state);
-    expect(progress.attempts).toBe(0);
+    expect(progress.priorAttempts).toHaveLength(0);
     expect(progress.missReason).toBeNull();
     expect(progress.hintText).toBeNull();
   });
@@ -191,7 +183,6 @@ describe("challengeUiReducer", () => {
       submitted: "a banana",
       reason: "Not quite about fruit.",
       hint: "Hint for canopy.",
-      nextAttempts: 1,
     });
     state = challengeUiReducer(state, { type: "close" });
 
@@ -205,7 +196,6 @@ describe("challengeUiReducer", () => {
       submitted: "a costume",
       reason: "Not quite about costumes.",
       hint: "Hint for camouflage.",
-      nextAttempts: 1,
     });
     state = challengeUiReducer(state, { type: "close" });
 
@@ -219,14 +209,12 @@ describe("challengeUiReducer", () => {
       submitted: "they got lost",
       reason: "Not quite about getting lost.",
       hint: "Hint for tracks.",
-      nextAttempts: 1,
     });
 
     state = challengeUiReducer(state, { type: "clearPathSpecific" });
 
-    expect(state.kind).toBeNull();
-    expect(state.id).toBeNull();
-    expect(state.progressById.canopy?.attempts).toBe(1);
+    expect(state.open).toBeNull();
+    expect(state.progressById.canopy?.priorAttempts).toHaveLength(1);
     expect(state.progressById.camouflage).toBeUndefined();
     expect(state.progressById["tracks-choice-outcome"]).toBeUndefined();
   });
@@ -249,7 +237,6 @@ describe("storySessionReducer", () => {
 
     expect(next.pageId).toBe(BRANCH_PAGE_ID);
     expect(next.pageHistory).toEqual([]);
-    expect(next.endingView).toBe("beat");
     expect(next.learnedWordIds).toEqual(["canopy", "cautious", "camouflage"]);
     expect(next.exploredEndingIds).toEqual(["page-7a"]);
     expect(next.resolvedWordIds).toEqual(["canopy", "cautious"]);

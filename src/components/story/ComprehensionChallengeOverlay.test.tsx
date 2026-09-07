@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ComprehensionChallengeOverlay } from "@/components/story/ComprehensionChallengeOverlay";
 import { comprehensionChallenges } from "@/lib/story/story-data";
-import type { ChallengePhase } from "@/lib/story/types";
+import type { ChallengePhase } from "@/lib/story/reader-state";
 
 const trackClues = comprehensionChallenges["track-clues"];
 

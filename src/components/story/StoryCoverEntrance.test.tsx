@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { StoryCoverEntrance } from "@/components/story/StoryCoverEntrance";
+import { StoryCoverEntrance } from "@/components/story/StoryCoverView";
 
 vi.mock("next/image", () => ({
   default: function MockImage({

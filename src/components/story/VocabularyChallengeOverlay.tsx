@@ -6,6 +6,8 @@ import {
   ChallengeAcceptedState,
   ChallengeAnswerForm,
   ChallengeDialog,
+  ChallengeOverlayFields,
+  ChallengePhaseSwitch,
   ChallengeRevealState,
 } from "@/components/story/ChallengeDialog";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
@@ -13,18 +15,9 @@ import { DictionaryScanLoader } from "@/components/story/loading/DictionaryScanL
 import { SpeakableMysteryWord } from "@/components/story/SpeakableMysteryWord";
 import { stopWordAudio } from "@/lib/speech/play-word-audio";
 import { type MysteryWord } from "@/lib/story/story-data";
-import { type ChallengePhase } from "@/lib/story/types";
 
-type VocabularyChallengeOverlayProps = {
-  open: boolean;
+type VocabularyChallengeOverlayProps = ChallengeOverlayFields & {
   word: MysteryWord | null;
-  phase: ChallengePhase;
-  value: string;
-  missReason: string | null;
-  hintText: string | null;
-  acceptedReason: string | null;
-  onChange: (value: string) => void;
-  onCheck: () => void;
   onClose: () => void;
 };
 
@@ -62,59 +55,67 @@ export function VocabularyChallengeOverlay({
       }
       initialFocusRef={phase === "prompt" ? inputRef : undefined}
     >
-      {word && phase === "waiting" ? (
-        <ChallengeWaitingState text="Checking the dictionary...">
-          <DictionaryScanLoader />
-        </ChallengeWaitingState>
-      ) : word && phase === "accepted" ? (
-        <ChallengeAcceptedState
-          reason={acceptedReason ?? `A ${word.word} is a safe, covered place.`}
-          continueLabel="Keep reading"
-          onContinue={onClose}
-        />
-      ) : word && phase === "reveal" ? (
-        <ChallengeRevealState
-          eyebrow="Here's what it means"
-          title={
-            <SpeakableMysteryWord
-              wordId={word.id}
-              word={word.word}
-              className="font-heading text-3xl font-bold text-foreground"
+      {word ? (
+        <ChallengePhaseSwitch
+          phase={phase}
+          waiting={
+            <ChallengeWaitingState text="Checking the dictionary...">
+              <DictionaryScanLoader />
+            </ChallengeWaitingState>
+          }
+          accepted={
+            <ChallengeAcceptedState
+              reason={acceptedReason ?? `A ${word.word} is a safe, covered place.`}
+              continueLabel="Keep reading"
+              onContinue={onClose}
             />
           }
-          body={word.meaningReveal}
-          continueLabel="Got it"
-          onContinue={onClose}
-        />
-      ) : word ? (
-        <ChallengeAnswerForm
-          value={value}
-          missReason={missReason}
-          hintText={hintText}
-          inputRef={inputRef}
-          feedbackId={feedbackId}
-          fieldLabel={`Your idea for ${word.word}`}
-          onChange={onChange}
-          onCheck={onCheck}
-        >
-          <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
-            Mystery word
-          </p>
-          <h2 className="mt-1">
-            <SpeakableMysteryWord
-              wordId={word.id}
-              word={word.word}
-              className="font-heading text-4xl font-bold text-foreground"
+          reveal={
+            <ChallengeRevealState
+              eyebrow="Here's what it means"
+              title={
+                <SpeakableMysteryWord
+                  wordId={word.id}
+                  word={word.word}
+                  className="font-heading text-3xl font-bold text-foreground"
+                />
+              }
+              body={word.meaningReveal}
+              continueLabel="Got it"
+              onContinue={onClose}
             />
-          </h2>
-          <p
-            id={instructionsId}
-            className="mt-4 text-lg leading-relaxed text-foreground/90"
-          >
-            Explain what you understand by{" "}
-            <span className="font-semibold text-magic-ink">{word.word}</span>.
-          </p>
-        </ChallengeAnswerForm>
+          }
+          prompt={
+            <ChallengeAnswerForm
+              value={value}
+              missReason={missReason}
+              hintText={hintText}
+              inputRef={inputRef}
+              feedbackId={feedbackId}
+              fieldLabel={`Your idea for ${word.word}`}
+              onChange={onChange}
+              onCheck={onCheck}
+            >
+              <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
+                Mystery word
+              </p>
+              <h2 className="mt-1">
+                <SpeakableMysteryWord
+                  wordId={word.id}
+                  word={word.word}
+                  className="font-heading text-4xl font-bold text-foreground"
+                />
+              </h2>
+              <p
+                id={instructionsId}
+                className="mt-4 text-lg leading-relaxed text-foreground/90"
+              >
+                Explain what you understand by{" "}
+                <span className="font-semibold text-magic-ink">{word.word}</span>.
+              </p>
+            </ChallengeAnswerForm>
+          }
+        />
       ) : null}
     </ChallengeDialog>
   );

@@ -10,6 +10,7 @@ import {
   useDialogA11y,
 } from "@/lib/a11y/use-dialog-a11y";
 import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
+import { type ChallengePhase } from "@/lib/story/reader-state";
 
 type ChallengeDialogProps = {
   open: boolean;
@@ -18,6 +19,8 @@ type ChallengeDialogProps = {
   "aria-labelledby"?: string;
   "aria-describedby"?: string;
   initialFocusRef?: RefObject<HTMLElement | null>;
+  /** Bottom-sheet on mobile, centered card from sm+. Default is centered. */
+  placement?: "center" | "bottom";
   children: ReactNode;
 };
 
@@ -28,10 +31,12 @@ export function ChallengeDialog({
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
   initialFocusRef,
+  placement = "center",
   children,
 }: ChallengeDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
+  const fromBottom = placement === "bottom";
 
   useDialogA11y({
     open,
@@ -48,7 +53,11 @@ export function ChallengeDialog({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className={
+            fromBottom
+              ? "fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+              : "fixed inset-0 z-50 flex items-center justify-center p-4"
+          }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -68,11 +77,21 @@ export function ChallengeDialog({
             aria-labelledby={ariaLabelledBy}
             aria-describedby={ariaDescribedBy}
             initial={
-              reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 16 }
+              reduceMotion
+                ? { opacity: 0 }
+                : fromBottom
+                  ? { opacity: 0, y: 24, scale: 0.96 }
+                  : { opacity: 0, scale: 0.92, y: 16 }
             }
-            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+            animate={
+              reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }
+            }
             exit={
-              reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 8 }
+              reduceMotion
+                ? { opacity: 0 }
+                : fromBottom
+                  ? { opacity: 0, y: 16, scale: 0.98 }
+                  : { opacity: 0, scale: 0.95, y: 8 }
             }
             transition={spring}
             className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
@@ -272,3 +291,40 @@ export function ChallengeRevealState({
     </div>
   );
 }
+
+export type ChallengeOverlayFields = {
+  open: boolean;
+  phase: ChallengePhase;
+  value: string;
+  missReason: string | null;
+  hintText: string | null;
+  acceptedReason: string | null;
+  onChange: (value: string) => void;
+  onCheck: () => void;
+};
+
+export function ChallengePhaseSwitch({
+  phase,
+  waiting,
+  accepted,
+  reveal,
+  prompt,
+}: {
+  phase: ChallengePhase;
+  waiting: ReactNode;
+  accepted: ReactNode;
+  reveal: ReactNode;
+  prompt: ReactNode;
+}) {
+  switch (phase) {
+    case "waiting":
+      return waiting;
+    case "accepted":
+      return accepted;
+    case "reveal":
+      return reveal;
+    default:
+      return prompt;
+  }
+}
+

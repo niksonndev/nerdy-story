@@ -10,18 +10,15 @@ import {
 
 import { CelebrationPhase } from "@/components/story/EndingCelebration";
 import { Chapter2Stub } from "@/components/story/EndingChapter2";
-import { type EndingBeatView } from "@/lib/story/types";
 import { cn } from "@/lib/utils";
 
-export type EndingBeatPhase = "coloring" | "celebration";
+type EndingBeatPhase = "coloring" | "celebration";
 
 type EndingBeatProps = {
   learnedWordIds: string[];
   exploredEndingIds: string[];
-  view: EndingBeatView;
   onReadAgain: () => void;
   onDiscoverAlternateEnding: () => void;
-  onReadChapter2: () => void;
 };
 
 const COLORING_MS = 1400;
@@ -29,17 +26,15 @@ const COLORING_MS = 1400;
 export function EndingBeat({
   learnedWordIds,
   exploredEndingIds,
-  view,
   onReadAgain,
   onDiscoverAlternateEnding,
-  onReadChapter2,
 }: EndingBeatProps) {
   const [phase, setPhase] = useState<EndingBeatPhase>("coloring");
+  const [view, setView] = useState<"beat" | "chapter2">("beat");
   const [displayCount, setDisplayCount] = useState(0);
   const reduceMotion = useReducedMotion();
   const coloringMs = reduceMotion ? 0 : COLORING_MS;
   const wordsLearned = learnedWordIds.length;
-  const bothEndings = exploredEndingIds.length >= 2;
 
   useEffect(() => {
     if (view !== "beat" || phase !== "coloring") return;
@@ -98,10 +93,9 @@ export function EndingBeat({
                 displayCount={displayCount}
                 learnedWordIds={learnedWordIds}
                 exploredEndingIds={exploredEndingIds}
-                bothEndings={bothEndings}
                 onReadAgain={onReadAgain}
                 onDiscoverAlternateEnding={onDiscoverAlternateEnding}
-                onReadChapter2={onReadChapter2}
+                onReadChapter2={() => setView("chapter2")}
               />
             )}
             </AnimatePresence>

@@ -6,23 +6,16 @@ import {
   ChallengeAcceptedState,
   ChallengeAnswerForm,
   ChallengeDialog,
+  ChallengeOverlayFields,
+  ChallengePhaseSwitch,
   ChallengeRevealState,
 } from "@/components/story/ChallengeDialog";
 import { ChallengeWaitingState } from "@/components/story/loading/ChallengeWaitingState";
 import { StoryPuzzleLoader } from "@/components/story/loading/StoryPuzzleLoader";
-import { type ChallengePhase } from "@/lib/story/types";
 import { type ComprehensionChallenge } from "@/lib/story/story-data";
 
-type ComprehensionChallengeOverlayProps = {
-  open: boolean;
+type ComprehensionChallengeOverlayProps = ChallengeOverlayFields & {
   challenge: ComprehensionChallenge | null;
-  phase: ChallengePhase;
-  value: string;
-  missReason: string | null;
-  hintText: string | null;
-  acceptedReason: string | null;
-  onChange: (value: string) => void;
-  onCheck: () => void;
   onContinue: () => void;
   onClose: () => void;
 };
@@ -56,46 +49,56 @@ export function ComprehensionChallengeOverlay({
       }
       initialFocusRef={phase === "prompt" ? inputRef : undefined}
     >
-      {challenge && phase === "waiting" ? (
-        <ChallengeWaitingState text="Connecting the thoughts...">
-          <StoryPuzzleLoader />
-        </ChallengeWaitingState>
-      ) : challenge && phase === "accepted" ? (
-        <ChallengeAcceptedState
-          reason={acceptedReason ?? "That matches what happened in the story."}
-          continueLabel="Keep going"
-          onContinue={onContinue}
+      {challenge ? (
+        <ChallengePhaseSwitch
+          phase={phase}
+          waiting={
+            <ChallengeWaitingState text="Connecting the thoughts...">
+              <StoryPuzzleLoader />
+            </ChallengeWaitingState>
+          }
+          accepted={
+            <ChallengeAcceptedState
+              reason={
+                acceptedReason ?? "That matches what happened in the story."
+              }
+              continueLabel="Keep going"
+              onContinue={onContinue}
+            />
+          }
+          reveal={
+            <ChallengeRevealState
+              eyebrow="Here's the idea"
+              title={challenge.question}
+              titleClassName="mt-1 font-heading text-2xl font-bold text-foreground"
+              body={challenge.answerReveal}
+              continueLabel="Got it"
+              onContinue={onContinue}
+            />
+          }
+          prompt={
+            <ChallengeAnswerForm
+              value={value}
+              missReason={missReason}
+              hintText={hintText}
+              inputRef={inputRef}
+              feedbackId={feedbackId}
+              fieldLabel="Your answer to the story question"
+              onChange={onChange}
+              onCheck={onCheck}
+            >
+              <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
+                Story question
+              </p>
+              <h2
+                id={titleId}
+                className="mt-1 font-heading text-2xl font-bold text-foreground sm:text-3xl"
+              >
+                {challenge.question}
+              </h2>
+            </ChallengeAnswerForm>
+          }
         />
-      ) : challenge && phase === "reveal" ? (
-        <ChallengeRevealState
-          eyebrow="Here's the idea"
-          title={challenge.question}
-          titleClassName="mt-1 font-heading text-2xl font-bold text-foreground"
-          body={challenge.answerReveal}
-          continueLabel="Got it"
-          onContinue={onContinue}
-        />
-      ) : challenge ? (
-        <ChallengeAnswerForm
-          value={value}
-          missReason={missReason}
-          hintText={hintText}
-          inputRef={inputRef}
-          feedbackId={feedbackId}
-          fieldLabel="Your answer to the story question"
-          onChange={onChange}
-          onCheck={onCheck}
-        >
-          <p className="font-heading text-sm font-semibold uppercase tracking-wide text-magic-ink">
-            Story question
-          </p>
-          <h2
-            id={titleId}
-            className="mt-1 font-heading text-2xl font-bold text-foreground sm:text-3xl"
-          >
-            {challenge.question}
-          </h2>
-        </ChallengeAnswerForm>
       ) : null}
     </ChallengeDialog>
   );

@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fallbackHintFor } from "@/lib/grade/client";
+import { hintForAttempt } from "@/lib/grade/local-helpers";
 import { MAX_ATTEMPTS, mysteryWords } from "@/lib/story/story-data";
 import { gradeMiss, gradeOk } from "@/test/grade-fixtures";
 
@@ -74,8 +74,8 @@ describe("useStoryReader", () => {
         await result.current.handleVocabularyCheck();
       });
 
-      expect(result.current.phase).toBe("accepted");
-      expect(result.current.acceptedReason).toBe(
+      expect(result.current.overlay.phase).toBe("accepted");
+      expect(result.current.overlay.acceptedReason).toBe(
         "Yes — canopy is about the leafy roof of the forest.",
       );
       expect(result.current.learnedWordIds).toEqual(["canopy"]);
@@ -86,7 +86,7 @@ describe("useStoryReader", () => {
         result.current.closeVocabularyChallenge();
       });
 
-      expect(result.current.activeWordId).toBeNull();
+      expect(result.current.overlay.word).toBeNull();
       expect(result.current.canAdvance).toBe(true);
     });
 
@@ -109,11 +109,11 @@ describe("useStoryReader", () => {
         await result.current.handleVocabularyCheck();
       });
 
-      expect(result.current.phase).toBe("prompt");
-      expect(result.current.missReason).toBe(
+      expect(result.current.overlay.phase).toBe("prompt");
+      expect(result.current.overlay.missReason).toBe(
         "Canopy is about treetops high in the forest, not exactly about fruit.",
       );
-      expect(result.current.hintText).toBe(
+      expect(result.current.overlay.hintText).toBe(
         "Think about the very top of the forest.",
       );
       expect(result.current.canAdvance).toBe(false);
@@ -140,7 +140,7 @@ describe("useStoryReader", () => {
         });
       }
 
-      expect(result.current.phase).toBe("reveal");
+      expect(result.current.overlay.phase).toBe("reveal");
       expect(result.current.resolvedWordIds).toContain("canopy");
       expect(result.current.learnedWordIds).toEqual([]);
       expect(result.current.canAdvance).toBe(true);
@@ -149,7 +149,7 @@ describe("useStoryReader", () => {
         result.current.closeVocabularyChallenge();
       });
 
-      expect(result.current.activeWordId).toBeNull();
+      expect(result.current.overlay.word).toBeNull();
       expect(result.current.canAdvance).toBe(true);
     });
 
@@ -168,9 +168,9 @@ describe("useStoryReader", () => {
         await result.current.handleVocabularyCheck();
       });
 
-      expect(result.current.phase).toBe("prompt");
-      expect(result.current.missReason).toBe("Not quite — try another way.");
-      expect(result.current.hintText).toBe(fallbackHintFor(canopyHints, 0));
+      expect(result.current.overlay.phase).toBe("prompt");
+      expect(result.current.overlay.missReason).toBe("Not quite — try another way.");
+      expect(result.current.overlay.hintText).toBe(hintForAttempt(canopyHints, 0));
       expect(result.current.canAdvance).toBe(false);
       expect(result.current.learnedWordIds).toEqual([]);
     });
@@ -221,8 +221,8 @@ describe("useStoryReader", () => {
         await result.current.handleVocabularyCheck();
       });
 
-      expect(result.current.phase).toBe("prompt");
-      expect(result.current.missReason).toBe(
+      expect(result.current.overlay.phase).toBe("prompt");
+      expect(result.current.overlay.missReason).toBe(
         "Camouflage is about blending in, not exactly about costumes.",
       );
 
@@ -256,10 +256,10 @@ describe("useStoryReader", () => {
       });
 
       expect(result.current.pageId).toBe("page-7a");
-      expect(result.current.activeWordId).toBe("camouflage");
-      expect(result.current.phase).toBe("prompt");
-      expect(result.current.missReason).toBeNull();
-      expect(result.current.hintText).toBeNull();
+      expect(result.current.overlay.word?.id).toBe("camouflage");
+      expect(result.current.overlay.phase).toBe("prompt");
+      expect(result.current.overlay.missReason).toBeNull();
+      expect(result.current.overlay.hintText).toBeNull();
     });
   });
 
@@ -276,8 +276,8 @@ describe("useStoryReader", () => {
 
       expect(allowed).toBe(false);
       expect(result.current.pageId).toBe("page-3");
-      expect(result.current.activeComprehensionId).toBe("track-clues");
-      expect(result.current.phase).toBe("prompt");
+      expect(result.current.overlay.comprehension?.id).toBe("track-clues");
+      expect(result.current.overlay.phase).toBe("prompt");
     });
 
     it("accepts a correct grade without incrementing words learned", async () => {
@@ -299,7 +299,7 @@ describe("useStoryReader", () => {
         await result.current.handleComprehensionCheck();
       });
 
-      expect(result.current.phase).toBe("accepted");
+      expect(result.current.overlay.phase).toBe("accepted");
       expect(result.current.learnedWordIds).toEqual(wordsBefore);
 
       act(() => {
@@ -311,7 +311,7 @@ describe("useStoryReader", () => {
         allowed = result.current.handleBeforeNextPage("page-4");
       });
       expect(allowed).toBe(true);
-      expect(result.current.activeComprehensionId).toBeNull();
+      expect(result.current.overlay.comprehension).toBeNull();
     });
 
     it("shows soft miss reason and hint while unresolved", async () => {
@@ -335,14 +335,14 @@ describe("useStoryReader", () => {
         await result.current.handleComprehensionCheck();
       });
 
-      expect(result.current.phase).toBe("prompt");
-      expect(result.current.missReason).toBe(
+      expect(result.current.overlay.phase).toBe("prompt");
+      expect(result.current.overlay.missReason).toBe(
         "This part is about clues on the branch, not birds.",
       );
-      expect(result.current.hintText).toBe(
+      expect(result.current.overlay.hintText).toBe(
         "Look again at what Grandpa Elias noticed on the branch.",
       );
-      expect(result.current.activeComprehensionId).toBe("track-clues");
+      expect(result.current.overlay.comprehension?.id).toBe("track-clues");
     });
 
     it("reveals the answer after MAX_ATTEMPTS without counting words learned", async () => {
@@ -367,7 +367,7 @@ describe("useStoryReader", () => {
         });
       }
 
-      expect(result.current.phase).toBe("reveal");
+      expect(result.current.overlay.phase).toBe("reveal");
       expect(result.current.learnedWordIds).toEqual(wordsBefore);
 
       act(() => {
@@ -410,7 +410,7 @@ describe("useStoryReader", () => {
       });
 
       expect(advanceTo).toHaveBeenCalledWith("page-4");
-      expect(result.current.activeComprehensionId).toBeNull();
+      expect(result.current.overlay.comprehension).toBeNull();
     });
   });
 });
