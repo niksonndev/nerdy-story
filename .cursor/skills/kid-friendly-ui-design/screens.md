@@ -1,4 +1,4 @@
-# Screen visuals (MVP loop)
+# Screen visuals
 
 Visual composition only — how each screen should look. Flow, gating, and chrome copy: [storybook-interaction-design](../storybook-interaction-design/SKILL.md). Layout/breakpoints: [responsive-layout](../responsive-layout/SKILL.md). Motion: [motion-animation](../motion-animation/SKILL.md).
 

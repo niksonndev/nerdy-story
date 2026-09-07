@@ -12,7 +12,7 @@ description: >-
 
 # Storybook interaction design
 
-How the storybook behaves. Look and feel: [kid-friendly-ui-design](../kid-friendly-ui-design/SKILL.md). Layout/breakpoints: [responsive-layout](../responsive-layout/SKILL.md). Motion: [motion-animation](../motion-animation/SKILL.md). Product scope lives in `.cursor/rules/product-mvp.mdc`.
+How the storybook behaves. Look and feel: [kid-friendly-ui-design](../kid-friendly-ui-design/SKILL.md). Layout/breakpoints: [responsive-layout](../responsive-layout/SKILL.md). Motion: [motion-animation](../motion-animation/SKILL.md). Product scope lives in `.cursor/rules/product.mdc`.
 
 Compose the story screen as a single storybook page (illustration + readable text + quiet chrome), not a grid of bordered panels. Story progression happens through a clear **Next Page** primary action. **Previous Page** is secondary chrome when visit history exists (not on the first page) — placement differs by page type and breakpoint (see [screens.md](screens.md) and [responsive-layout](../responsive-layout/SKILL.md)).
 
@@ -48,7 +48,7 @@ Fail closed if any of these appear:
 
 ## Screen interactions
 
-For flow per MVP screen, see [screens.md](screens.md).
+For flow per screen, see [screens.md](screens.md).
 
 ## Pre-ship checklist
 

@@ -1,4 +1,4 @@
-# Screen interactions (MVP loop)
+# Screen interactions
 
 Behavior and chrome copy only. Visuals: [kid-friendly-ui-design](../kid-friendly-ui-design/screens.md). Layout/breakpoints: [responsive-layout](../responsive-layout/SKILL.md). Motion: [motion-animation](../motion-animation/SKILL.md).
 
@@ -120,7 +120,7 @@ StoryPage → ClosingBeat
 
 ## Closing beat
 
-**Job:** Demo climax in one sequence: book-coloring → words-learned count-up → chapter-unlock *reveal* (not playable chapter 2).
+**Job:** Chapter close in one sequence: book-coloring → words-learned count-up → chapter-unlock *reveal* (not playable chapter 2).
 
 **Copy:** Celebratory and short (“Words you learned”, “Chapter unlocked”). Not “Your score” or “Lesson complete”.
 
