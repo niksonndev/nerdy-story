@@ -10,6 +10,7 @@ import {
 
 import { CelebrationPhase } from "@/components/story/EndingCelebration";
 import { Chapter2Stub } from "@/components/story/EndingChapter2";
+import { StorybookShell } from "@/components/story/storybook-shell";
 import { cn } from "@/lib/utils";
 
 type EndingBeatPhase = "coloring" | "celebration";
@@ -58,22 +59,11 @@ export function EndingBeat({
   }, [view, phase, wordsLearned, reduceMotion]);
 
   return (
-    <div
-      className={cn(
-        "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
-        "max-sm:h-dvh max-sm:overflow-y-hidden",
-        "sm:items-center sm:justify-center sm:py-8",
-      )}
+    <StorybookShell
+      cardAriaLabel="Story complete"
+      frameClassName="max-sm:h-dvh max-sm:overflow-y-hidden sm:items-center sm:justify-center sm:py-8"
+      cardClassName="flex min-h-0 flex-1 flex-col max-sm:min-h-dvh sm:max-w-150 lg:max-w-225"
     >
-      <article
-        aria-label="Story complete"
-        className={cn(
-          "relative z-10 flex min-h-0 w-full flex-1 flex-col",
-          "max-sm:min-h-dvh",
-          "sm:mx-auto sm:max-w-150 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
-          "lg:max-w-225",
-        )}
-      >
         <div
           className={cn(
             "flex min-h-0 flex-1 flex-col px-5 pb-0 pt-10",
@@ -101,8 +91,7 @@ export function EndingBeat({
             </AnimatePresence>
           </div>
         </div>
-      </article>
-    </div>
+    </StorybookShell>
   );
 }
 

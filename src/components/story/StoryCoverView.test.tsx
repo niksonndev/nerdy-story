@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import type { ImgHTMLAttributes } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { StoryCoverView } from "@/components/story/StoryCoverView";
+import { StoryCoverEntrance, StoryCoverView } from "@/components/story/StoryCoverView";
 import { SCENE_IMAGE_SIZES } from "@/components/story/scene-image";
 import {
   STORY_META,
@@ -69,5 +69,20 @@ describe("StoryCoverView", () => {
     const overlay = container.querySelector("[data-cover-art-overlay]");
     expect(overlay).toHaveClass("fixed", "inset-0");
     expect(overlay).not.toHaveClass("bg-magic/10");
+  });
+});
+
+describe("StoryCoverEntrance", () => {
+  it("fades the whole cover layer during the dolly so the card fill cannot linger", () => {
+    const { container } = render(
+      <StoryCoverEntrance
+        isTransitioning
+        onStartReading={() => {}}
+        onEntranceComplete={() => {}}
+      />,
+    );
+
+    const layer = container.querySelector("[data-cover-entrance]");
+    expect(layer).toHaveStyle({ opacity: "0" });
   });
 });

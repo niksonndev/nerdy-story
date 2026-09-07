@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 
 import { SceneImagePreload } from "@/components/story/scene-image";
+import { StorybookShell } from "@/components/story/storybook-shell";
 import { Button } from "@/components/ui/button";
 import { STORY_META, storySceneImages } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
@@ -47,22 +48,19 @@ export function StoryCoverView({
   }, [isTransitioning, dollyMs]);
 
   return (
-    <div
-      className={cn(
-        "relative flex min-h-0 flex-1 flex-col overflow-x-hidden",
+    <StorybookShell
+      frameClassName={cn(
         isTransitioning && "pointer-events-none",
         "max-sm:h-dvh",
         "lg:justify-center lg:py-8",
       )}
+      cardClassName={cn(
+        "flex flex-col",
+        "min-h-0 max-sm:flex-1",
+        "sm:mb-8 sm:mt-4 sm:max-w-175",
+        "lg:my-auto lg:mt-0 lg:max-w-300",
+      )}
     >
-      <article
-        className={cn(
-          "relative z-10 flex w-full flex-col",
-          "min-h-0 max-sm:flex-1",
-          "sm:mx-auto sm:mb-8 sm:mt-4 sm:max-w-175 sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:bg-card",
-          "lg:my-auto lg:mt-0 lg:max-w-300",
-        )}
-      >
         <div className="flex min-h-0 flex-col max-sm:flex-1 lg:flex-row lg:items-stretch">
           {storySceneImages.map((src) => (
             <SceneImagePreload key={src} src={src} />
@@ -184,8 +182,7 @@ export function StoryCoverView({
             </div>
           </motion.div>
         </div>
-      </article>
-    </div>
+    </StorybookShell>
   );
 }
 
