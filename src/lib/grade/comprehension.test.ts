@@ -1,29 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { aiTestDoubles } from "@/test/ai-module";
+
 const generateText = vi.hoisted(() => vi.fn());
 
-vi.mock("ai", () => ({
-  generateText: (...args: unknown[]) => generateText(...args),
-  Output: {
-    object: (spec: unknown) => spec,
-  },
-  NoObjectGeneratedError: {
-    isInstance: (error: unknown) =>
-      Boolean(
-        error &&
-        typeof error === "object" &&
-        (error as { name?: string }).name === "AI_NoObjectGeneratedError",
-      ),
-  },
-  NoOutputGeneratedError: {
-    isInstance: (error: unknown) =>
-      Boolean(
-        error &&
-        typeof error === "object" &&
-        (error as { name?: string }).name === "AI_NoOutputGeneratedError",
-      ),
-  },
-}));
+vi.mock("ai", () => aiTestDoubles((...args: unknown[]) => generateText(...args)));
 
 import {
   comprehensionGradeRequestSchema,

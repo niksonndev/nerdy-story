@@ -10,6 +10,7 @@ import {
   GRADE_PRIMARY_MODEL,
   GRADE_TEMPERATURE,
   GradeError,
+  type GradeAttempt,
   type GradeLiveOptions,
   type GradeResult,
 } from "@/lib/grade/shared";
@@ -78,4 +79,51 @@ export async function gradeWithLocalFallback(
     if (error instanceof GradeError) throw error;
     return local();
   }
+}
+
+type LiveGraderConfig<TRequest, TEntity> = {
+  lookup: (request: TRequest) => TEntity | undefined;
+  unknownError: string;
+  system: string;
+  trustedContext: (entity: TEntity, request: TRequest) => string;
+  outputName: string;
+  outputDescription: string;
+  tags: readonly string[];
+};
+
+/**
+ * Lookup + live generateText grader. Production wraps this with
+ * `createProductionGrader` so Gateway failure still returns a local grade.
+ */
+export function createLiveGrader<
+  TRequest extends { childAnswer: string; priorAttempts?: GradeAttempt[] },
+  TEntity,
+>(config: LiveGraderConfig<TRequest, TEntity>) {
+  return async function gradeLive(
+    request: TRequest,
+    options?: GradeLiveOptions,
+  ): Promise<GradeResult> {
+    const entity = config.lookup(request);
+    if (!entity) throw new GradeError(config.unknownError);
+    return runLiveGrade({
+      system: config.system,
+      trustedContext: config.trustedContext(entity, request),
+      childAnswer: request.childAnswer,
+      outputName: config.outputName,
+      outputDescription: config.outputDescription,
+      tags: config.tags,
+      liveOptions: options,
+    });
+  };
+}
+
+export function createProductionGrader<TRequest>(
+  live: (request: TRequest) => Promise<GradeResult>,
+  local: (request: TRequest) => GradeResult,
+) {
+  return (request: TRequest) =>
+    gradeWithLocalFallback(
+      () => live(request),
+      () => local(request),
+    );
 }

@@ -1,23 +1,10 @@
+import type { VocabularyGradeRequest, GradeResult } from "@/lib/grade/shared";
 import {
-  GradeError,
-  type VocabularyGradeRequest,
-  type GradeResult,
-} from "@/lib/grade/shared";
-import {
-  buildLocalMissReason,
-  hasContentOverlap,
-  hintForAttempt,
-  matchesAcceptKeywords,
+  gradeLocally,
+  isLocallyCorrectAnswer,
+  requireKnown,
 } from "@/lib/grade/local-helpers";
-import { mysteryWords, type MysteryWord } from "@/lib/story/story-data";
-
-function isLocallyCorrect(word: MysteryWord, childAnswer: string): boolean {
-  const answerLower = childAnswer.toLowerCase();
-  if (matchesAcceptKeywords(answerLower, word.acceptKeywords)) {
-    return true;
-  }
-  return hasContentOverlap(childAnswer, word.targetDefinition);
-}
+import { mysteryWords } from "@/lib/story/story-data";
 
 /**
  * Keyword/synonym fallback when live grading fails after Gateway failover.
@@ -26,30 +13,27 @@ function isLocallyCorrect(word: MysteryWord, childAnswer: string): boolean {
 export function gradeVocabularyLocally(
   request: VocabularyGradeRequest,
 ): GradeResult {
-  const word = mysteryWords[request.wordId];
-  if (!word) {
-    throw new GradeError("Unknown mystery word.");
-  }
-
+  const word = requireKnown(
+    mysteryWords[request.wordId],
+    "Unknown mystery word.",
+  );
   const childAnswer = request.childAnswer.trim();
-  const priorCount = request.priorAttempts?.length ?? 0;
 
-  if (isLocallyCorrect(word, childAnswer)) {
-    return {
-      correct: true,
-      reason: `Yes — ${word.word} is about ${word.coreIdea}.`,
-      hint: null,
-    };
-  }
-
-  return {
-    correct: false,
-    reason: buildLocalMissReason({
+  return gradeLocally({
+    childAnswer,
+    priorCount: request.priorAttempts?.length ?? 0,
+    hints: word.hints,
+    isCorrect: isLocallyCorrectAnswer(
+      childAnswer,
+      word.acceptKeywords,
+      word.targetDefinition,
+    ),
+    correctReason: `Yes — ${word.word} is about ${word.coreIdea}.`,
+    miss: {
       kind: "vocabulary",
       word: word.word,
       coreIdea: word.coreIdea,
       childAnswer,
-    }),
-    hint: hintForAttempt(word.hints, priorCount),
-  };
+    },
+  });
 }

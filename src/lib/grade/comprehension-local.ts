@@ -1,29 +1,13 @@
-import {
-  GradeError,
-  type ComprehensionGradeRequest,
-  type GradeResult,
+import type {
+  ComprehensionGradeRequest,
+  GradeResult,
 } from "@/lib/grade/shared";
 import {
-  buildLocalMissReason,
-  hasContentOverlap,
-  hintForAttempt,
-  matchesAcceptKeywords,
+  gradeLocally,
+  isLocallyCorrectAnswer,
+  requireKnown,
 } from "@/lib/grade/local-helpers";
-import {
-  comprehensionChallenges,
-  type ComprehensionChallenge,
-} from "@/lib/story/story-data";
-
-function isLocallyCorrect(
-  challenge: ComprehensionChallenge,
-  childAnswer: string,
-): boolean {
-  const answerLower = childAnswer.toLowerCase();
-  if (matchesAcceptKeywords(answerLower, challenge.acceptKeywords)) {
-    return true;
-  }
-  return hasContentOverlap(childAnswer, challenge.expectedUnderstanding);
-}
+import { comprehensionChallenges } from "@/lib/story/story-data";
 
 /**
  * Simple keyword story-understanding check used when live AI grading fails.
@@ -32,30 +16,26 @@ function isLocallyCorrect(
 export function gradeComprehensionLocally(
   request: ComprehensionGradeRequest,
 ): GradeResult {
-  const challenge = comprehensionChallenges[request.challengeId];
-
-  if (!challenge) {
-    throw new GradeError("Unknown comprehension challenge.");
-  }
-
+  const challenge = requireKnown(
+    comprehensionChallenges[request.challengeId],
+    "Unknown comprehension challenge.",
+  );
   const childAnswer = request.childAnswer.trim();
-  const priorCount = request.priorAttempts?.length ?? 0;
 
-  if (isLocallyCorrect(challenge, childAnswer)) {
-    return {
-      correct: true,
-      reason: "Yes — that matches what this part of the story is about.",
-      hint: null,
-    };
-  }
-
-  return {
-    correct: false,
-    reason: buildLocalMissReason({
+  return gradeLocally({
+    childAnswer,
+    priorCount: request.priorAttempts?.length ?? 0,
+    hints: challenge.hints,
+    isCorrect: isLocallyCorrectAnswer(
+      childAnswer,
+      challenge.acceptKeywords,
+      challenge.expectedUnderstanding,
+    ),
+    correctReason: "Yes — that matches what this part of the story is about.",
+    miss: {
       kind: "comprehension",
       coreIdea: challenge.coreIdea,
       childAnswer,
-    }),
-    hint: hintForAttempt(challenge.hints, priorCount),
-  };
+    },
+  });
 }

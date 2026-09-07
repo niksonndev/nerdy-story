@@ -1,3 +1,5 @@
+import { GradeError, type GradeResult } from "@/lib/grade/shared";
+
 const STOPWORDS = new Set([
   "a",
   "an",
@@ -64,6 +66,48 @@ export function overlapCount(a: Set<string>, b: Set<string>): number {
   return count;
 }
 
+export function isLocallyCorrectAnswer(
+  childAnswer: string,
+  acceptKeywords: string[] | undefined,
+  targetText: string,
+): boolean {
+  if (matchesAcceptKeywords(childAnswer.toLowerCase(), acceptKeywords)) {
+    return true;
+  }
+  return hasContentOverlap(childAnswer, targetText);
+}
+
+export function requireKnown<T>(entity: T | undefined, message: string): T {
+  if (!entity) throw new GradeError(message);
+  return entity;
+}
+
+export type LocalMissReasonOptions =
+  | { kind: "vocabulary"; word: string; coreIdea: string; childAnswer: string }
+  | { kind: "comprehension"; coreIdea: string; childAnswer: string };
+
+export function gradeLocally(options: {
+  childAnswer: string;
+  priorCount: number;
+  hints: string[];
+  isCorrect: boolean;
+  correctReason: string;
+  miss: LocalMissReasonOptions;
+}): GradeResult {
+  if (options.isCorrect) {
+    return {
+      correct: true,
+      reason: options.correctReason,
+      hint: null,
+    };
+  }
+  return {
+    correct: false,
+    reason: buildLocalMissReason(options.miss),
+    hint: hintForAttempt(options.hints, options.priorCount),
+  };
+}
+
 export function matchesAcceptKeywords(
   textLower: string,
   keywords: string[] | undefined,
@@ -106,10 +150,6 @@ const MEANINGLESS_TOKENS = new Set([
   "nothing",
   "yes",
 ]);
-
-export type LocalMissReasonOptions =
-  | { kind: "vocabulary"; word: string; coreIdea: string; childAnswer: string }
-  | { kind: "comprehension"; coreIdea: string; childAnswer: string };
 
 function capitalizeWord(word: string): string {
   if (word.length === 0) return word;
