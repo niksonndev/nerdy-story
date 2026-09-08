@@ -83,4 +83,22 @@ describe("assertHardRules hint leak", () => {
       ),
     ).toThrow(/colors\/patterns/i)
   })
+
+  it("allows a comprehension hint that only uses the question's words", () => {
+    const miss: GradeEvalCase = {
+      id: "comp-track-clues-reject-event-monkeys",
+      category: "reject-wrong",
+      challengeId: "track-clues",
+      childAnswer: "they heard monkeys in the trees",
+      expectedCorrect: false,
+      expectedReasonTag: "wrong-event",
+    }
+    expect(() =>
+      assertHardRules(miss, {
+        correct: false,
+        reason: "That happened, but not right here.",
+        hint: "What did Grandpa Elias notice on the branch?",
+      }),
+    ).not.toThrow()
+  })
 })
