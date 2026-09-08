@@ -3,6 +3,7 @@ import {
   buildLocalHitReason,
   gradeLocally,
   isLocallyCorrectAnswer,
+  localOverlapTarget,
   requireKnown,
 } from "@/lib/grade/local-helpers";
 import { mysteryWords } from "@/lib/story/story-data";
@@ -27,7 +28,7 @@ export function gradeVocabularyLocally(
     isCorrect: isLocallyCorrectAnswer(
       childAnswer,
       word.acceptKeywords,
-      word.targetDefinition,
+      localOverlapTarget(word.coreIdea, word.acceptKeywords),
     ),
     correctReason: buildLocalHitReason({
       kind: "vocabulary",

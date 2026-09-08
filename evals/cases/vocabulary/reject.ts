@@ -1,9 +1,9 @@
 import type { GradeEvalCase } from "../types"
 
 /**
- * Genuinely wrong explanations the grader must reject. Two per word with
- * distinct wrong concepts, so we confirm the reason names the right domain the
- * child landed in — not just that the verdict is "incorrect".
+ * Genuinely wrong explanations the grader must reject. At least two per word
+ * with distinct wrong concepts, so we confirm the reason names the right domain
+ * the child landed in — not just that the verdict is "incorrect".
  */
 export const vocabularyRejectCases: GradeEvalCase[] = [
   {
@@ -23,6 +23,15 @@ export const vocabularyRejectCases: GradeEvalCase[] = [
     expectedCorrect: false,
     expectedReasonTag: "wrong-concept",
     expectedReasonConcept: "cars or vehicles",
+  },
+  {
+    id: "vocab-canopy-reject-tall-trees",
+    category: "reject-wrong",
+    wordId: "canopy",
+    childAnswer: "the trees are tall",
+    expectedCorrect: false,
+    expectedReasonTag: "wrong-concept",
+    expectedReasonConcept: "tree height",
   },
   {
     id: "vocab-cautious-reject-brave",

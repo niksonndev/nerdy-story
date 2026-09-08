@@ -2,8 +2,8 @@ import type { GradeEvalCase } from "../types"
 
 /**
  * Story answers that fake understanding: circular restatements of the question,
- * verbatim passage text from a DIFFERENT part of the story, and vague filler.
- * All must be rejected.
+ * verbatim passage text from a different page, same-page sentence paste, and
+ * vague filler. All must be rejected.
  */
 export const comprehensionGamingCases: GradeEvalCase[] = [
   // gaming-parrot — restates the question as the answer
@@ -57,6 +57,33 @@ export const comprehensionGamingCases: GradeEvalCase[] = [
     childAnswer: "The trail split in two, and the paw prints grew fainter with every step.",
     expectedCorrect: false,
     expectedReasonTag: "wrong-event",
+  },
+
+  // gaming-verbatim — copied sentence from THIS page's passage (not reasoning)
+  {
+    id: "comp-track-clues-same-page-verbatim",
+    category: "gaming-verbatim",
+    challengeId: "track-clues",
+    childAnswer:
+      "pointed at some scratched bark and a few strands of greenish fur caught in the wood",
+    expectedCorrect: false,
+    expectedReasonTag: "ungrounded",
+  },
+  {
+    id: "comp-tracks-same-page-verbatim",
+    category: "gaming-verbatim",
+    challengeId: "tracks-choice-outcome",
+    childAnswer: "The trail split in two, and the paw prints grew fainter with every step.",
+    expectedCorrect: false,
+    expectedReasonTag: "ungrounded",
+  },
+  {
+    id: "comp-guide-same-page-verbatim",
+    category: "gaming-verbatim",
+    challengeId: "guide-choice-outcome",
+    childAnswer: "You won't see much movement from a sloth at midday — they rest then.",
+    expectedCorrect: false,
+    expectedReasonTag: "ungrounded",
   },
 
   // gaming-vague — filler that names nothing specific

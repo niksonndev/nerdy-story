@@ -21,9 +21,21 @@ Story comprehension:
   - Wrong event/detail (something else from the story, just not this part): "That happened, but not right here." "That's a different part of the story."
   - Wrong character (right event, wrong person): "That's actually someone else's part in the story." "A different character did that."
   - Wrong cause (event's right, reasoning is off): "That did happen, but that's not quite why." "True, but that's not the reason."
-  - Ungrounded/invented (not in the passage at all): "Hmm, let's think about what the story actually says." "That's not something this story tells us." Keep this one especially neutral — it should not read as an accusation of making things up.`;
+  - Ungrounded/invented (not in the passage at all, or a copied/near-copied passage sentence): "Hmm, let's think about what the story actually says." "That's not something this story tells us." Keep this one especially neutral — it should not read as an accusation of making things up.`;
 
-const HINT_FIELD_DESCRIPTION = `When correct is false: one short answer-aware thinking question that nods to what the child said and points toward the target idea — make them wonder, not give the answer. Not a repeat of reason. Null when correct is true.`;
+const HINT_FIELD_DESCRIPTION = `When correct is false: one short thinking question that nods to the child's own words and makes them wonder — do not give the answer. Not a repeat of reason. Null when correct is true.
+
+Never use words from the target definition, core idea, or answer reveal. You may repeat the child's mistaken words.
+
+Camouflage: never say color(s), pattern(s), blend, blending, disguise, matching, or hide.
+Nocturnal: do not say night and day in the same hint.
+Canopy: do not say roof, layer, or treetops.
+Comprehension: do not name the clues (bark, fur, dusk, midday, faint prints). Point them back at the passage.
+
+Good: child said "the trees are tall" → "If you looked way up, which part of the forest would you be talking about?"
+Bad: "What covers the very tops of those tall trees?"
+Good: "Why might you walk right past this animal and never notice it?"
+Bad: "What colors or patterns help it stay hidden?"`;
 
 export const gradeResultSchema = z.object({
   correct: z
@@ -64,9 +76,11 @@ Partial acceptance (7–9 reading level):
 - The half must be the specific timing or behavior in the target (e.g. active at night OR resting during the day) — not a vague related idea like "sleeps a lot" or "is sleepy", which miss the night/day contrast.
 - Accept simplified wording and synonyms for whichever part they name.
 - Accept answers that clearly describe the core idea even without every nuance (e.g. treetops / top of trees counts for canopy even without "roof" or "layer" wording).
+- Reject generic tree-height answers for canopy (e.g. "the trees are tall") — that names the forest, not the treetops / top-of-the-trees idea.
 
 Reject feedback:
 - On reject, reason must contrast the child's mistaken concept with the word — never quote or paraphrase the full target definition in reason.
+- The hint must wonder, not define: never use definition / core-idea wording (no roof/layer/treetops for canopy; no night and day together for nocturnal; no colors, patterns, blend, disguise, or matching for camouflage).
 
 Reject overly generic answers:
 - Reject when the answer could fit many unrelated words and misses what makes THIS word specific in the target definition.
@@ -81,8 +95,12 @@ ${GRADER_SHARED}
 
 Grading:
 - Compare the child's latest answer to the expected understanding, using the story passage and question as context.
+- First: if the latest answer copies or nearly copies a sentence from the Story passage, mark correct false (ungrounded). Copying is not reasoning — even when that sentence contains the right clues. A short answer in the child's own words that names a clue still counts.
+  Example reject: pasting "The trail split in two, and the paw prints grew fainter with every step." is not explaining why the tracks were risky.
+  Example accept: "the tracks got faint and she almost went the wrong way."
 - Reject answers that describe a different event, reason, or wrong idea from the passage.
 - On accept, reason must reuse the child's wording before naming the story idea — never a canned "that's exactly why" stamp.
+- On reject, the hint must not name the clues (no bark/fur, no dusk/midday, no faint prints). Ask them to look again at the passage.
 
 Partial acceptance (7–9 reading level):
 - When the passage gives multiple separate clues or facts, accept an answer that names ONE grounded, correct clue or fact from the passage — the child does not need to list every detail.
@@ -134,6 +152,7 @@ export function buildComprehensionTrustedContext(
   const lines = [
     `Question: ${challenge.question}`,
     `Story passage: ${challenge.passage}`,
+    "Copied or near-copied sentences from that passage are not a match (ungrounded), even if they contain the right clues.",
     `Expected understanding: ${challenge.expectedUnderstanding}`,
     `Core idea (kid language to name on a hit): ${challenge.coreIdea}`,
   ];

@@ -66,15 +66,56 @@ export function overlapCount(a: Set<string>, b: Set<string>): number {
   return count;
 }
 
+/** Consecutive passage content tokens that count as a copied sentence. */
+export const PASSAGE_PASTE_MIN_NGRAM = 6;
+
+/** coreIdea ∪ acceptKeywords — vocab overlap must not use definition filler. */
+export function localOverlapTarget(
+  coreIdea: string,
+  acceptKeywords: string[] | undefined,
+): string {
+  return [coreIdea, ...(acceptKeywords ?? [])].join(" ");
+}
+
+function containsConsecutive(
+  haystack: string[],
+  needle: string[],
+): boolean {
+  if (needle.length === 0 || needle.length > haystack.length) return false;
+  for (let i = 0; i <= haystack.length - needle.length; i++) {
+    const matches = needle.every((token, offset) => haystack[i + offset] === token);
+    if (matches) return true;
+  }
+  return false;
+}
+
+/** True when the answer copies a long consecutive content n-gram from the passage. */
+export function hasPassagePaste(childAnswer: string, passage: string): boolean {
+  const answerTokens = normalizeTokens(childAnswer);
+  const passageTokens = normalizeTokens(passage);
+  if (answerTokens.length < PASSAGE_PASTE_MIN_NGRAM) return false;
+  if (passageTokens.length < PASSAGE_PASTE_MIN_NGRAM) return false;
+
+  for (let i = 0; i <= passageTokens.length - PASSAGE_PASTE_MIN_NGRAM; i++) {
+    const ngram = passageTokens.slice(i, i + PASSAGE_PASTE_MIN_NGRAM);
+    if (containsConsecutive(answerTokens, ngram)) return true;
+  }
+  return false;
+}
+
 export function isLocallyCorrectAnswer(
   childAnswer: string,
   acceptKeywords: string[] | undefined,
-  targetText: string,
+  overlapTarget: string,
+  options?: { passage?: string },
 ): boolean {
+  if (options?.passage && hasPassagePaste(childAnswer, options.passage)) {
+    return false;
+  }
   if (matchesAcceptKeywords(childAnswer.toLowerCase(), acceptKeywords)) {
     return true;
   }
-  return hasContentOverlap(childAnswer, targetText);
+  return hasContentOverlap(childAnswer, overlapTarget);
 }
 
 export function requireKnown<T>(entity: T | undefined, message: string): T {

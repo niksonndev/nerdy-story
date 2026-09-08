@@ -115,7 +115,7 @@ describe("gradeVocabularyLocally", () => {
     expect(result.hint).toBeNull();
   });
 
-  it("accepts overlapping definition tokens as correct", () => {
+  it("accepts overlapping core-idea tokens as correct", () => {
     const result = gradeVocabularyLocally({
       wordId: "canopy",
       childAnswer: "the treetops where the leaves block the sun",
@@ -124,6 +124,16 @@ describe("gradeVocabularyLocally", () => {
     expect(result.hint).toBeNull();
     expect(result.reason).toMatch(/canopy/i);
     expect(result.reason).toMatch(/treetops/i);
+  });
+
+  it("rejects generic tree-height as canopy", () => {
+    const result = gradeVocabularyLocally({
+      wordId: "canopy",
+      childAnswer: "the trees are tall",
+    });
+    expect(result.correct).toBe(false);
+    expect(result.reason).toMatch(/canopy is about treetops/i);
+    expect(result.hint).toBe(mysteryWords.canopy.hints[0]);
   });
 
   it("accepts acceptKeywords for cautious", () => {
@@ -137,7 +147,7 @@ describe("gradeVocabularyLocally", () => {
     expect(result.reason).toMatch(/cautious/i);
   });
 
-  it("accepts overlapping definition tokens for nocturnal", () => {
+  it("accepts an acceptKeyword for nocturnal", () => {
     const result = gradeVocabularyLocally({
       wordId: "nocturnal",
       childAnswer: "awake at night and resting during the day",
@@ -254,6 +264,7 @@ describe("gradeVocabulary", () => {
     expect(call.system).toMatch(/untrusted/i);
     expect(call.system).not.toContain("the top of the trees where leaves meet");
     expect(gradeResultSchema.shape.hint.description).toMatch(/Null when correct is true/i);
+    expect(gradeResultSchema.shape.hint.description).toMatch(/never say color/i);
     expect(call.system).toMatch(/reuse the child's wording/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
       /Vocabulary \(mystery word\)/i,

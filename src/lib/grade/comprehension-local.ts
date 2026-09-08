@@ -31,6 +31,7 @@ export function gradeComprehensionLocally(
       childAnswer,
       challenge.acceptKeywords,
       challenge.expectedUnderstanding,
+      { passage: challenge.passage },
     ),
     correctReason: buildLocalHitReason({
       kind: "comprehension",

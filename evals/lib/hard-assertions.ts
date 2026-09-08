@@ -1,3 +1,4 @@
+import { hintLeakMessage } from "@/lib/grade/hint-leak"
 import type { GradeResult } from "@/lib/grade/shared"
 import { comprehensionChallenges, mysteryWords } from "@/lib/story/story-data"
 
@@ -53,6 +54,16 @@ function forbiddenRevealTexts(evalCase: GradeEvalCase): string[] {
   return []
 }
 
+/** Nodding to the child's words (or the question) is not handing over the answer. */
+function leakAllowedText(evalCase: GradeEvalCase): string {
+  const parts = [evalCase.childAnswer]
+  if (evalCase.challengeId) {
+    const challenge = comprehensionChallenges[evalCase.challengeId]
+    if (challenge) parts.push(challenge.question)
+  }
+  return parts.join(" ")
+}
+
 /**
  * Deterministic pass/fail checks that need no model judgment. Throws
  * HardRuleError on the first violation so the test fails with a clear reason.
@@ -90,13 +101,23 @@ export function assertHardRules(
   }
 
   if (result.hint) {
+    const forbidden = forbiddenRevealTexts(evalCase)
     const hint = normalize(result.hint)
-    for (const reveal of forbiddenRevealTexts(evalCase)) {
+    for (const reveal of forbidden) {
       if (hint.includes(normalize(reveal))) {
         throw new HardRuleError(
           `Hint reveals the answer (contains reveal text verbatim): "${result.hint}"`,
         )
       }
+    }
+
+    const leak = hintLeakMessage(result.hint, forbidden, {
+      camouflage: evalCase.wordId === "camouflage",
+      nocturnal: evalCase.wordId === "nocturnal",
+      allowedText: leakAllowedText(evalCase),
+    })
+    if (leak) {
+      throw new HardRuleError(leak)
     }
   }
 }

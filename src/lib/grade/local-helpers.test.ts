@@ -5,7 +5,9 @@ import {
   buildLocalMissReason,
   extractChildIdea,
   extractChildPhrase,
+  hasPassagePaste,
 } from "@/lib/grade/local-helpers";
+import { comprehensionChallenges } from "@/lib/story/story-data";
 
 describe("extractChildIdea", () => {
   it("picks the longest non-overlapping token from the answer", () => {
@@ -108,6 +110,25 @@ describe("buildLocalHitReason", () => {
       }),
     ).toBe(
       "Yes — you said because of the scraped bark and green. This part is about clues on the branch.",
+    );
+  });
+});
+
+describe("hasPassagePaste", () => {
+  const passage = comprehensionChallenges["track-clues"].passage;
+
+  it("flags a long consecutive n-gram from this page", () => {
+    expect(
+      hasPassagePaste(
+        "pointed at some scratched bark and a few strands of greenish fur caught in the wood",
+        passage,
+      ),
+    ).toBe(true);
+  });
+
+  it("allows a short clue in the child's own words", () => {
+    expect(hasPassagePaste("scratched bark and green fur", passage)).toBe(
+      false,
     );
   });
 });

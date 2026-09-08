@@ -19,7 +19,8 @@ For every case, against each selected model:
 1. **Verdict** — does `correct` match the expected accept/reject?
 2. **Feedback rules (deterministic)** — no shame language, sane reason length,
    hint cleared on correct / present on wrong, hint and reason do not leak the
-   definition or reveal text verbatim.
+   definition or reveal (verbatim **or** distinctive token overlap; camouflage
+   hints must not name blend / colors+patterns).
 3. **Hit copy (deterministic, accepts only)** — the reason must sound like it
    heard this child: no `Perfect!` opener, no `that's exactly it`, no full
    definition / answer-reveal dump, at least one content token from the child's

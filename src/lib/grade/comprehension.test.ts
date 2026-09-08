@@ -139,6 +139,25 @@ describe("gradeComprehensionLocally", () => {
     expect(result.hint).toBeNull();
   });
 
+  it("accepts a short clue paraphrase that is not a passage paste", () => {
+    const result = gradeComprehensionLocally({
+      challengeId: "track-clues",
+      childAnswer: "scratched bark and green fur",
+    });
+    expect(result.correct).toBe(true);
+    expect(result.hint).toBeNull();
+  });
+
+  it("rejects pasting this page's scratched-bark sentence", () => {
+    const result = gradeComprehensionLocally({
+      challengeId: "track-clues",
+      childAnswer:
+        "pointed at some scratched bark and a few strands of greenish fur caught in the wood",
+    });
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(comprehensionChallenges["track-clues"].hints[0]);
+  });
+
   it("rejects a wrong idea and returns a story hint", () => {
     const result = gradeComprehensionLocally({
       challengeId: "track-clues",
@@ -250,6 +269,8 @@ describe("gradeComprehension", () => {
       "they saw scraped bark and green fur on the branch",
     );
     expect(call.system).toMatch(/reuse the child's wording/i);
+    expect(call.system).toMatch(/copies or nearly copies a sentence/i);
+    expect(call.messages[0]?.content).toMatch(/Copied or near-copied sentences/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
       /Story comprehension/i,
     );

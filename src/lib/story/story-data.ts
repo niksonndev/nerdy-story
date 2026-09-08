@@ -72,8 +72,8 @@ export const mysteryWords: Record<string, MysteryWord> = {
       "tree ceiling",
     ],
     hints: [
-      "Think about the very top of the forest, where the leaves and branches are so thick they block the sun.",
-      "It's like a leafy roof way above your head, where lots of animals live.",
+      "If you looked way up, which part of the forest would you be talking about?",
+      "Where do the leaves sit when they make a thick cover over the trail?",
     ],
     meaningReveal:
       "The canopy is the leafy 'roof' made by the tallest trees in the rainforest — many animals, like sloths, spend their whole lives up there.",
@@ -91,8 +91,8 @@ export const mysteryWords: Record<string, MysteryWord> = {
       "being safe",
     ],
     hints: [
-      "It's how you act when you want to avoid getting hurt or making a mistake — you go slow and pay attention.",
-      "If you tiptoe around something because you're not sure it's safe, you're being this word.",
+      "How do you move when something might not be safe?",
+      "What would you do first if you weren't sure yet?",
     ],
     meaningReveal:
       "Cautious means being careful and paying close attention before you act, so you don't get into trouble or danger.",
@@ -105,12 +105,13 @@ export const mysteryWords: Record<string, MysteryWord> = {
     coreIdea: "blending in and hiding",
     acceptKeywords: [
       "blending in",
+      "blend in",
       "hiding by matching colors",
       "disguise",
     ],
     hints: [
-      "It's why some animals are almost invisible against leaves, bark, or rocks.",
-      "Think of coloring that helps an animal 'disappear' into its surroundings.",
+      "Why might you walk right past this animal and never notice it?",
+      "What about how it looks could make it hard to spot next to a leaf or a rock?",
     ],
     meaningReveal:
       "Camouflage is a coloring or pattern that helps an animal blend into its surroundings so predators (or curious kids!) have trouble spotting it.",
@@ -127,8 +128,8 @@ export const mysteryWords: Record<string, MysteryWord> = {
       "night animal",
     ],
     hints: [
-      "Some animals do most of their moving around after the sun goes down — this word describes them.",
-      "It's the opposite of being active during the daytime.",
+      "When does this kind of animal do most of its moving around?",
+      "If the sun is up, what is this animal probably doing?",
     ],
     meaningReveal:
       "Nocturnal animals are most active at night and rest during the day — many rainforest creatures live on this night schedule.",
@@ -152,8 +153,8 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "fur clue",
     ],
     hints: [
-      "Look again at what Grandpa Elias noticed on the branch — two separate clues, not just one.",
-      "One clue was on the bark itself, the other was caught inside it.",
+      "What two things did Grandpa Elias point to on the branch?",
+      "Besides marks on the tree, what else was stuck there?",
     ],
     answerReveal:
       "They noticed scraped bark and greenish fur (with algae growing in it) caught on the branch — both signs that a sloth had recently climbed through.",
@@ -173,8 +174,8 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "hard to follow",
     ],
     hints: [
-      "Think about what happened to the prints the further Mia went.",
-      "She almost made a mistake twice — what kind of mistake?",
+      "What happened to the marks on the ground the longer the walk went?",
+      "She almost made a mistake twice — which kind?",
     ],
     answerReveal:
       "The prints grew faint and the trail split, so Mia nearly went the wrong way twice before a fresh scrape mark set her straight.",
@@ -195,8 +196,8 @@ export const comprehensionChallenges: Record<string, ComprehensionChallenge> = {
       "come back later",
     ],
     hints: [
-      "What time of day did the ranger say sloths start moving?",
-      "Think about why Mia and Grandpa Elias decided to wait instead of leaving.",
+      "When did she say they start moving around?",
+      "Why stay instead of heading home?",
     ],
     answerReveal:
       "The ranger explained that sloths rest at midday and become active near dusk, so Mia and Grandpa Elias waited at the observation platform until then.",
