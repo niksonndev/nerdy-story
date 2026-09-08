@@ -9,7 +9,8 @@ Live-model evals for the vocabulary and comprehension graders. Unlike the unit
 tests under `src/lib/grade/` (which mock the model and cover the local keyword
 fallback), these call the real grader through the Vercel AI Gateway.
 
-They are **opt-in** and excluded from `bun test`.
+They are **opt-in** (`*.eval.test.ts`) and excluded from `bun run test`. Layer 2
+assertion unit tests under `evals/lib/` still run with the regular suite.
 
 ## What they check
 
@@ -19,6 +20,11 @@ For every case, against each selected model:
 2. **Feedback rules (deterministic)** — no shame language, sane reason length,
    hint cleared on correct / present on wrong, hint and reason do not leak the
    definition or reveal text verbatim.
+3. **Hit copy (deterministic, accepts only)** — the reason must sound like it
+   heard this child: no `Perfect!` opener, no `that's exactly it`, no full
+   definition / answer-reveal dump, at least one content token from the child's
+   answer, and the mystery word or core idea (vocab) / core idea or
+   challenge keywords (comprehension).
 
 **Manual review (boundary + gaming)** — after a run, read the report's manual
 review section (or the JSON in `evals/results/`) for qualitative calibration on

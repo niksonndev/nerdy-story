@@ -33,13 +33,11 @@ export async function evaluateCase(
     else throw error
   }
 
-  if (!evalCase.expectedCorrect) {
-    try {
-      assertReasonExpectations(evalCase, result)
-    } catch (error) {
-      if (error instanceof HardRuleError) failReasons.push(error.message)
-      else throw error
-    }
+  try {
+    assertReasonExpectations(evalCase, result)
+  } catch (error) {
+    if (error instanceof HardRuleError) failReasons.push(error.message)
+    else throw error
   }
 
   recordOutcome(buildOutcome({ model, evalCase, result, failReasons }))
