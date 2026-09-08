@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  firstMysteryPageId,
   flipBookKeyFor,
   flipCurrentIndex,
   flipSheetIdsFor,
@@ -146,5 +147,11 @@ describe("flipBookKeyFor", () => {
         resolvedWordIds: ["canopy", "camouflage"],
       }),
     ).toBe("page-5:0");
+  });
+});
+
+describe("firstMysteryPageId", () => {
+  it("is the first linear page that embeds a mystery word", () => {
+    expect(firstMysteryPageId()).toBe("page-2");
   });
 });

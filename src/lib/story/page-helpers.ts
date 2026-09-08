@@ -1,9 +1,27 @@
-import type { StoryPage } from "@/lib/story/story-data";
+import {
+  STORY_START_ID,
+  storyPagesById,
+  type StoryPage,
+} from "@/lib/story/story-data";
 
 export function mysteryWordIdsFor(page: StoryPage): string[] {
   return page.segments
     .filter((segment) => segment.type === "mystery")
     .map((segment) => segment.wordId);
+}
+
+/** First linear page from the cover that embeds a mystery word (today: page-2). */
+export function firstMysteryPageId(): string | null {
+  const seen = new Set<string>();
+  let id: string | undefined = STORY_START_ID;
+  while (id && !seen.has(id)) {
+    seen.add(id);
+    const page: StoryPage | undefined = storyPagesById[id];
+    if (!page) return null;
+    if (mysteryWordIdsFor(page).length > 0) return page.id;
+    id = page.nextPageId;
+  }
+  return null;
 }
 
 /**
