@@ -9,6 +9,8 @@ import {
   type GradeEvalCase,
 } from "../cases/types"
 
+export type EvalSuite = "dev" | "heldout"
+
 export type CaseOutcome = {
   model: string
   caseId: string
@@ -26,6 +28,15 @@ export type CaseOutcome = {
   expectedReasonConcept?: string
   boundaryRationale?: string
   manualReview: boolean
+  /** Wall time for the isolated live grade call. */
+  latencyMs: number
+  /** True when generateText threw — not a model verdict. */
+  liveFailed: boolean
+  /**
+   * Isolated evals never invoke the local keyword matcher. Always false here;
+   * local fallback is covered by unit tests, not this suite.
+   */
+  usedLocalFallback: boolean
 }
 
 const RUN_ID =
@@ -79,8 +90,9 @@ export function buildOutcome(args: {
   evalCase: GradeEvalCase
   result: GradeResult
   failReasons: string[]
+  latencyMs: number
 }): CaseOutcome {
-  const { model, evalCase, result, failReasons } = args
+  const { model, evalCase, result, failReasons, latencyMs } = args
   return {
     ...baseOutcomeFields(model, evalCase),
     actualCorrect: result.correct,
@@ -88,6 +100,9 @@ export function buildOutcome(args: {
     failReasons,
     reason: result.reason,
     hint: result.hint,
+    latencyMs,
+    liveFailed: false,
+    usedLocalFallback: false,
   }
 }
 
@@ -96,8 +111,9 @@ export function buildErrorOutcome(args: {
   model: string
   evalCase: GradeEvalCase
   errorMessage: string
+  latencyMs: number
 }): CaseOutcome {
-  const { model, evalCase, errorMessage } = args
+  const { model, evalCase, errorMessage, latencyMs } = args
   return {
     ...baseOutcomeFields(model, evalCase),
     actualCorrect: null,
@@ -105,7 +121,20 @@ export function buildErrorOutcome(args: {
     failReasons: [`grade call threw: ${errorMessage}`],
     reason: "(threw)",
     hint: null,
+    latencyMs,
+    liveFailed: true,
+    usedLocalFallback: false,
   }
+}
+
+export function reportFileName(
+  runId: string,
+  domain: "vocabulary" | "comprehension",
+  suite: EvalSuite = "dev",
+): string {
+  return suite === "heldout"
+    ? `${runId}-heldout-${domain}.json`
+    : `${runId}-${domain}.json`
 }
 
 function rate(passed: number, total: number): string {
@@ -166,6 +195,16 @@ function gradedOutcomes(items: CaseOutcome[]): CaseOutcome[] {
   return items.filter((o) => o.actualCorrect !== null)
 }
 
+function latencyStats(items: CaseOutcome[]): { avg: number; min: number; max: number } | null {
+  if (items.length === 0) return null
+  const values = items.map((o) => o.latencyMs)
+  return {
+    avg: Math.round(values.reduce((sum, value) => sum + value, 0) / values.length),
+    min: Math.min(...values),
+    max: Math.max(...values),
+  }
+}
+
 function formatManualReviewEntry(o: CaseOutcome): string[] {
   const entry: string[] = [
     `    [${o.caseId}] (${o.category})`,
@@ -192,7 +231,11 @@ function formatManualReviewEntry(o: CaseOutcome): string[] {
  * manual review for boundary/gaming cases, and cross-model divergence when
  * more than one model ran.
  */
-export function finalizeReport(domain: "vocabulary" | "comprehension"): void {
+export function finalizeReport(
+  domain: "vocabulary" | "comprehension",
+  options?: { suite?: EvalSuite },
+): void {
+  const suite = options?.suite ?? "dev"
   const domainOutcomes = outcomes.filter(
     (o) => o.caseId.startsWith(`${domain === "vocabulary" ? "vocab" : "comp"}-`),
   )
@@ -200,7 +243,8 @@ export function finalizeReport(domain: "vocabulary" | "comprehension"): void {
 
   const models = [...new Set(domainOutcomes.map((o) => o.model))]
   const lines: string[] = []
-  lines.push("", `=== ${domain} eval report (run ${RUN_ID}) ===`)
+  const suiteLabel = suite === "heldout" ? "held-out " : ""
+  lines.push("", `=== ${domain} ${suiteLabel}eval report (run ${RUN_ID}) ===`)
 
   for (const model of models) {
     const modelOutcomes = domainOutcomes.filter((o) => o.model === model)
@@ -208,6 +252,15 @@ export function finalizeReport(domain: "vocabulary" | "comprehension"): void {
     const modelExcluded = excludedCount(modelOutcomes)
     const modelGraded = gradedOutcomes(modelOutcomes)
     lines.push(`  Overall: ${rate(passCount(modelOutcomes), modelOutcomes.length)}`)
+    const latency = latencyStats(modelOutcomes)
+    if (latency) {
+      lines.push(
+        `  Latency: avg ${latency.avg}ms (min ${latency.min}, max ${latency.max})`,
+      )
+    }
+    lines.push(
+      "  Local keyword fallback: never used (isolated live models)",
+    )
     if (modelExcluded > 0) {
       lines.push(`  Excluded (grade call failed): ${modelExcluded}`)
       lines.push(
@@ -283,19 +336,21 @@ export function finalizeReport(domain: "vocabulary" | "comprehension"): void {
   const report = {
     runId: RUN_ID,
     domain,
+    suite,
     models,
     total: domainOutcomes.length,
     passed: passCount(domainOutcomes),
     excluded,
     gradedTotal: graded.length,
     gradedPassed: passCount(graded),
+    latency: latencyStats(domainOutcomes),
     divergence,
     outcomes: domainOutcomes,
   }
 
   const dir = path.resolve(__dirname, "../results")
   mkdirSync(dir, { recursive: true })
-  const file = path.join(dir, `${RUN_ID}-${domain}.json`)
+  const file = path.join(dir, reportFileName(RUN_ID, domain, suite))
   writeFileSync(file, JSON.stringify(report, null, 2))
   lines.push("", `Wrote ${file}`)
 

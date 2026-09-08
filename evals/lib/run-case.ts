@@ -14,16 +14,21 @@ export async function evaluateCase(
   evalCase: GradeEvalCase,
   model: string,
 ): Promise<string[]> {
+  const started = Date.now()
   let result: GradeResult
   try {
     result = await gradeCase(evalCase, model)
   } catch (error) {
+    const latencyMs = Date.now() - started
     const message = error instanceof Error ? error.message : String(error)
     const failReasons = [`grade call threw: ${message}`]
-    recordOutcome(buildErrorOutcome({ model, evalCase, errorMessage: message }))
+    recordOutcome(
+      buildErrorOutcome({ model, evalCase, errorMessage: message, latencyMs }),
+    )
     return failReasons
   }
 
+  const latencyMs = Date.now() - started
   const failReasons: string[] = []
 
   try {
@@ -40,6 +45,6 @@ export async function evaluateCase(
     else throw error
   }
 
-  recordOutcome(buildOutcome({ model, evalCase, result, failReasons }))
+  recordOutcome(buildOutcome({ model, evalCase, result, failReasons, latencyMs }))
   return failReasons
 }
