@@ -256,6 +256,14 @@ export const StoryPageView = forwardRef<
         renderSheet={(pageId, isCurrent) => {
           const sheetPage = storyPagesById[pageId];
           if (!sheetPage) return null;
+          const sheetWordIds = mysteryWordIdsFor(sheetPage);
+          const vocabUnresolved = !sheetWordIds.every((id) =>
+            resolvedWordIds.includes(id),
+          );
+          const comprehensionPending = Boolean(
+            sheetPage.comprehensionId &&
+              !resolvedComprehensionIds.includes(sheetPage.comprehensionId),
+          );
           return (
             <StoryPageSheet
               page={sheetPage}
@@ -263,6 +271,8 @@ export const StoryPageView = forwardRef<
               canAdvance={isCurrent && progressionReady}
               canGoBack={isCurrent && previousReady}
               resolvedWordIds={resolvedWordIds}
+              vocabUnresolved={vocabUnresolved}
+              comprehensionPending={comprehensionPending}
               onMysteryClick={onMysteryClick}
               onNextPage={handleNextPage}
               onPreviousPage={requestRetreat}

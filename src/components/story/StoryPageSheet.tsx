@@ -1,6 +1,5 @@
 "use client";
 
-import { useId } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 
@@ -16,6 +15,8 @@ export function StoryPageSheet({
   canAdvance,
   canGoBack,
   resolvedWordIds,
+  vocabUnresolved,
+  comprehensionPending,
   onMysteryClick,
   onNextPage,
   onPreviousPage,
@@ -26,6 +27,8 @@ export function StoryPageSheet({
   canAdvance: boolean;
   canGoBack: boolean;
   resolvedWordIds: string[];
+  vocabUnresolved: boolean;
+  comprehensionPending: boolean;
   onMysteryClick: (wordId: string) => void;
   onNextPage: () => void;
   onPreviousPage: () => void;
@@ -87,6 +90,7 @@ export function StoryPageSheet({
                     key={index}
                     label={segment.content}
                     resolved={isResolved}
+                    cue={interactive && !isResolved}
                     onClick={() => onMysteryClick(segment.wordId)}
                   />
                 );
@@ -99,7 +103,8 @@ export function StoryPageSheet({
             page={page}
             canAdvance={canAdvance}
             canGoBack={canGoBack}
-            vocabGated={interactive && !canAdvance}
+            vocabUnresolved={vocabUnresolved}
+            comprehensionPending={comprehensionPending}
             onNextPage={onNextPage}
             onPreviousPage={onPreviousPage}
             onChoosePath={onChoosePath}
@@ -184,7 +189,8 @@ function PageProgression({
   page,
   canAdvance,
   canGoBack,
-  vocabGated,
+  vocabUnresolved,
+  comprehensionPending,
   onNextPage,
   onPreviousPage,
   onChoosePath,
@@ -193,15 +199,16 @@ function PageProgression({
   page: StoryPage;
   canAdvance: boolean;
   canGoBack: boolean;
-  vocabGated: boolean;
+  vocabUnresolved: boolean;
+  comprehensionPending: boolean;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onChoosePath: (nextPageId: string) => void;
   className?: string;
 }) {
-  const nextHintId = useId();
   const isLastPage = !page.nextPageId && !page.choice;
   if (page.choice) {
+    if (vocabUnresolved) return null;
     return (
       <div className={cn("flex w-full flex-col gap-3", className)}>
         <BranchChoice
@@ -213,7 +220,8 @@ function PageProgression({
     );
   }
 
-  if (isLastPage) {
+  const hideForward = isLastPage || vocabUnresolved;
+  if (hideForward) {
     if (!canGoBack) return null;
     return (
       <div className={cn("flex w-full items-center", className)}>
@@ -232,6 +240,8 @@ function PageProgression({
       </div>
     );
   }
+
+  const nextLabel = comprehensionPending ? "A story question" : "Next Page";
 
   return (
     <div
@@ -259,35 +269,35 @@ function PageProgression({
       ) : (
         <span className="hidden sm:block" />
       )}
-      {vocabGated ? (
-        <span id={nextHintId} className="sr-only">
-          Finish the mystery word on this page before going to the next page.
-        </span>
-      ) : null}
       <Button
         size="kid"
         className="min-h-14 flex-1 sm:ml-auto sm:w-auto sm:flex-none"
         onClick={onNextPage}
         disabled={!canAdvance}
-        aria-label="Next Page"
-        aria-describedby={vocabGated ? nextHintId : undefined}
+        aria-label={nextLabel}
       >
-        Next Page
+        {nextLabel}
       </Button>
     </div>
   );
 }
 
+const MYSTERY_CUE = { scale: [1, 1.06, 1] };
+const MYSTERY_STILL = { scale: 1 };
+
 function MysteryWord({
   label,
   resolved,
+  cue,
   onClick,
 }: {
   label: string;
   resolved: boolean;
+  cue: boolean;
   onClick: () => void;
 }) {
   const reduceMotion = useReducedMotion();
+  const showAttention = cue && !reduceMotion;
 
   return (
     <motion.button
@@ -299,6 +309,12 @@ function MysteryWord({
         resolved ? `Learned word: ${label}` : `Mystery word: ${label}`
       }
       aria-disabled={resolved}
+      animate={showAttention ? MYSTERY_CUE : MYSTERY_STILL}
+      transition={
+        showAttention
+          ? { duration: 0.5, ease: "easeOut" }
+          : { duration: 0 }
+      }
       whileTap={reduceMotion || resolved ? undefined : { scale: 0.94 }}
       className={cn(
         // Inline hit slate ≥44px tall without breaking sentence flow
@@ -306,7 +322,7 @@ function MysteryWord({
         "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         resolved
           ? "bg-reward/20"
-          : "bg-magic/15 underline decoration-magic decoration-wavy underline-offset-4 sm:underline-offset-8 transition-colors lg:hover:bg-magic/25",
+          : "bg-magic/20 ring-1 ring-magic/40 underline decoration-magic decoration-wavy underline-offset-4 sm:underline-offset-8 transition-colors lg:hover:bg-magic/30",
       )}
     >
       {resolved ? (
