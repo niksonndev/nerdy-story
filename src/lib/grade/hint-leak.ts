@@ -12,17 +12,30 @@ const NON_DISTINCTIVE = new Set([
   "does",
   "don",
   "elias",
+  "forest",
   "get",
   "got",
   "grandpa",
+  "her",
+  "him",
+  "his",
   "how",
   "make",
   "made",
   "mia",
+  "print",
+  "prints",
+  "rainforest",
+  "she",
   "should",
+  "tall",
   "them",
+  "then",
   "they",
   "their",
+  "tree",
+  "trees",
+  "way",
   "why",
   "would",
 ]);
@@ -32,6 +45,8 @@ const CAMOUFLAGE_COLOR = /\bcolou?rs?\b|\bcoloring\b/i;
 const CAMOUFLAGE_PATTERN = /\bpatterns?\b/i;
 const NOCTURNAL_DAY = /\bdays?\b/i;
 const NOCTURNAL_NIGHT = /\bnight/i;
+const SLOTH_TIMING_REST = /\brest(?:s|ing|ed)?\b/i;
+const SLOTH_TIMING_ACTIVE = /\bmov(?:e|es|ing|ed)\b|\bactive\b/i;
 
 function distinctiveTokens(text: string): Set<string> {
   return new Set(
@@ -44,6 +59,8 @@ function distinctiveTokens(text: string): Set<string> {
 export type HintLeakOptions = {
   camouflage?: boolean;
   nocturnal?: boolean;
+  /** Ranger timing contrast: rest and moving/active together hands over the answer. */
+  slothTiming?: boolean;
   /** Child answer (and comprehension question): nodding is not leaking. */
   allowedText?: string;
 };
@@ -72,6 +89,13 @@ export function hintLeakMessage(
     NOCTURNAL_NIGHT.test(hint)
   ) {
     return `Hint names nocturnal's night/day contrast: "${hint}"`;
+  }
+  if (
+    options?.slothTiming &&
+    SLOTH_TIMING_REST.test(hint) &&
+    SLOTH_TIMING_ACTIVE.test(hint)
+  ) {
+    return `Hint names the rest/moving timing contrast: "${hint}"`;
   }
 
   const allowed = options?.allowedText

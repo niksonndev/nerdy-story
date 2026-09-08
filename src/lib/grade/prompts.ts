@@ -16,8 +16,10 @@ Vocabulary (mystery word):
 Story comprehension:
 - correct true: echo a bit of the child's own wording, then name the story idea in 7–9 language. Do not start with "Perfect!" or write "That's exactly it". Do not paste the expected understanding or answer reveal.
   Good: child said "scraped bark and green fur" → "You noticed the scraped bark and green fur — those are the clues on the branch."
+  Good: child said "the bark was scratched and there was fur stuck in it" → "You noticed the scratched bark and the fur stuck there — those are the clues on the branch."
   Bad: "Yes! That's exactly why it happened."
-- correct false: identify which kind of miss it is and use the matching template. Never say "wrong", "no", or "incorrect".
+  Naming the passage clues is a hit even if the child never says the animal or the conclusion.
+- correct false: identify which kind of miss it is and use the matching template. Never say "wrong", "no", or "incorrect". Never use the vocabulary templates ("Good guess, but [word] isn't about…") — core idea is not a mystery word.
   - Wrong event/detail (something else from the story, just not this part): "That happened, but not right here." "That's a different part of the story."
   - Wrong character (right event, wrong person): "That's actually someone else's part in the story." "A different character did that."
   - Wrong cause (event's right, reasoning is off): "That did happen, but that's not quite why." "True, but that's not the reason."
@@ -31,6 +33,9 @@ Camouflage: never say color(s), pattern(s), blend, blending, disguise, matching,
 Nocturnal: do not say night and day in the same hint.
 Canopy: do not say roof, layer, or treetops.
 Comprehension: do not name the clues (bark, fur, dusk, midday, faint prints). Point them back at the passage.
+Ranger timing: do not say rest and moving/active in the same hint (same bar as nocturnal night/day).
+  Good: "When did she say they start moving around?"
+  Bad: "What time of day did the sloths rest and then start moving?"
 
 Good: child said "the trees are tall" → "If you looked way up, which part of the forest would you be talking about?"
 Bad: "What covers the very tops of those tall trees?"
@@ -95,15 +100,20 @@ ${GRADER_SHARED}
 
 Grading:
 - Compare the child's latest answer to the expected understanding, using the story passage and question as context.
-- First: if the latest answer copies or nearly copies a sentence from the Story passage, mark correct false (ungrounded). Copying is not reasoning — even when that sentence contains the right clues. A short answer in the child's own words that names a clue still counts.
+- First: if the latest answer copies or nearly copies a whole sentence from the Story passage, mark correct false (ungrounded). Copying is not reasoning — even when that sentence contains the right clues. Reusing a few passage words while adding the child's own consequence or clue is accept, not a paste.
   Example reject: pasting "The trail split in two, and the paw prints grew fainter with every step." is not explaining why the tracks were risky.
+  Example accept: "the trail split in two and she nearly went wrong."
   Example accept: "the tracks got faint and she almost went the wrong way."
+  Example accept (messy spelling/grammar, meaning clear): "the bark was scrape up and green fur was their on the branch."
+  Example accept (clues without naming the sloth): "the bark was scratched and there was fur stuck in it."
 - Reject answers that describe a different event, reason, or wrong idea from the passage.
-- On accept, reason must reuse the child's wording before naming the story idea — never a canned "that's exactly why" stamp.
-- On reject, the hint must not name the clues (no bark/fur, no dusk/midday, no faint prints). Ask them to look again at the passage.
+- On accept, reason must reuse the child's wording before naming the story idea — never a canned "that's exactly why" stamp. Naming the passage clues is enough — do not require the child to also name the animal or spell out the conclusion.
+- On reject, reason must use the comprehension miss templates only — never "Good guess, but [word] isn't about…".
+- On reject, the hint must not name the clues (no bark/fur, no dusk/midday, no faint prints). For the ranger timing question, do not say rest and moving/active in the same hint. Ask them to look again at the passage.
 
 Partial acceptance (7–9 reading level):
 - When the passage gives multiple separate clues or facts, accept an answer that names ONE grounded, correct clue or fact from the passage — the child does not need to list every detail.
+- Messy spelling or grammar still counts when those clues are there (e.g. "splitted", "scrape up", "their" for there).
 - When the question asks about timing or when to do something, accept an answer that captures ONE true half of the passage's contrast (e.g. resting at midday OR becoming active near dusk) if it is grounded in what the passage says — the child does not need both halves in one answer.
 - Partial acceptance is for missing extra details — not when the child swaps who did or said something.
 

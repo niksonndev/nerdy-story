@@ -37,8 +37,10 @@ function normalize(text: string): string {
 }
 
 /**
- * The hint must not hand the child the answer. We reject when the hint contains
- * the full definition / expected understanding / reveal text verbatim.
+ * The hint must not hand the child the answer. Verbatim dump uses the full
+ * reveal texts. Distinctive overlap uses the short target (definition / answer
+ * reveal) so a wondering question can nod at the forest without quoting the
+ * teaching paragraph.
  */
 function forbiddenRevealTexts(evalCase: GradeEvalCase): string[] {
   if (evalCase.wordId) {
@@ -50,6 +52,18 @@ function forbiddenRevealTexts(evalCase: GradeEvalCase): string[] {
     return challenge
       ? [challenge.expectedUnderstanding, challenge.answerReveal]
       : []
+  }
+  return []
+}
+
+function leakTargetTexts(evalCase: GradeEvalCase): string[] {
+  if (evalCase.wordId) {
+    const word = mysteryWords[evalCase.wordId]
+    return word ? [word.targetDefinition] : []
+  }
+  if (evalCase.challengeId) {
+    const challenge = comprehensionChallenges[evalCase.challengeId]
+    return challenge ? [challenge.answerReveal] : []
   }
   return []
 }
@@ -111,9 +125,10 @@ export function assertHardRules(
       }
     }
 
-    const leak = hintLeakMessage(result.hint, forbidden, {
+    const leak = hintLeakMessage(result.hint, leakTargetTexts(evalCase), {
       camouflage: evalCase.wordId === "camouflage",
       nocturnal: evalCase.wordId === "nocturnal",
+      slothTiming: evalCase.challengeId === "guide-choice-outcome",
       allowedText: leakAllowedText(evalCase),
     })
     if (leak) {

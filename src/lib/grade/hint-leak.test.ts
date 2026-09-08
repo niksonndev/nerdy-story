@@ -41,6 +41,19 @@ describe("hintLeakMessage", () => {
     ).toBeNull();
   });
 
+  it("does not treat a forest-looking wondering question as a canopy dump", () => {
+    expect(
+      hintLeakMessage(
+        "What part of the rainforest do you see when you look up at the trees?",
+        [
+          mysteryWords.canopy.targetDefinition,
+          mysteryWords.canopy.meaningReveal,
+        ],
+        { allowedText: "a kind of tasty fruit you eat" },
+      ),
+    ).toBeNull();
+  });
+
   it("does not treat nodding to the child's words as a leak", () => {
     expect(
       hintLeakMessage(
@@ -54,12 +67,84 @@ describe("hintLeakMessage", () => {
     ).toBeNull();
   });
 
+  it("does not treat 'most active' as a nocturnal dump against the definition", () => {
+    expect(
+      hintLeakMessage(
+        "When do you think this animal is most active?",
+        [mysteryWords.nocturnal.targetDefinition],
+        { nocturnal: true, allowedText: "an animal that loves to swim in water" },
+      ),
+    ).toBeNull();
+  });
+
   it("still flags a definition dump when the child said something else", () => {
     expect(
       hintLeakMessage("It's the roof-like layer of trees.", [
         mysteryWords.canopy.targetDefinition,
       ], { allowedText: "a kind of tasty fruit" }),
     ).toMatch(/overlapping tokens/i);
+  });
+
+  it("allows a tracks wondering hint that says way/her without naming faint/split", () => {
+    const challenge = comprehensionChallenges["tracks-choice-outcome"];
+    const question = challenge.question;
+    expect(
+      hintLeakMessage(
+        "What part of the trail made it hard to know the right way at first?",
+        [challenge.answerReveal],
+        {
+          allowedText: `following the tracks was risky because it was risky at first ${question}`,
+        },
+      ),
+    ).toBeNull();
+    expect(
+      hintLeakMessage(
+        "If you look at the path Mia was following, what made it hard for her to know which way to go?",
+        [challenge.answerReveal],
+        {
+          allowedText: `This bark was scraped recently — a sloth passed through here, not long ago. ${question}`,
+        },
+      ),
+    ).toBeNull();
+  });
+
+  it("still flags a tracks hint that names faint and split", () => {
+    const challenge = comprehensionChallenges["tracks-choice-outcome"];
+    expect(
+      hintLeakMessage(
+        "The prints grew faint and the trail split — look at that.",
+        [challenge.answerReveal],
+        { allowedText: challenge.question },
+      ),
+    ).toMatch(/overlapping tokens/i);
+  });
+
+  it("flags a ranger-timing hint that names rest and moving together", () => {
+    const challenge = comprehensionChallenges["guide-choice-outcome"];
+    expect(
+      hintLeakMessage(
+        "What time of day did the ranger say the sloths rest and then start moving?",
+        [challenge.answerReveal],
+        {
+          slothTiming: true,
+          allowedText: `sloths are always sleeping all the time ${challenge.question}`,
+        },
+      ),
+    ).toMatch(/rest\/moving/i);
+  });
+
+  it("allows a ranger-timing hint that only asks when they start moving", () => {
+    const challenge = comprehensionChallenges["guide-choice-outcome"];
+    expect(
+      hintLeakMessage(
+        "When did she say they start moving around?",
+        [challenge.answerReveal],
+        {
+          slothTiming: true,
+          allowedText: `sloths are always sleeping all the time ${challenge.question}`,
+        },
+      ),
+    ).toBeNull();
   });
 });
 
@@ -86,7 +171,9 @@ describe("story hints do not define the answer", () => {
           hintLeakMessage(hint, [
             challenge.expectedUnderstanding,
             challenge.answerReveal,
-          ]),
+          ], {
+            slothTiming: challenge.id === "guide-choice-outcome",
+          }),
         ).toBeNull();
       }
     }
