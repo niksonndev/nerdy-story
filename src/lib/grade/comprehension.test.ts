@@ -269,7 +269,7 @@ describe("gradeComprehension", () => {
       "they saw scraped bark and green fur on the branch",
     );
     expect(call.system).toMatch(/reuse the child's wording/i);
-    expect(call.system).toMatch(/copies or nearly copies a sentence/i);
+    expect(call.system).toMatch(/copies or nearly copies a whole sentence/i);
     expect(call.messages[0]?.content).toMatch(/Copied or near-copied sentences/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
       /Story comprehension/i,
