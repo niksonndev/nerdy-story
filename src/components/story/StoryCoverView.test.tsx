@@ -61,7 +61,7 @@ describe("StoryCoverView", () => {
     }
   });
 
-  it("names tap-then-type on the first tip and keeps the adventure-choice line", () => {
+  it("names tap-then-type, story questions, and the adventure-choice line", () => {
     render(<StoryCoverView onStartReading={() => {}} />);
 
     expect(
@@ -70,6 +70,11 @@ describe("StoryCoverView", () => {
     expect(
       screen.getByText(
         "Tap a glowing word and type what you think it means",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Sometimes the story asks what you noticed — type what you think!",
       ),
     ).toBeInTheDocument();
     expect(

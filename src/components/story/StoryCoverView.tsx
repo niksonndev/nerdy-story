@@ -151,9 +151,21 @@ export function StoryCoverView({
                   <li className="flex gap-3">
                     <span
                       aria-hidden
-                      className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary/20 font-heading text-sm font-bold text-secondary"
+                      className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-reward/20 font-heading text-sm font-bold text-reward-ink"
                     >
                       2
+                    </span>
+                    <span>
+                      Sometimes the story asks what you noticed — type what you
+                      think!
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span
+                      aria-hidden
+                      className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary/20 font-heading text-sm font-bold text-secondary"
+                    >
+                      3
                     </span>
                     <span>
                       Make choices to help {STORY_META.protagonistName} on her
