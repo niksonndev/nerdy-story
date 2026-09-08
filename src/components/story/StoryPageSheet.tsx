@@ -1,13 +1,23 @@
 "use client";
 
+import { useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 
 import { BranchChoice } from "@/components/story/BranchChoice";
 import { SceneImage } from "@/components/story/scene-image";
 import { Button } from "@/components/ui/button";
+import { firstMysteryPageId, mysteryWordIdsFor } from "@/lib/story/page-helpers";
+import {
+  isNearSheetBottom,
+  isOutsideScrollport,
+} from "@/lib/story/sheet-scroll";
 import { type StoryPage } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
+
+export const VOCAB_GATE_COPY = "Tap the glowing word to keep going";
+
+const FIRST_MYSTERY_PAGE_ID = firstMysteryPageId();
 
 export function StoryPageSheet({
   page,
@@ -17,6 +27,7 @@ export function StoryPageSheet({
   resolvedWordIds,
   vocabUnresolved,
   comprehensionPending,
+  challengeOpen = false,
   onMysteryClick,
   onNextPage,
   onPreviousPage,
@@ -29,6 +40,7 @@ export function StoryPageSheet({
   resolvedWordIds: string[];
   vocabUnresolved: boolean;
   comprehensionPending: boolean;
+  challengeOpen?: boolean;
   onMysteryClick: (wordId: string) => void;
   onNextPage: () => void;
   onPreviousPage: () => void;
@@ -36,9 +48,61 @@ export function StoryPageSheet({
 }) {
   const isDecision = Boolean(page.choice);
   const showDecisionBack = isDecision && canGoBack;
+  const firstMystery =
+    interactive && vocabUnresolved && page.id === FIRST_MYSTERY_PAGE_ID;
+  const articleRef = useRef<HTMLElement>(null);
+  const mysteryRef = useRef<HTMLButtonElement>(null);
+  const stalledRef = useRef(false);
+  const didNudgeScroll = useRef(false);
+  const [stalled, setStalled] = useState(false);
+  const reduceMotion = useReducedMotion();
+
+  if (!firstMystery && stalled) {
+    setStalled(false);
+  }
+
+  useEffect(() => {
+    if (!firstMystery) {
+      stalledRef.current = false;
+      didNudgeScroll.current = false;
+      return;
+    }
+
+    const article = articleRef.current;
+    if (!article) return;
+
+    function check() {
+      if (stalledRef.current || !article) return;
+      if (!isNearSheetBottom(article)) return;
+      stalledRef.current = true;
+      setStalled(true);
+    }
+
+    check();
+    article.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      article.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, [firstMystery]);
+
+  useEffect(() => {
+    if (!stalled || !firstMystery || didNudgeScroll.current) return;
+    const article = articleRef.current;
+    const word = mysteryRef.current;
+    if (!article || !word) return;
+    if (!isOutsideScrollport(article, word)) return;
+    didNudgeScroll.current = true;
+    word.scrollIntoView({
+      block: "nearest",
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  }, [stalled, firstMystery, reduceMotion]);
 
   return (
     <article
+      ref={articleRef}
       className={cn(
         "h-full w-full overflow-y-auto bg-card",
         !interactive && "pointer-events-none select-none",
@@ -88,9 +152,12 @@ export function StoryPageSheet({
                 return (
                   <MysteryWord
                     key={index}
+                    ref={firstMystery ? mysteryRef : undefined}
                     label={segment.content}
                     resolved={isResolved}
                     cue={interactive && !isResolved}
+                    discoverable={firstMystery && !isResolved}
+                    stalled={stalled}
                     onClick={() => onMysteryClick(segment.wordId)}
                   />
                 );
@@ -101,10 +168,12 @@ export function StoryPageSheet({
 
           <PageProgression
             page={page}
+            interactive={interactive}
             canAdvance={canAdvance}
             canGoBack={canGoBack}
             vocabUnresolved={vocabUnresolved}
             comprehensionPending={comprehensionPending}
+            challengeOpen={challengeOpen}
             onNextPage={onNextPage}
             onPreviousPage={onPreviousPage}
             onChoosePath={onChoosePath}
@@ -186,43 +255,128 @@ function PreviousControl({
   );
 }
 
+function VocabGateStatus() {
+  return (
+    <p
+      role="status"
+      className="flex min-h-14 flex-1 items-center justify-center px-3 text-center font-heading text-base font-semibold text-magic-ink sm:ml-auto sm:w-auto sm:flex-none sm:text-lg"
+    >
+      {VOCAB_GATE_COPY}
+    </p>
+  );
+}
+
+function UnlockedPrimary({
+  active,
+  className,
+  children,
+}: {
+  active: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  const reduceMotion = useReducedMotion();
+  const play = active && !reduceMotion;
+
+  return (
+    <motion.div
+      className={className}
+      initial={play ? { scale: 0.94 } : false}
+      animate={play ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+      transition={play ? { duration: 0.5, ease: "easeOut" } : { duration: 0 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function PageProgression({
   page,
+  interactive,
   canAdvance,
   canGoBack,
   vocabUnresolved,
   comprehensionPending,
+  challengeOpen,
   onNextPage,
   onPreviousPage,
   onChoosePath,
   className,
 }: {
   page: StoryPage;
+  interactive: boolean;
   canAdvance: boolean;
   canGoBack: boolean;
   vocabUnresolved: boolean;
   comprehensionPending: boolean;
+  challengeOpen: boolean;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onChoosePath: (nextPageId: string) => void;
   className?: string;
 }) {
   const isLastPage = !page.nextPageId && !page.choice;
+  const pageHasMystery = mysteryWordIdsFor(page).length > 0;
+  const showContinueAttention =
+    interactive &&
+    pageHasMystery &&
+    !vocabUnresolved &&
+    !challengeOpen &&
+    !isLastPage;
+  const readingRowClass = cn(
+    "flex w-full flex-row items-center gap-3",
+    "sm:justify-between",
+    className,
+  );
+
   if (page.choice) {
-    if (vocabUnresolved) return null;
+    if (vocabUnresolved) {
+      return (
+        <div className={cn("flex w-full flex-col gap-3", className)}>
+          {interactive ? <VocabGateStatus /> : null}
+        </div>
+      );
+    }
     return (
       <div className={cn("flex w-full flex-col gap-3", className)}>
-        <BranchChoice
-          choice={page.choice}
-          disabled={!canAdvance}
-          onChoose={onChoosePath}
-        />
+        <UnlockedPrimary active={showContinueAttention} className="w-full">
+          <BranchChoice
+            choice={page.choice}
+            disabled={!canAdvance}
+            onChoose={onChoosePath}
+          />
+        </UnlockedPrimary>
       </div>
     );
   }
 
-  const hideForward = isLastPage || vocabUnresolved;
-  if (hideForward) {
+  if (vocabUnresolved) {
+    return (
+      <div className={readingRowClass}>
+        {canGoBack ? (
+          <>
+            <PreviousControl
+              variant="ghostIcon"
+              disabled={!canGoBack}
+              onClick={onPreviousPage}
+              className="sm:hidden"
+            />
+            <PreviousControl
+              variant="outline"
+              disabled={!canGoBack}
+              onClick={onPreviousPage}
+              className="hidden sm:inline-flex"
+            />
+          </>
+        ) : (
+          <span className="hidden sm:block" />
+        )}
+        {interactive ? <VocabGateStatus /> : null}
+      </div>
+    );
+  }
+
+  if (isLastPage) {
     if (!canGoBack) return null;
     return (
       <div className={cn("flex w-full items-center", className)}>
@@ -245,13 +399,7 @@ function PageProgression({
   const nextLabel = comprehensionPending ? "A story question" : "Next Page";
 
   return (
-    <div
-      className={cn(
-        "flex w-full flex-row items-center gap-3",
-        "sm:justify-between",
-        className,
-      )}
-    >
+    <div className={readingRowClass}>
       {canGoBack ? (
         <>
           <PreviousControl
@@ -270,38 +418,52 @@ function PageProgression({
       ) : (
         <span className="hidden sm:block" />
       )}
-      <Button
-        size="kid"
+      <UnlockedPrimary
+        active={showContinueAttention && !comprehensionPending}
         className="min-h-14 flex-1 sm:ml-auto sm:w-auto sm:flex-none"
-        onClick={onNextPage}
-        disabled={!canAdvance}
-        aria-label={nextLabel}
       >
-        {nextLabel}
-      </Button>
+        <Button
+          size="kid"
+          className="min-h-14 w-full"
+          onClick={onNextPage}
+          disabled={!canAdvance}
+          aria-label={nextLabel}
+        >
+          {nextLabel}
+        </Button>
+      </UnlockedPrimary>
     </div>
   );
 }
 
 const MYSTERY_CUE = { scale: [1, 1.06, 1] };
+const MYSTERY_STALL = { scale: [1, 1.1, 1] };
 const MYSTERY_STILL = { scale: 1 };
 
 function MysteryWord({
   label,
   resolved,
   cue,
+  discoverable,
+  stalled,
   onClick,
+  ref,
 }: {
   label: string;
   resolved: boolean;
   cue: boolean;
+  discoverable: boolean;
+  stalled: boolean;
   onClick: () => void;
+  ref?: Ref<HTMLButtonElement>;
 }) {
   const reduceMotion = useReducedMotion();
   const showAttention = cue && !reduceMotion;
+  const attention = stalled ? MYSTERY_STALL : MYSTERY_CUE;
 
   return (
     <motion.button
+      ref={ref}
       type="button"
       onClick={() => {
         if (!resolved) onClick();
@@ -310,7 +472,7 @@ function MysteryWord({
         resolved ? `Learned word: ${label}` : `Mystery word: ${label}`
       }
       aria-disabled={resolved}
-      animate={showAttention ? MYSTERY_CUE : MYSTERY_STILL}
+      animate={showAttention ? attention : MYSTERY_STILL}
       transition={
         showAttention
           ? { duration: 0.5, ease: "easeOut" }
@@ -324,6 +486,8 @@ function MysteryWord({
         resolved
           ? "bg-reward/20"
           : "bg-magic/20 ring-1 ring-magic/40 underline decoration-magic decoration-wavy underline-offset-4 sm:underline-offset-8 transition-colors lg:hover:bg-magic/30",
+        discoverable && "mystery-word-glow",
+        discoverable && stalled && "mystery-word-glow-nudge",
       )}
     >
       {resolved ? (

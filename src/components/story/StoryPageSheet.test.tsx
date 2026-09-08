@@ -1,9 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ImgHTMLAttributes } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { StoryPageSheet } from "@/components/story/StoryPageSheet";
+import {
+  StoryPageSheet,
+  VOCAB_GATE_COPY,
+} from "@/components/story/StoryPageSheet";
 import { storyPagesById } from "@/lib/story/story-data";
 
 vi.mock("next/image", () => ({
@@ -31,6 +34,7 @@ function renderSheet({
   resolvedWordIds = [],
   vocabUnresolved = false,
   comprehensionPending = false,
+  challengeOpen = false,
   onMysteryClick = vi.fn(),
   onNextPage = vi.fn(),
   onChoosePath = vi.fn(),
@@ -42,6 +46,7 @@ function renderSheet({
   resolvedWordIds?: string[];
   vocabUnresolved?: boolean;
   comprehensionPending?: boolean;
+  challengeOpen?: boolean;
   onMysteryClick?: (wordId: string) => void;
   onNextPage?: () => void;
   onChoosePath?: (nextPageId: string) => void;
@@ -61,6 +66,7 @@ function renderSheet({
         resolvedWordIds={resolvedWordIds}
         vocabUnresolved={vocabUnresolved}
         comprehensionPending={comprehensionPending}
+        challengeOpen={challengeOpen}
         onMysteryClick={onMysteryClick}
         onNextPage={onNextPage}
         onPreviousPage={() => {}}
@@ -71,8 +77,8 @@ function renderSheet({
 }
 
 describe("StoryPageSheet next-action cues", () => {
-  it("hides Next Page while a mystery word is unresolved", () => {
-    renderSheet({
+  it("keeps Next Page hidden and explains the vocab gate", () => {
+    const { onNextPage, onMysteryClick } = renderSheet({
       pageId: "page-2",
       canAdvance: false,
       vocabUnresolved: true,
@@ -87,9 +93,18 @@ describe("StoryPageSheet next-action cues", () => {
     expect(
       screen.queryByRole("button", { name: "A story question" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(VOCAB_GATE_COPY);
+    expect(screen.queryByText("Tap the glowing word")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mystery word: canopy" }),
+    ).toHaveClass("mystery-word-glow");
+
+    fireEvent.click(screen.getByRole("status"));
+    expect(onNextPage).not.toHaveBeenCalled();
+    expect(onMysteryClick).not.toHaveBeenCalled();
   });
 
-  it("shows Next Page after the mystery word is resolved", () => {
+  it("shows Next Page after the mystery word is resolved and drops gate copy", () => {
     renderSheet({
       pageId: "page-2",
       resolvedWordIds: ["canopy"],
@@ -97,6 +112,7 @@ describe("StoryPageSheet next-action cues", () => {
 
     const next = screen.getByRole("button", { name: "Next Page" });
     expect(next).toBeEnabled();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("labels the footer primary as a story question while comprehension is pending", async () => {
@@ -127,7 +143,7 @@ describe("StoryPageSheet next-action cues", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("omits branch choices while cautious is unresolved", () => {
+  it("omits branch choices while cautious is unresolved and explains the gate", () => {
     renderSheet({
       pageId: "page-5",
       canAdvance: false,
@@ -138,12 +154,19 @@ describe("StoryPageSheet next-action cues", () => {
       screen.getByRole("button", { name: "Mystery word: cautious" }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("button", { name: "Mystery word: cautious" }),
+    ).not.toHaveClass("mystery-word-glow");
+    expect(screen.getByRole("status")).toHaveTextContent(VOCAB_GATE_COPY);
+    expect(
       screen.queryByRole("button", { name: "Follow the tracks themselves" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", {
         name: "Ask the ranger station for help",
       }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Next Page" }),
     ).not.toBeInTheDocument();
   });
 
@@ -159,6 +182,7 @@ describe("StoryPageSheet next-action cues", () => {
     expect(
       screen.getByRole("button", { name: "Ask the ranger station for help" }),
     ).toBeEnabled();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("opens the vocab challenge from the highlighted word", async () => {
@@ -173,5 +197,86 @@ describe("StoryPageSheet next-action cues", () => {
       screen.getByRole("button", { name: "Mystery word: canopy" }),
     );
     expect(onMysteryClick).toHaveBeenCalledWith("canopy");
+  });
+
+  it("does not show first-mystery cues on peek sheets", () => {
+    renderSheet({
+      pageId: "page-2",
+      interactive: false,
+      canAdvance: false,
+      vocabUnresolved: true,
+    });
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Mystery word: canopy",
+        hidden: true,
+      }),
+    ).not.toHaveClass("mystery-word-glow");
+  });
+
+  it("nudges the first mystery word into view on stall without opening the challenge", async () => {
+    const scrollIntoView = vi.fn();
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+    const { onMysteryClick, container } = renderSheet({
+      pageId: "page-2",
+      canAdvance: false,
+      vocabUnresolved: true,
+    });
+
+    const article = container.querySelector("article");
+    expect(article).toBeTruthy();
+    const word = screen.getByRole("button", { name: "Mystery word: canopy" });
+
+    Object.defineProperty(article, "scrollHeight", {
+      configurable: true,
+      value: 900,
+    });
+    Object.defineProperty(article, "clientHeight", {
+      configurable: true,
+      value: 400,
+    });
+    Object.defineProperty(article, "scrollTop", {
+      configurable: true,
+      value: 520,
+    });
+    vi.spyOn(article!, "getBoundingClientRect").mockReturnValue({
+      top: 0,
+      bottom: 400,
+      left: 0,
+      right: 100,
+      width: 100,
+      height: 400,
+      x: 0,
+      y: 0,
+      toJSON() {
+        return this;
+      },
+    });
+    vi.spyOn(word, "getBoundingClientRect").mockReturnValue({
+      top: -80,
+      bottom: -20,
+      left: 0,
+      right: 80,
+      width: 80,
+      height: 60,
+      x: 0,
+      y: -80,
+      toJSON() {
+        return this;
+      },
+    });
+
+    fireEvent.scroll(article!);
+
+    await waitFor(() => {
+      expect(word).toHaveClass("mystery-word-glow-nudge");
+    });
+    expect(onMysteryClick).not.toHaveBeenCalled();
+    expect(scrollIntoView).toHaveBeenCalled();
+    HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
   });
 });

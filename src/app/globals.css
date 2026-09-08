@@ -158,3 +158,42 @@
  * --magic / --reward soft accents for fills & decorative cues — not small body text
  * --primary-foreground on --primary ≈ 4.5:1
  */
+
+@keyframes mystery-word-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--magic) 28%, transparent),
+      0 0 10px color-mix(in srgb, var(--magic) 32%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--magic) 42%, transparent),
+      0 0 18px color-mix(in srgb, var(--magic) 55%, transparent);
+  }
+}
+
+.mystery-word-glow {
+  background-color: color-mix(in srgb, var(--magic) 28%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--magic) 35%, transparent),
+    0 0 14px color-mix(in srgb, var(--magic) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mystery-word-glow {
+    animation: mystery-word-glow-pulse 2.8s ease-in-out infinite;
+  }
+}
+
+.mystery-word-glow-nudge {
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--magic) 50%, transparent),
+    0 0 20px color-mix(in srgb, var(--magic) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mystery-word-glow {
+    animation: none;
+  }
+}

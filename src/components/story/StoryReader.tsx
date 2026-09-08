@@ -90,6 +90,7 @@ export function StoryReader() {
                   onChoosePath={goToPage}
                   onPreviousPage={goToPreviousPage}
                   onBeforeNextPage={handleBeforeNextPage}
+                  challengeOpen={challengeOpen}
                 />
               </StoryEntrancePageLayer>
             ) : null}

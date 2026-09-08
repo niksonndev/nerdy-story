@@ -39,6 +39,7 @@ type StoryPageViewProps = {
   onPreviousPage: () => void;
   /** Return false to block the page turn (e.g. open comprehension first). */
   onBeforeNextPage?: (nextPageId: string) => boolean;
+  challengeOpen?: boolean;
 };
 
 export type StoryPageViewHandle = {
@@ -61,6 +62,7 @@ export const StoryPageView = forwardRef<
     onChoosePath,
     onPreviousPage,
     onBeforeNextPage,
+    challengeOpen = false,
   },
   ref,
 ) {
@@ -273,6 +275,7 @@ export const StoryPageView = forwardRef<
               resolvedWordIds={resolvedWordIds}
               vocabUnresolved={vocabUnresolved}
               comprehensionPending={comprehensionPending}
+              challengeOpen={challengeOpen}
               onMysteryClick={onMysteryClick}
               onNextPage={handleNextPage}
               onPreviousPage={requestRetreat}
