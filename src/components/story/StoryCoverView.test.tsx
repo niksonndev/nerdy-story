@@ -61,6 +61,25 @@ describe("StoryCoverView", () => {
     }
   });
 
+  it("names tap-then-type on the first tip and keeps the adventure-choice line", () => {
+    render(<StoryCoverView onStartReading={() => {}} />);
+
+    expect(
+      screen.getByText("Find mystery words along the way"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Tap a glowing word and type what you think it means",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `Make choices to help ${STORY_META.protagonistName} on her adventure!`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/unlock their secrets/i)).not.toBeInTheDocument();
+  });
+
   it("does not keep a full-bleed magic fill on the overlay during the dolly", () => {
     const { container } = render(
       <StoryCoverView onStartReading={() => {}} isTransitioning />,

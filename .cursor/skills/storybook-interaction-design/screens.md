@@ -23,6 +23,16 @@ StoryPage → BranchChoice → (path continues; re-choice clears path-specific p
 StoryPage → ClosingBeat
 ```
 
+## Cover
+
+**Job:** Hook the child into the book, then name the real vocab loop without turning the cover into a how-to.
+
+**Copy:** Teaser stays evocative (“Find mystery words along the way”). First tip names tap → type (“Tap a glowing word and type what you think it means”). Second tip stays the fun fork (“Make choices to help {Mia} on her adventure!”). Choice copy is not a substitute for the type verb.
+
+**Primary:** **Start Reading**.
+
+**Do not:** Replace the teaser with instructions. Do not drop the adventure-choice line. Do not say “unlock their secrets” or imply multiple choice.
+
 ## Story page
 
 **Job:** Read this page. One visible next-action cue: the highlighted mystery word, **A story question**, or **Next Page** / branch. Secondary action is **Previous Page** when visit history exists.

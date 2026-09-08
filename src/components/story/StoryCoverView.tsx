@@ -144,7 +144,9 @@ export function StoryCoverView({
                     >
                       1
                     </span>
-                    <span>Tap highlighted words to unlock their secrets</span>
+                    <span>
+                      Tap a glowing word and type what you think it means
+                    </span>
                   </li>
                   <li className="flex gap-3">
                     <span
