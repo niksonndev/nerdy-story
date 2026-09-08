@@ -31,7 +31,7 @@ Five challenges per playthrough: **3 vocabulary + 2 comprehension**.
 2. Tap a highlighted mystery word → overlay → type an explanation → live grade (reason + hint on a miss).
 3. **A story question** on a comprehension page opens the overlay (never auto-opens). After resolve, the page turns.
 4. At the fork, both paths are narratively valid. Vocab #3 and the second comprehension item are path-specific; the child still sees exactly 3 + 2.
-5. Ending beat: book-coloring → live **words learned** (correct vocab only) → chapter-2 unlock (stub — the demo shows the unlock, not a second chapter).
+5. Ending beat: book-coloring → **Story complete!** with live **words learned** (correct vocab only) and **Story paths** → **Discover Another Ending** if one ending is still unseen (or reread if both are done).
 
 Soft progression: after a retry limit, we reveal the meaning / answer and let them continue. A child is never trapped on a perfect answer. Reveals do **not** count as words learned.
 
@@ -70,8 +70,8 @@ OIDC tokens expire ~12 hours — `vercel env pull` again if live auth fails loca
 2. On page 2, tap **canopy** — explain it in kid words (“the leafy roof”). Watch words-learned tick.
 3. On page 3, press **A story question** — that’s the first comprehension overlay (clues on the branch). Miss once to see the hint; or answer well and keep going.
 4. At **Two Paths**, pick either option (not a quiz).
-5. Finish the ending vocab word → coloring beat → words learned → “chapter unlocked.”
-6. Optional: discover the other ending to show the reread loop.
+5. Finish the ending vocab word → coloring beat → **Story complete!** + words learned + **Discover Another Ending** (the unchosen fork).
+6. Optional: take that path to show the reread loop; finishing both endings offers **Read the chapter again**.
 
 | Command | What it does |
 | --- | --- |
@@ -96,4 +96,4 @@ Plain React state for the session. No accounts, no persistence — the demo is o
 
 ## Out of scope (on purpose)
 
-Playable chapter 2, settings, auth, saved progress, and live-generated story text. The smallest full loop that demos the pedagogy.
+Playable chapter 2, a “coming soon” sequel tease, settings, auth, saved progress, and live-generated story text. The smallest full loop that demos the pedagogy.

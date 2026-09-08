@@ -20,7 +20,7 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 **Huge:** The word, the prompt, the text input, the primary Check control.
 
-**Quiet:** After a miss — “Try another idea!” + soft about/not-exactly reason + answer-aware hint (AI/local), or fixed reason + story hint on HTTP failure.
+**Quiet:** After a miss — “Try another idea!” + soft about/not-exactly reason + answer-aware wondering hint (AI/local), or fixed reason + story hint on HTTP failure / client timeout.
 
 **Containers:** One panel or overlay is earned — it marks the interaction. Do not nest cards inside that panel.
 
@@ -64,8 +64,8 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 ## Closing beat
 
-**Look:** Exploration reward, not a report card. One focus at a time on a single-page composition.
+**Look:** Exploration reward, not a report card. Coloring first, then one celebration page.
 
-**Huge:** Book coloring, count-up, unlock reveal.
+**Huge:** Book coloring, then **Story complete!** + count-up and the primary CTA. **Story paths** tracker is quieter on that same page.
 
 **Do not:** A stack of result cards, score/lesson-complete chrome.

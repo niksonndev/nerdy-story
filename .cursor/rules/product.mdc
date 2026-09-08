@@ -19,7 +19,7 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 - Story is **pre-written**, not generated live — keeps reading-level accuracy and the loop reliable
 - **Branching:** 1 diverge point → 2 paths → 2 possible endings
 - The choice at the diverge point is **not** comprehension-gated — both paths are equally valid narratively. Purpose: replay/reread incentive ("what if I'd chosen differently?") to support fluency through rereading, not to test comprehension
-- **Chapter 2** is an unlock reveal, not playable content. The product is one chapter; the ending beat shows the unlock, it does not deliver a second chapter
+- The product is **one chapter**. The ending beat invites the unchosen path when one ending is still unseen; it does not tease a second chapter
 
 ## Vocabulary challenge mechanic
 
@@ -29,10 +29,10 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 - Correctness is graded first by a **live API call** to **gpt-oss-120b** (OpenAI) via **Vercel AI Gateway** (with Gateway model failover to `google/gemini-3.1-flash-lite`) that evaluates whether the child's explanation semantically matches the word's real meaning
 - Grading must be calibrated for a 7–9 year old's language: accept simplified phrasing, synonyms, and partial-but-correct understanding; reject answers describing a different/wrong concept
 - Grading prompt must supply the model with the **target definition** and instruct it to return a **structured, parseable result** (not free-form prose) — correct/incorrect, a short kid-friendly **reason**, and on wrong answers a short live **hint** (same grading call; not a second AI request)
-- **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade result from a simple keyword/synonym matcher against the target definition (and per-word `acceptKeywords`) — not an HTTP error, not a second AI call
+- **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade result from a simple keyword/synonym matcher against the word’s **core idea and `acceptKeywords`** (not definition filler words) — not an HTTP error, not a second AI call
 - **Grade reason** (wrong answer, HTTP 200): short soft explain in the shape “[Word] is about [core idea], not exactly about [child’s idea]” — positive first; not shame language; not a full definition dump
-- **Grade hint** (wrong answer, HTTP 200 grade): answer-aware nod + directional nudge from the grade response (AI live hint or local matcher using story `hints`); shown distinctly from the why-reason; not the full definition / meaning reveal
-- **Client pre-written hints** (2 tiers per word): **only** when the grade **HTTP request** itself fails (transport / non-OK response); still burn a retry attempt so soft progression can reach meaning reveal. Kid-facing copy matches a gentle miss (fixed short reason + story hint) — never expose that the request or grading system failed. Provider/parse failures handled on the server become local grades, not this path
+- **Grade hint** (wrong answer, HTTP 200 grade): answer-aware **wondering question** from the grade response (AI live hint or local matcher using story `hints`); shown distinctly from the why-reason; must not define the word (camouflage must not be answered by colors/patterns/blend); not the full definition / meaning reveal
+- **Client pre-written hints** (2 tiers per word): **only** when the grade **HTTP request** itself fails (transport / non-OK / client timeout after a few seconds); still burn a retry attempt so soft progression can reach meaning reveal. Kid-facing copy matches a gentle miss (fixed short reason + story hint) — never expose that the request or grading system failed. Provider/parse failures handled on the server become local grades, not this path
 - **Soft progression:** the child is not hard-blocked forever on a correct answer. After the retry limit (wrong grades **or** client grade-request failures), reveal the word's meaning in a kid-friendly way (pre-written, not live-AI), then unlock **Next Page**. Meaning reveal does **not** count as a correct answer for words-learned
 
 ## Comprehension challenge mechanic
@@ -41,8 +41,8 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 - Each challenge stores an explicit **passage**, **question**, **expectedUnderstanding**, **acceptKeywords** (local fallback), client **hints** (2 tiers), and **answerReveal**
 - **Trigger:** Footer primary **A story question** opens the overlay (never auto-open on page enter). Vocab pages hide **Next Page** until mystery words are resolved; comprehension does **not** disable the footer primary.
 - Graded by a **live API call** to **gpt-oss-120b** via **Vercel AI Gateway** (failover to `google/gemini-3.1-flash-lite`) at `POST /api/grade-comprehension`; returns the same structured shape as vocabulary (`correct`, `reason`, `hint`)
-- Grading calibrated for 7–9: accept simplified / partial-but-correct story understanding; reject unrelated ideas
-- **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade from a simple keyword/synonym matcher against `expectedUnderstanding` (and per-challenge `acceptKeywords`) — not an HTTP error, not a second AI call
+- Grading calibrated for 7–9: accept simplified / partial-but-correct story understanding; reject unrelated ideas, question parrot, and **pasting this page’s passage** (copying is not reasoning)
+- **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade from a simple keyword/synonym matcher against `expectedUnderstanding` (and per-challenge `acceptKeywords`), after rejecting a long copy of this page’s `passage` — not an HTTP error, not a second AI call
 - **Soft progression:** after retry limit (wrong grades or HTTP failures), show pre-written **answerReveal**, then **Keep going** / **Got it** closes the overlay and **auto-advances** to the next page
 - Correct comprehension answers do **not** increment words-learned
 
@@ -53,12 +53,13 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 - **Comprehension:** Footer primary **A story question** opens the challenge; after resolve, overlay CTA advances the page (exception to “stay on same page”)
 - **Words learned** = count of **vocabulary** challenge words answered correctly in the **current session** (session-scoped; this product has no accounts or persisted progress); comprehension corrects do not count
 - Words-learned count increments **live on screen** as a direct result of correct vocab answers only, not on meaning/answer reveal, and not revealed only at the end
-- **Ending beat:** book-coloring animation + words-learned count, then a chapter-unlock reveal — the close of the chapter, not a second story
+- **Ending beat:** book-coloring animation → words-learned count (correct vocab only) → **other-path invite** if one ending is still unexplored; if both endings are explored, celebrate that and offer reread. That sequence is the demo close, not a second story
 
 ## Loading / latency
 
 - Live-AI dependencies: vocab meaning-grading and comprehension grading calls
 - Latency is absorbed with a minimal, playful loading state — keep it simple
+- Client grade fetch times out after a few seconds and follows the existing gentle-miss path (fixed reason + story hint); never leave the child on “Checking dictionary…” forever
 
 ## Tech stack
 
@@ -69,7 +70,7 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 - **State:** plain React state/Context — no TanStack Query, no Zustand
 - **Styling:** Tailwind
 - **Components:** shadcn/ui — owned generated component source (not a black-box import). Radix comes in as a dependency of shadcn; not a separate install decision
-- **Animation:** Motion (Framer Motion) — for sequenced/orchestrated closing beat (words-learned count-up → unlock reveal)
+- **Animation:** Motion (Framer Motion) — for sequenced/orchestrated closing beat (words-learned count-up → other-path invite)
 - **Deployment:** Vercel
 - **Testing:** Vitest
 
@@ -77,7 +78,7 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 
 Do not add these. They are out of this product, not “later.”
 
-- Playable chapter 2 content
+- Playable chapter 2 content, or a chapter-2 unlock / coming soon tease
 - Settings, auth, persistence
 - Live-generated story text
 - TanStack Query, Zustand

@@ -53,10 +53,8 @@ flowchart TD
 
 When the child resolves the last vocab word on `page-7a` or `page-7b` and closes the vocab overlay, [`StoryReader`](../src/components/story/StoryReader.tsx) **replaces** the story page with [`EndingBeat`](../src/components/story/EndingBeat.tsx) — a full storybook page (same atmosphere / book-card shell), not a modal over the last page:
 
-1. **Book coloring** — SVG fill animation (~1.4s)
-2. **Celebration** (one screen) — “Story complete!” + count-up + learned-word list + “You explored N of 2 endings”, then “Next chapter unlocked!” + replay nudge + two CTAs:
-   - **Read chapter 2** (primary) → chapter-2 unlock stub (not playable content)
-   - **Read the chapter again** (secondary) → resets chapter 1; keeps `exploredEndingIds` in session
+1. **Book coloring** — SVG fill animation (~1.4s; skipped when reduced motion)
+2. **Celebration** (one screen) — **Story complete!** + “You found one/both endings”, count-up + learned-word list (correct vocab only), **Story paths** tracker, and the CTA: if one ending is still unseen, primary **Discover Another Ending** (`jumpToBranch`: clears path-specific progress, keeps shared progress / words learned / `exploredEndingIds`) with ghost **Read the chapter again**. If both endings are already explored: primary **Read the chapter again** (full chapter reset, keeps `hasStarted` so replay skips the cover). No chapter-2 stub.
 
 Words-learned on the ending screen counts only vocab answers graded **correct** (not meaning reveals). Comprehension corrects never appear in the word list.
 
@@ -85,7 +83,7 @@ flowchart TD
 
 - **Correct (HTTP 200):** words-learned increments; overlay closes after “Keep reading”. Grade may be from live AI or the local keyword matcher.
 - **Wrong (HTTP 200):** kid-facing miss UI shows chrome + soft about/not-exactly `reason` + answer-aware `hint`; attempt burned; at `MAX_ATTEMPTS` → meaning reveal.
-- **HTTP / transport failure:** burn attempt; fixed short reason **“Not quite — try another way.”** + next story `hints` tier; at `MAX_ATTEMPTS` → meaning reveal.
+- **HTTP / transport failure:** burn attempt; fixed short reason **“Not quite — try another way.”** + next story `hints` tier; at `MAX_ATTEMPTS` → meaning reveal. Same path for a **client timeout** after a few seconds (the in-flight fetch is aborted).
 
 ## Comprehension challenge client flow (`StoryReader`)
 
@@ -117,7 +115,7 @@ flowchart TD
 
 - **Correct (HTTP 200):** short why (`reason`); **no** words-learned bump; “Keep going” closes overlay and advances to `nextPageId`.
 - **Wrong (HTTP 200):** same soft miss chrome as vocab; attempt burned; at `MAX_ATTEMPTS` → answer reveal.
-- **HTTP / transport failure:** burn attempt; fixed reason + story `hints` tier; at limit → answer reveal.
+- **HTTP / transport failure:** burn attempt; fixed reason + story `hints` tier; at limit → answer reveal. Same path for a client timeout after a few seconds.
 - Closing with X before resolve does not advance; **A story question** can reopen the challenge.
 
 ## Mia and the Hidden Sloth (7-page graph)

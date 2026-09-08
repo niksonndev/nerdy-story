@@ -14,7 +14,7 @@ Mystery words sit in running text (canopy, cautious, camouflage / nocturnal). Ta
 
 **Why not multiple choice?** Recognition is easier than production and invites guessing. An open explanation is closer to “do you have this word?”
 
-**What “correct” means at 7–9.** Simplified wording and one true half of a two-part definition can count (e.g. nocturnal as “awake at night” without also saying “rests by day”). Vague answers that would fit many words do not (“it hides” is not camouflage without the blending/matching).
+**What “correct” means at 7–9.** Simplified wording and one true half of a two-part definition can count (e.g. nocturnal as “awake at night” without also saying “rests by day”). Vague answers that would fit many words do not (“it hides” is not camouflage without the blending/matching; “the trees are tall” is not canopy).
 
 **Words learned** increments only on an accepted vocab explanation, live on the page — a treasure count, not a gradebook. Meaning-reveal after retries does not count. Comprehension never counts.
 
@@ -24,7 +24,7 @@ Two open questions per playthrough: one shared before the branch, one path-speci
 
 **Trigger:** **A story question** opens the overlay. It does not pop on page enter. The child finishes reading first.
 
-**What we accept.** One grounded clue from the passage can be enough. Wrong character, wrong cause, a different scene, or something the story never said are rejects — with kid-facing copy that never says “incorrect.”
+**What we accept.** One grounded clue from the passage can be enough. Wrong character, wrong cause, a different scene, something the story never said, or **pasting this page’s sentence** are rejects — with kid-facing copy that never says “incorrect.”
 
 Correct comprehension does **not** bump words-learned. That counter is for words, not “you understood the plot.”
 
@@ -32,7 +32,7 @@ Correct comprehension does **not** bump words-learned. That counter is for words
 
 The branch is **not** a comprehension gate. Follow the tracks and ask the ranger are both valid. The point is “what if I’d chosen differently?” so a second pass is intrinsic, not a retry-the-quiz.
 
-Shared progress is kept; path-specific vocab/comprehension resets if they re-pick. Two endings, one chapter-unlock beat.
+Shared progress is kept; path-specific vocab/comprehension resets if they re-pick. Two endings, one learning close — coloring, words learned, then an invite to the other path when it is still unseen.
 
 ## Feedback without shame
 
@@ -42,7 +42,7 @@ Shared progress is kept; path-specific vocab/comprehension resets if they re-pic
 | Miss, retries left | “Try another idea!” + “about X, not exactly about Y” + a hint that wonders, not spoils |
 | Retry limit | Pre-written meaning / answer reveal, then continue |
 
-Hints and reasons must not dump the definition. Soft progression is a pedagogy choice: struggling readers still finish the book.
+Hints and reasons must not dump the definition (camouflage must not be answered by colors/patterns/blend). Soft progression is a pedagogy choice: struggling readers still finish the book.
 
 Chrome copy stays at 7–9: **Check**, **Next Page**, **A story question**, **Try another idea** — not Submit / Incorrect / Your score.
 

@@ -4,7 +4,7 @@ description: >-
   Defines how much and when nerdy-story UI should move: subtle page turns, CTA
   press, words-learned increment, and the sequenced closing beat. Use when
   adding or changing animation, Motion, CSS transitions, loading motion,
-  count-up, or the ending unlock sequence.
+  count-up, or the ending close sequence.
 ---
 
 # Motion and animation
@@ -34,7 +34,7 @@ Gate Next Page / Previous while a flip is in progress so controls cannot double-
 - CTA press feedback
 - Unresolved mystery word: one-shot scale attention when the sheet becomes current (skip when reduced motion). No looping pulse.
 - Words-learned increment (soft success pulse / count bump)
-- Sequenced ending beat: book-coloring → count-up → chapter unlock (short-circuit coloring + count-up when reduced motion)
+- Sequenced ending beat: book-coloring → one celebration page (count-up + other-path / reread CTA on that same page). Short-circuit coloring + count-up when reduced motion.
 - Vocab challenge / feedback overlay: brief enter; focus the input — no celebration until an accepted answer
 - Grading wait: a subtle loop only if essential (e.g. gentle bounce); keep short and calm
 - Branch choice: press feedback, then flip into the path
@@ -54,6 +54,6 @@ Gate Next Page / Previous while a flip is in progress so controls cannot double-
 
 - [ ] Motion / transitions are subtle and purposeful
 - [ ] Next Page / Previous use react-pageflip on the book container (~500ms; instant when reduced motion)
-- [ ] Ending beat is sequenced: coloring → count-up → unlock
+- [ ] Ending beat is sequenced: coloring → one celebration page (count-up + invite)
 - [ ] `prefers-reduced-motion` collapses page-turn + Motion springs
 - [ ] No looping decoration, confetti, or layout thrash

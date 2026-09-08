@@ -57,7 +57,7 @@ StoryPage → ClosingBeat
 
 **After a wrong answer (retries left):** “Try another idea!” + soft about/not-exactly reason (grade `reason`) + answer-aware hint from the grade response — live AI or server local keyword fallback (distinct Hint line). Check stays the action; stay in the overlay.
 
-**When the grade HTTP request fails (retries left):** Burn the attempt; show the same gentle-miss shape — fixed short reason **“Not quite — try another way.”** plus the next story `hints` tier. Do not tell the child the request or grading system failed. Check stays the action; stay in the overlay.
+**When the grade HTTP request fails (retries left):** Burn the attempt; show the same gentle-miss shape — fixed short reason **“Not quite — try another way.”** plus the next story `hints` tier (wondering questions, not a definition). Do not tell the child the request or grading system failed. Includes client timeout after a few seconds. Check stays the action; stay in the overlay.
 
 **After the retry limit:** Do not keep blocking (covers wrong grades and HTTP grade-request failures). Move to meaning reveal, then close the overlay and unlock Next Page on the story page.
 
@@ -73,7 +73,7 @@ StoryPage → ClosingBeat
 
 **After a wrong answer (retries left):** Same miss chrome as vocab — “Try another idea!” + soft about/not-exactly reason + answer-aware hint (live AI). Stay in overlay.
 
-**When the grade HTTP request fails (retries left):** Burn attempt; fixed reason **“Not quite — try another way.”** + story `hints` tier. No infra wording.
+**When the grade HTTP request fails (retries left):** Burn attempt; fixed reason **“Not quite — try another way.”** + story `hints` tier (wondering questions). Includes client timeout. No infra wording.
 
 **After the retry limit:** Show pre-written answer reveal (“Here’s the idea”), then **Got it** closes and **auto-advances**.
 
@@ -96,7 +96,7 @@ StoryPage → ClosingBeat
 **Job:** Show that the answer was heard — still inside the overlay family.
 
 - Rejected (retries left): stay in overlay; “Try another idea” + about/not-exactly reason + answer-aware Hint (AI or local for vocab); Check stays the action.
-- Grade HTTP failed (retries left): stay in overlay; “Try another idea” + fixed short reason + story Hint; attempt burned. No infra / “unavailable” wording.
+- Grade HTTP failed (retries left): stay in overlay; “Try another idea” + fixed short reason + story Hint; attempt burned. No infra / “unavailable” wording. Same path for client timeout.
 - Accepted (vocab): warm confirmation + grade why-reason; words-learned increments live; then close overlay → same story page → Next Page available.
 - Accepted (comprehension): warm confirmation + grade why-reason; **Keep going** → close + advance to next page; no words-learned bump.
 - Retry limit: do not shame; hand off to meaning/answer reveal.
@@ -131,8 +131,12 @@ StoryPage → ClosingBeat
 
 ## Closing beat
 
-**Job:** Chapter close in one sequence: book-coloring → words-learned count-up → chapter-unlock *reveal* (not playable chapter 2).
+**Job:** Chapter close: book-coloring, then **one** celebration page (Story complete + words recap + Story paths + CTA). Other-path invite if one ending is unseen; reread if both are done. No second screen, no chapter-unlock / sequel tease.
 
-**Copy:** Celebratory and short (“Words you learned”, “Chapter unlocked”). Not “Your score” or “Lesson complete”.
+**One ending seen — primary:** **Discover Another Ending** (jumps to the branch; same path-progress clear as Discover alternate ending). Ghost secondary: **Read the chapter again**. Quiet tracker under **Story paths**: “You found one ending” / 1 of 2.
 
-**Do not:** Persist progress UI, settings, or playable chapter 2 content.
+**Both endings seen — primary:** **Read the chapter again**. No third destination. Words recap stays on this same page.
+
+**Copy:** Celebratory and short (“Story complete!”, “You found one ending!”, “Story paths”, “Words you learned”). Not “Your score”, “Lesson complete”, or “Chapter unlocked”.
+
+**Do not:** Persist progress UI, settings, playable chapter 2 content, or a fake sequel CTA.
