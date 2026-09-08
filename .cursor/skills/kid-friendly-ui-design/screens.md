@@ -6,9 +6,9 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 **Look:** A single painted storybook page. Illustration + story text + quiet chrome share one composition.
 
-**Huge:** Story text (Lexend, ~18–22px, generous line-height), scene illustration, the primary control when it is on screen (unresolved mystery word, **A story question**, or **Next Page** / branch).
+**Huge:** Story text (Lexend, ~18–22px, generous line-height), scene illustration, the primary control when it is on screen (unresolved mystery word — first word glows — **A story question**, or **Next Page** / branch).
 
-**Quiet:** Words-learned treasure count (teal/gold accent, not a card).
+**Quiet:** Words-learned treasure count (teal/gold accent, not a card). While vocab is unresolved, magic-ink footer status (**Tap the glowing word to keep going**) occupies the Next Page slot — not a second coral CTA.
 
 **Containers:** None for paragraphs, illustration, or the count. Flat on the butter paper.
 

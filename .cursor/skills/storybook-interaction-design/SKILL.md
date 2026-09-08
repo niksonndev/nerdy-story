@@ -16,9 +16,9 @@ How the storybook behaves. Look and feel: [kid-friendly-ui-design](../kid-friend
 
 Compose the story screen as a single storybook page (illustration + readable text + quiet chrome), not a grid of bordered panels. **Previous Page** is secondary chrome when visit history exists (not on the first page) — placement differs by page type and breakpoint (see [screens.md](screens.md) and [responsive-layout](../responsive-layout/SKILL.md)).
 
-One visible next-action cue per state (no extra instructional copy):
+One visible next-action cue per state:
 
-- **Vocabulary unresolved:** the highlighted mystery word is the only forward action. Do **not** render a disabled **Next Page** (or greyed branch buttons). After the challenge is **resolved** — accepted explanation or meaning reveal after the retry limit — the overlay closes on the same page and **Next Page** / branch choices appear.
+- **Vocabulary unresolved:** the highlighted mystery word is the only forward action. Do **not** render a disabled **Next Page** (or greyed branch buttons). Keep the primary footer slot occupied with why-you-wait copy (**Tap the glowing word to keep going**) — a `role="status"` line, not a fake or grey button. After the challenge is **resolved** — accepted explanation or meaning reveal after the retry limit — the overlay closes on the same page and **Next Page** / branch choices appear in that same slot. The first mystery word also gets a magic glow (static when reduced motion). Do not add a second near-word caption.
 - **Comprehension pending:** the footer primary is **A story question** (enabled). It opens the overlay; it must not read as a page turn. After resolve (or on return via Previous once resolved), the label is **Next Page** again.
 - **Otherwise:** **Next Page** (or the two branch choices) is the primary.
 
@@ -28,7 +28,7 @@ One visible next-action cue per state (no extra instructional copy):
 
 ## Child-independent interaction
 
-- One clear primary action per active state: mystery word (vocab unresolved), **A story question** (comprehension pending), otherwise **Next Page** / branch. **Previous Page** is secondary when the child has navigated forward at least once (ghost ← on mobile reading; outline **Previous Page** on sm+ reading; ← / **← Back** floating over the illustration on decision pages — never a competing primary CTA).
+- One clear primary action per active state: mystery word (vocab unresolved), **A story question** (comprehension pending), otherwise **Next Page** / branch. While vocab is unresolved, the footer status explains why they cannot continue — it is not a second CTA and does not open the overlay or turn the page. **Previous Page** is secondary when the child has navigated forward at least once (ghost ← on mobile reading; outline **Previous Page** on sm+ reading; ← / **← Back** floating over the illustration on decision pages — never a competing primary CTA).
 - **Previous Page** is available when visit history is non-empty, no challenge overlay is open, and the page turn is idle. It does **not** require vocab resolution on the current page. Hidden on the first page; disabled while an overlay is open or mid page-turn.
 - Page turns are **button-driven only** (Next Page / Previous / branch). No corner-drag, swipe, or click-to-flip — peek-spine gating still blocks forward turns when vocab/comprehension is unresolved.
 - Mystery words are visually highlighted in the story text; tapping/encountering one opens the vocab challenge as an overlay/modal (story page stays underneath).
@@ -60,7 +60,7 @@ For flow per screen, see [screens.md](screens.md).
 ## Pre-ship checklist
 
 - [ ] Vocab challenge is an overlay; after feedback it closes back to the same story page
-- [ ] Vocab: Next Page / branch hidden until the challenge is resolved (accepted **or** meaning reveal after retries); mystery word is the visible cue
+- [ ] Vocab: Next Page / branch controls hidden until the challenge is resolved (accepted **or** meaning reveal after retries); mystery word is the tap target; footer status occupies the primary slot so the chrome does not vanish
 - [ ] Comprehension: footer primary reads **A story question** until resolved, then **Next Page**; Keep going / Got it auto-advances after resolve
 - [ ] Meaning/answer reveal is kid-friendly; words-learned increments only on accepted vocab answers
 - [ ] One clear primary action per active state; controls ≥56px

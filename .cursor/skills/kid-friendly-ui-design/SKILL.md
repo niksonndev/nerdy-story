@@ -32,7 +32,7 @@ A painted storybook page with a light game HUD — not a classroom, not a toddle
 | Reward ink | Darker gold for small readable UI text | `#926200` |
 | Secondary choice | Sky, equal-weight branch options | `#4E8FBF` |
 
-Mystery words: forest ink (`#243428`) on soft tinted chips; unresolved = wavy underline; resolved = checkmark (no underline). Soft teal/gold stay decorative fills; readable brand-colored labels use magic-ink / reward-ink. Words-learned HUD: magic-ink label + soft magic count (large text).
+Mystery words: forest ink (`#243428`) on soft tinted chips; unresolved = wavy underline; resolved = checkmark (no underline). The **first** unresolved mystery word also has a magic box-shadow glow so it is clearly not body text. Soft teal/gold stay decorative fills; readable brand-colored labels use magic-ink / reward-ink (including the quiet footer **Tap the glowing word to keep going** status). Words-learned HUD: magic-ink label + soft magic count (large text).
 
 **Color bans:** purple/indigo systems, dark mode, neon, pastel rainbow, grayscale shadcn neutrals as the page.
 

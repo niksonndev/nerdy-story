@@ -37,21 +37,21 @@ StoryPage → ClosingBeat
 
 **Job:** Read this page. One visible next-action cue: the highlighted mystery word, **A story question**, or **Next Page** / branch. Secondary action is **Previous Page** when visit history exists.
 
-**Mystery words:** Visually highlighted in the story text (wavy underline, magic chip). Encountering one opens the vocab challenge overlay; the story page remains underneath. While unresolved, hide **Next Page** / branch — do not grey them out.
+**Mystery words:** Visually highlighted in the story text (wavy underline, magic chip). The first mystery word also glows. Encountering one opens the vocab challenge overlay; the story page remains underneath. While unresolved, hide **Next Page** / branch **controls** — do not grey them out — and occupy the primary slot with **Tap the glowing word to keep going**. Do not add a second near-word caption. If the child scrolls to the bottom of the first mystery page without tapping, nudge the glowing word into view; do not auto-open the overlay.
 
 **After a vocab challenge:** Overlay closes; child is back on this same page. Next Page / branch is available once that page’s mystery words are resolved. Previous Page does not require vocab resolution.
 
 **Comprehension:** Not opened on page enter. Footer primary reads **A story question** while `comprehensionId` is unresolved; that press opens the overlay (does not turn the page). After resolve, Keep going / Got it advances the story. On a later visit with the challenge already resolved, the label is **Next Page**.
 
-**Previous placement (reading pages):** Mobile — split bottom bar pinned to the bottom of the viewport: ghost ← (~25%) + primary **Next Page** or **A story question** (~75%); when the forward slot is hidden (vocab unresolved), Previous sits alone like a last page. sm+ — outline **Previous Page** + the footer primary in the bottom row. Decision pages: see Branch choice (Back floats on the illustration, not in the text card).
+**Previous placement (reading pages):** Mobile — split bottom bar pinned to the bottom of the viewport: ghost ← (~25%) + primary **Next Page** or **A story question** (~75%); when vocab is unresolved, Previous stays and the primary slot holds the why-you-wait status (not a grey Next Page). sm+ — outline **Previous Page** + the footer primary in the bottom row. Decision pages: see Branch choice (Back floats on the illustration, not in the text card).
 
 **Copy:** Story text is pre-written. Progression chrome is **Next Page** / **A story question** / **Previous Page** — not “Continue”, “Next”, or “Skip”. **← Back** is allowed only as quiet decision-page chrome (not a primary CTA).
 
-**Do not:** Multiple competing primary CTAs. Do not auto-open comprehension on page load. Do not auto-advance from vocab overlays. Do not show Previous Page on the first page or while a challenge overlay is open.
+**Do not:** Multiple competing primary CTAs (the vocab gate status is not a CTA). Do not auto-open comprehension or the vocab overlay on page load. Do not auto-advance from vocab overlays. Do not show Previous Page on the first page or while a challenge overlay is open. Do not leave the primary slot empty while vocab is unresolved.
 
 ## Vocab challenge
 
-**Job:** Explain the mystery word in an overlay/modal over the story page. Next Page / branch stay hidden until the challenge is resolved.
+**Job:** Explain the mystery word in an overlay/modal over the story page. Next Page / branch **controls** stay hidden until the challenge is resolved; the footer still explains why they cannot continue.
 
 **Primary:** Check (≥56px). Prompt: “Explain what you understand by [word]”.
 
@@ -119,7 +119,7 @@ StoryPage → ClosingBeat
 
 **Job:** Pick a story fork — “what if I’d chosen differently?” Both paths equally valid. Not a comprehension test.
 
-**Primary:** Two equal-weight choice controls (≥56px height, generous width), shown only after any mystery word on the page is resolved. Short prompt above (“What do you do?” / story-appropriate). Do **not** put Previous in the footer above the choices. Do **not** grey out the choices while vocab is unresolved — hide them so the mystery word is the cue.
+**Primary:** Two equal-weight choice controls (≥56px height, generous width), shown only after any mystery word on the page is resolved. Short prompt above (“What do you do?” / story-appropriate). Do **not** put Previous in the footer above the choices. Do **not** grey out the choices while vocab is unresolved — hide them and occupy that slot with the why-you-wait status.
 
 **Back chrome (when history exists):** Subtle control floating top-left over the illustration (mobile ← chevron; sm+ **← Back**). Keeps the text card free for story + choices. Secondary only; must not compete with the branch CTAs.
 
@@ -127,7 +127,7 @@ StoryPage → ClosingBeat
 
 **Copy:** Story options, not quiz stems. Quiet **← Back** for decision chrome only.
 
-**Do not:** Gating on “right” choice, more than two options, full-width Previous stacked above the branch CTAs.
+**Do not:** Gating on “right” choice, more than two options, full-width Previous stacked above the branch CTAs. Do not grey the choices while vocab is unresolved — hide them and show the why-you-wait status in that slot instead.
 
 ## Closing beat
 

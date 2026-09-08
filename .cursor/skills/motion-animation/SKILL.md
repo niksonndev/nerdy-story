@@ -32,7 +32,8 @@ Gate Next Page / Previous while a flip is in progress so controls cannot double-
 
 - Page / scene change on **Next Page** / Previous — react-pageflip curl per contract above (instant when reduced motion)
 - CTA press feedback
-- Unresolved mystery word: one-shot scale attention when the sheet becomes current (skip when reduced motion). No looping pulse.
+- Unresolved mystery word: one-shot scale attention when the sheet becomes current (skip when reduced motion). Later mystery words: no looping pulse. **First mystery word only:** a slow box-shadow glow pulse (CSS; skip the pulse when reduced motion, keep the static glow). If the child reaches the bottom without tapping, one extra scale + stronger glow (instant scroll-into-view when reduced motion). Never auto-open the overlay.
+- After a vocab challenge resolves and the overlay closes: one-shot attention on **Next Page** / branch in the same footer slot (skip when reduced motion).
 - Words-learned increment (soft success pulse / count bump)
 - Sequenced ending beat: book-coloring → one celebration page (count-up + other-path / reread CTA on that same page). Short-circuit coloring + count-up when reduced motion.
 - Vocab challenge / feedback overlay: brief enter; focus the input — no celebration until an accepted answer
@@ -42,7 +43,7 @@ Gate Next Page / Previous while a flip is in progress so controls cannot double-
 
 ## Hard avoids
 
-- Looping decoration
+- Looping decoration (except the slow first-mystery box-shadow pulse; later mystery words stay still after their one-shot scale)
 - Confetti storms
 - Layout thrash
 - Spinner storms or busy loader stacks
