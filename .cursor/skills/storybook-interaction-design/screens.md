@@ -25,9 +25,9 @@ StoryPage → ClosingBeat
 
 ## Cover
 
-**Job:** Hook the child into the book, then name the real vocab loop without turning the cover into a how-to.
+**Job:** Hook the child into the book, then name mystery words and story questions without turning the cover into a how-to.
 
-**Copy:** Teaser stays evocative (“Find mystery words along the way”). First tip names tap → type (“Tap a glowing word and type what you think it means”). Second tip stays the fun fork (“Make choices to help {Mia} on her adventure!”). Choice copy is not a substitute for the type verb.
+**Copy:** Teaser stays evocative (“Find mystery words along the way”). First tip names tap → type (“Tap a glowing word and type what you think it means”). Second tip plants story questions (“Sometimes the story asks what you noticed — type what you think!”). Third tip stays the fun fork (“Make choices to help {Mia} on her adventure!”). Choice copy is not a substitute for the type verb. Do not add a how-to under the title.
 
 **Primary:** **Start Reading**.
 

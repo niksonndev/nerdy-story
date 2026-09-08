@@ -21,7 +21,7 @@ On first load, [`StoryReader`](../src/components/story/StoryReader.tsx) shows [`
 
 - **Cover art** and story title from `STORY_META` in [`story-data.ts`](../src/lib/story/story-data.ts)
 - **Mystery words** teaser — “Find mystery words along the way”
-- **Quick tips** — two micro-steps (tap a glowing word and type what you think it means; make choices for Mia)
+- **Quick tips** — three micro-steps (tap a glowing word and type what you think it means; sometimes the story asks what you noticed — type what you think; make choices for Mia)
 - **Start Reading** — triggers a one-shot dolly-in zoom (cover scales toward the viewer, crossfades into page 1); orchestrated by [`StoryCoverEntrance`](../src/components/story/StoryCoverView.tsx)
 
 Session flag `hasStarted` flips to `true` only after the entrance animation completes. **Read the chapter again** from the ending beat resets chapter progress but keeps `hasStarted: true`, so replay skips the cover and entrance animation.
