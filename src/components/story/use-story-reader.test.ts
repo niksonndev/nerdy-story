@@ -2,7 +2,11 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { hintForAttempt } from "@/lib/grade/local-helpers";
-import { MAX_ATTEMPTS, mysteryWords } from "@/lib/story/story-data";
+import {
+  BRANCH_PAGE_ID,
+  MAX_ATTEMPTS,
+  mysteryWords,
+} from "@/lib/story/story-data";
 import { gradeMiss, gradeOk } from "@/test/grade-fixtures";
 
 const requestVocabularyGrade = vi.hoisted(() => vi.fn());
@@ -411,6 +415,31 @@ describe("useStoryReader", () => {
 
       expect(advanceTo).toHaveBeenCalledWith("page-4");
       expect(result.current.overlay.comprehension).toBeNull();
+    });
+  });
+
+  describe("discover alternate ending", () => {
+    it("jumps to the branch and keeps words learned", async () => {
+      const { result } = await startOnPage2();
+
+      act(() => {
+        result.current.openVocabularyChallenge("canopy");
+        result.current.setChildAnswer("the leafy roof");
+      });
+      requestVocabularyGrade.mockResolvedValueOnce(
+        gradeOk("Yes — canopy is about the leafy roof of the forest."),
+      );
+      await act(async () => {
+        await result.current.handleVocabularyCheck();
+      });
+      act(() => {
+        result.current.closeChallenge();
+        result.current.handleDiscoverAlternateEnding();
+      });
+
+      expect(result.current.pageId).toBe(BRANCH_PAGE_ID);
+      expect(result.current.learnedWordIds).toEqual(["canopy"]);
+      expect(result.current.showEndingBeat).toBe(false);
     });
   });
 });

@@ -9,7 +9,6 @@ import {
 } from "motion/react";
 
 import { CelebrationPhase } from "@/components/story/EndingCelebration";
-import { Chapter2Stub } from "@/components/story/EndingChapter2";
 import { StorybookShell } from "@/components/story/storybook-shell";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +23,13 @@ type EndingBeatProps = {
 
 const COLORING_MS = 1400;
 
+function countUpDuration(
+  wordsLearned: number,
+  reduceMotion: boolean | null,
+) {
+  return reduceMotion ? 0 : Math.min(1.2, 0.4 + wordsLearned * 0.25);
+}
+
 export function EndingBeat({
   learnedWordIds,
   exploredEndingIds,
@@ -31,32 +37,32 @@ export function EndingBeat({
   onDiscoverAlternateEnding,
 }: EndingBeatProps) {
   const [phase, setPhase] = useState<EndingBeatPhase>("coloring");
-  const [view, setView] = useState<"beat" | "chapter2">("beat");
   const [displayCount, setDisplayCount] = useState(0);
   const reduceMotion = useReducedMotion();
   const coloringMs = reduceMotion ? 0 : COLORING_MS;
   const wordsLearned = learnedWordIds.length;
+  const shownCount = reduceMotion ? wordsLearned : displayCount;
 
   useEffect(() => {
-    if (view !== "beat" || phase !== "coloring") return;
+    if (phase !== "coloring") return;
     const timer = window.setTimeout(
       () => setPhase("celebration"),
       coloringMs,
     );
     return () => window.clearTimeout(timer);
-  }, [view, phase, coloringMs]);
+  }, [phase, coloringMs]);
 
   useEffect(() => {
-    if (view !== "beat" || phase !== "celebration") return;
+    if (phase !== "celebration" || reduceMotion) return;
 
     const controls = animate(0, wordsLearned, {
-      duration: reduceMotion ? 0 : Math.min(1.2, 0.4 + wordsLearned * 0.25),
+      duration: countUpDuration(wordsLearned, reduceMotion),
       ease: "easeOut",
       onUpdate: (value) => setDisplayCount(Math.round(value)),
     });
 
     return () => controls.stop();
-  }, [view, phase, wordsLearned, reduceMotion]);
+  }, [phase, wordsLearned, reduceMotion]);
 
   return (
     <StorybookShell
@@ -73,19 +79,16 @@ export function EndingBeat({
         >
           <div className="flex min-h-0 w-full flex-1 flex-col sm:items-center">
             <AnimatePresence mode="wait">
-            {view === "chapter2" ? (
-              <Chapter2Stub key="chapter2" onReadAgain={onReadAgain} />
-            ) : phase === "coloring" ? (
+            {phase === "coloring" ? (
               <ColoringPhase key="coloring" />
             ) : (
               <CelebrationPhase
                 key="celebration"
-                displayCount={displayCount}
+                displayCount={shownCount}
                 learnedWordIds={learnedWordIds}
                 exploredEndingIds={exploredEndingIds}
                 onReadAgain={onReadAgain}
                 onDiscoverAlternateEnding={onDiscoverAlternateEnding}
-                onReadChapter2={() => setView("chapter2")}
               />
             )}
             </AnimatePresence>

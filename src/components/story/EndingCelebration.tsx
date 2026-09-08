@@ -16,80 +16,48 @@ export function CelebrationPhase({
   exploredEndingIds,
   onReadAgain,
   onDiscoverAlternateEnding,
-  onReadChapter2,
 }: {
   displayCount: number;
   learnedWordIds: string[];
   exploredEndingIds: string[];
   onReadAgain: () => void;
   onDiscoverAlternateEnding: () => void;
-  onReadChapter2: () => void;
 }) {
-  const [showExplorePrompt, setShowExplorePrompt] = useState(false);
   const bothEndings = exploredEndingIds.length >= 2;
 
-  function handleContinueToChapter2() {
-    if (bothEndings) {
-      onReadChapter2();
-      return;
-    }
-    setShowExplorePrompt(true);
-  }
-
-  function handleDiscoverFromPrompt() {
-    setShowExplorePrompt(false);
-    onDiscoverAlternateEnding();
-  }
-
-  function handleSkipToChapter2() {
-    setShowExplorePrompt(false);
-    onReadChapter2();
-  }
-
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className={cn(
+        "mx-auto flex w-full max-w-lg flex-col text-center sm:max-w-none",
+        "max-sm:min-h-0 max-sm:flex-1",
+        "sm:flex-none",
+      )}
+    >
+      <div
         className={cn(
-          "mx-auto flex w-full max-w-lg flex-col text-center sm:max-w-none",
-          "max-sm:min-h-0 max-sm:flex-1",
-          "sm:flex-none",
+          "flex min-h-0 flex-1 flex-col overflow-y-auto",
+          "gap-[clamp(1rem,4dvh,3rem)]",
+          "sm:gap-6",
         )}
       >
-        <div
-          className={cn(
-            "flex min-h-0 flex-1 flex-col overflow-y-auto",
-            "gap-[clamp(1rem,4dvh,3rem)]",
-            "sm:gap-6",
-          )}
-        >
-          <CelebrationHeader bothEndings={bothEndings} />
+        <CelebrationHeader bothEndings={bothEndings} />
 
-          <CelebrationRecap
-            displayCount={displayCount}
-            learnedWordIds={learnedWordIds}
-            exploredEndingIds={exploredEndingIds}
-          />
-        </div>
-
-        <CelebrationActions
-          bothEndings={bothEndings}
-          onReadAgain={onReadAgain}
-          onDiscoverAlternateEnding={onDiscoverAlternateEnding}
-          onReadChapter2={onReadChapter2}
-          onContinueToChapter2={handleContinueToChapter2}
+        <CelebrationRecap
+          displayCount={displayCount}
+          learnedWordIds={learnedWordIds}
+          exploredEndingIds={exploredEndingIds}
         />
-      </motion.div>
+      </div>
 
-      <ExploreFirstPrompt
-        open={showExplorePrompt}
-        onDiscover={handleDiscoverFromPrompt}
-        onSkip={handleSkipToChapter2}
-        onClose={() => setShowExplorePrompt(false)}
+      <CelebrationActions
+        bothEndings={bothEndings}
+        onReadAgain={onReadAgain}
+        onDiscoverAlternateEnding={onDiscoverAlternateEnding}
       />
-    </>
+    </motion.div>
   );
 }
 
@@ -152,7 +120,10 @@ function CelebrationRecap({
       >
         {showWordsSection ? (
           <div className="space-y-4">
-            <p className="font-sans text-2xl font-bold leading-snug text-foreground sm:text-4xl">
+            <p
+              className="font-sans text-2xl font-bold leading-snug text-foreground sm:text-4xl"
+              aria-live="polite"
+            >
               <motion.span
                 key={displayCount}
                 initial={{ scale: 0.85, opacity: 0.6 }}
@@ -190,14 +161,10 @@ function CelebrationActions({
   bothEndings,
   onReadAgain,
   onDiscoverAlternateEnding,
-  onReadChapter2,
-  onContinueToChapter2,
 }: {
   bothEndings: boolean;
   onReadAgain: () => void;
   onDiscoverAlternateEnding: () => void;
-  onReadChapter2: () => void;
-  onContinueToChapter2: () => void;
 }) {
   return (
     <footer
@@ -206,36 +173,19 @@ function CelebrationActions({
         "max-sm:pt-4",
         "pb-[max(2rem,env(safe-area-inset-bottom))]",
         "sm:mt-6 sm:pt-0 sm:pb-0",
-        "lg:flex-row lg:items-center lg:justify-between lg:gap-4",
+        bothEndings
+          ? "lg:items-center lg:justify-center"
+          : "lg:flex-row lg:items-center lg:justify-between lg:gap-4",
       )}
     >
       {bothEndings ? (
-        <>
-          <Button
-            size="kid"
-            className={cn(
-              "w-full min-h-14 text-xl sm:text-2xl",
-              "order-1 lg:order-2 lg:w-auto lg:flex-none",
-            )}
-            onClick={onReadChapter2}
-          >
-            <span aria-hidden>{"\u2728"}</span> Explore the next chapter
-          </Button>
-          <Button
-            size="kid"
-            variant="ghost"
-            className={cn(
-              "w-full min-h-14 text-xl sm:text-2xl",
-              "order-2 lg:order-1",
-              "text-muted-foreground hover:text-foreground",
-              "max-lg:bg-white/80 max-lg:hover:bg-white/90",
-              "lg:w-auto lg:min-h-14 lg:flex-none lg:bg-transparent lg:px-5 lg:text-xl lg:underline-offset-4 lg:hover:underline",
-            )}
-            onClick={onReadAgain}
-          >
-            Read the chapter again
-          </Button>
-        </>
+        <Button
+          size="kid"
+          className="w-full min-h-14 text-xl sm:text-2xl lg:w-auto lg:flex-none"
+          onClick={onReadAgain}
+        >
+          Read the chapter again
+        </Button>
       ) : (
         <>
           <Button
@@ -258,9 +208,9 @@ function CelebrationActions({
               "max-lg:bg-white/80 max-lg:hover:bg-white/90",
               "lg:w-auto lg:min-h-14 lg:flex-none lg:bg-transparent lg:px-5 lg:text-xl lg:underline-offset-4 lg:hover:underline",
             )}
-            onClick={onContinueToChapter2}
+            onClick={onReadAgain}
           >
-            Continue to Chapter 2 {"\u2192"}
+            Read the chapter again
           </Button>
         </>
       )}
@@ -360,55 +310,5 @@ function EndingTracker({ exploredEndingIds }: { exploredEndingIds: string[] }) {
         );
       })}
     </div>
-  );
-}
-
-function ExploreFirstPrompt({
-  open,
-  onDiscover,
-  onSkip,
-  onClose,
-}: {
-  open: boolean;
-  onDiscover: () => void;
-  onSkip: () => void;
-  onClose: () => void;
-}) {
-  return (
-    <ChallengeDialog
-      open={open}
-      onClose={onClose}
-      placement="bottom"
-      aria-labelledby="explore-first-title"
-    >
-      <h2
-        id="explore-first-title"
-        className="font-heading text-2xl font-bold text-foreground"
-      >
-        Unexplored Path Ahead!
-      </h2>
-      <p className="mt-4 text-lg leading-relaxed text-foreground/90">
-        You still have 1 hidden ending left in this chapter. Want to jump
-        back to your last choice and see what happens?
-      </p>
-
-      <div className="mt-8 flex w-full flex-col gap-3">
-        <Button
-          size="kid"
-          className="w-full min-h-14 text-xl sm:text-2xl"
-          onClick={onDiscover}
-        >
-          Discover new ending
-        </Button>
-        <Button
-          size="kid"
-          variant="ghost"
-          className="w-full min-h-14 text-xl sm:text-2xl text-muted-foreground"
-          onClick={onSkip}
-        >
-          Skip to Chapter 2 Anyway
-        </Button>
-      </div>
-    </ChallengeDialog>
   );
 }
