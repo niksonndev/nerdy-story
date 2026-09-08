@@ -123,6 +123,7 @@ describe("gradeVocabularyLocally", () => {
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
     expect(result.reason).toMatch(/canopy/i);
+    expect(result.reason).toMatch(/treetops/i);
   });
 
   it("accepts acceptKeywords for cautious", () => {
@@ -132,6 +133,8 @@ describe("gradeVocabularyLocally", () => {
     });
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
+    expect(result.reason).toMatch(/careful/i);
+    expect(result.reason).toMatch(/cautious/i);
   });
 
   it("accepts overlapping definition tokens for nocturnal", () => {
@@ -142,6 +145,7 @@ describe("gradeVocabularyLocally", () => {
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
     expect(result.reason).toMatch(/nocturnal/i);
+    expect(result.reason).toMatch(/awake/i);
   });
 
   it("rejects a wrong concept and returns a story hint", () => {
@@ -237,6 +241,7 @@ describe("gradeVocabulary", () => {
     expect(call.messages[0]?.content).toContain(
       "The roof-like layer formed by the tops of tall rainforest trees",
     );
+    expect(call.messages[0]?.content).toContain("treetops high in the forest");
     expect(call.messages[1]?.content).toContain(
       "the top of the trees where leaves meet",
     );
@@ -249,11 +254,21 @@ describe("gradeVocabulary", () => {
     expect(call.system).toMatch(/untrusted/i);
     expect(call.system).not.toContain("the top of the trees where leaves meet");
     expect(gradeResultSchema.shape.hint.description).toMatch(/Null when correct is true/i);
+    expect(call.system).toMatch(/reuse the child's wording/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
       /Vocabulary \(mystery word\)/i,
     );
     expect(gradeResultSchema.shape.reason.description).toMatch(
+      /echo a bit of the child's own wording/i,
+    );
+    expect(gradeResultSchema.shape.reason.description).toMatch(
       /never restate or paraphrase the target definition/i,
+    );
+    expect(gradeResultSchema.shape.reason.description).toMatch(
+      /Good: child said/i,
+    );
+    expect(gradeResultSchema.shape.reason.description).not.toMatch(
+      /Templates: "Perfect!/i,
     );
   });
 

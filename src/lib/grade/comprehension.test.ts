@@ -116,7 +116,9 @@ describe("gradeComprehensionLocally", () => {
     });
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
-    expect(result.reason).toMatch(/matches/i);
+    expect(result.reason).toMatch(/you said/i);
+    expect(result.reason).toMatch(/scraped/i);
+    expect(result.reason).toMatch(/clues/i);
   });
 
   it("accepts overlapping expectedUnderstanding tokens as correct", () => {
@@ -232,6 +234,9 @@ describe("gradeComprehension", () => {
     expect(call.messages[0]?.content).toContain(
       comprehensionChallenges["track-clues"].expectedUnderstanding,
     );
+    expect(call.messages[0]?.content).toContain(
+      comprehensionChallenges["track-clues"].coreIdea,
+    );
     expect(call.messages[1]?.content).toContain(
       "they saw scraped bark and green fur on the branch",
     );
@@ -244,8 +249,18 @@ describe("gradeComprehension", () => {
     expect(call.system).not.toContain(
       "they saw scraped bark and green fur on the branch",
     );
+    expect(call.system).toMatch(/reuse the child's wording/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
       /Story comprehension/i,
+    );
+    expect(gradeResultSchema.shape.reason.description).toMatch(
+      /echo a bit of the child's own wording/i,
+    );
+    expect(gradeResultSchema.shape.reason.description).toMatch(
+      /Good: child said/i,
+    );
+    expect(gradeResultSchema.shape.reason.description).not.toMatch(
+      /Templates: "Yes! That's exactly why/i,
     );
   });
 

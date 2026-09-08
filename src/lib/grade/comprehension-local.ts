@@ -3,6 +3,7 @@ import type {
   GradeResult,
 } from "@/lib/grade/shared";
 import {
+  buildLocalHitReason,
   gradeLocally,
   isLocallyCorrectAnswer,
   requireKnown,
@@ -31,7 +32,11 @@ export function gradeComprehensionLocally(
       challenge.acceptKeywords,
       challenge.expectedUnderstanding,
     ),
-    correctReason: "Yes — that matches what this part of the story is about.",
+    correctReason: buildLocalHitReason({
+      kind: "comprehension",
+      coreIdea: challenge.coreIdea,
+      childAnswer,
+    }),
     miss: {
       kind: "comprehension",
       coreIdea: challenge.coreIdea,

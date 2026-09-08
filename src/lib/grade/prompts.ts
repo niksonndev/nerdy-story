@@ -6,15 +6,17 @@ import type { ComprehensionChallenge, MysteryWord } from "@/lib/story/story-data
 const REASON_FIELD_DESCRIPTION = `One short kid-friendly sentence that always praises — what you praise depends on correct.
 
 Vocabulary (mystery word):
-- correct true: affirm the result and explain why — tie their words to the target.
-  Templates: "Perfect! That's exactly it: [definition]." "Exactly! Since [word] is about [dimension], that fits perfectly." "Right — [word] means [definition], just like you said."
+- correct true: echo a bit of the child's own wording, then name the idea in 7–9 language (the mystery word plus its core idea). Do not start with "Perfect!" or write "That's exactly it". Do not paste or paraphrase the full target definition. Do not add the half of a two-part definition they left out.
+  Good: child said "the top of the trees" → "You said the top of the trees — canopy is that leafy cover high up."
+  Bad: "Perfect! That's exactly it: The roof-like layer formed by the tops of tall rainforest trees."
 - correct false: name only the domain or category their answer landed in — stop there; never restate or paraphrase the target definition in reason (save direction for hint).
   Templates: "Good guess, but [word] isn't about [child's concept]." "That's more about [child's concept] than about this word."
   Bad: adding "it's about [correct definition]" after the contrast — that reveals the answer.
 
 Story comprehension:
-- correct true: affirm the causal/textual link — reinforce why it's right, not just that it is.
-  Templates: "Yes! That's exactly why it happened." "Right — the story shows that's the reason." "Exactly, that's just what happened."
+- correct true: echo a bit of the child's own wording, then name the story idea in 7–9 language. Do not start with "Perfect!" or write "That's exactly it". Do not paste the expected understanding or answer reveal.
+  Good: child said "scraped bark and green fur" → "You noticed the scraped bark and green fur — those are the clues on the branch."
+  Bad: "Yes! That's exactly why it happened."
 - correct false: identify which kind of miss it is and use the matching template. Never say "wrong", "no", or "incorrect".
   - Wrong event/detail (something else from the story, just not this part): "That happened, but not right here." "That's a different part of the story."
   - Wrong character (right event, wrong person): "That's actually someone else's part in the story." "A different character did that."
@@ -55,6 +57,7 @@ ${GRADER_SHARED}
 Grading:
 - Compare the child's latest explanation to the target definition for semantic meaning.
 - Reject answers that describe a different or wrong idea than the target definition.
+- On accept, reason must reuse the child's wording before naming the core idea — never "Perfect!" or a quote of the target definition.
 
 Partial acceptance (7–9 reading level):
 - When the target definition has two parts (e.g. active at night AND resting by day), accept an answer that captures ONE true half — the child does not need both parts in one answer.
@@ -79,6 +82,7 @@ ${GRADER_SHARED}
 Grading:
 - Compare the child's latest answer to the expected understanding, using the story passage and question as context.
 - Reject answers that describe a different event, reason, or wrong idea from the passage.
+- On accept, reason must reuse the child's wording before naming the story idea — never a canned "that's exactly why" stamp.
 
 Partial acceptance (7–9 reading level):
 - When the passage gives multiple separate clues or facts, accept an answer that names ONE grounded, correct clue or fact from the passage — the child does not need to list every detail.
@@ -111,6 +115,7 @@ export function buildVocabularyTrustedContext(
   const lines = [
     `Mystery word: ${word.word}`,
     `Target definition: ${word.targetDefinition}`,
+    `Core idea (kid language to name on a hit — do not paste the target definition): ${word.coreIdea}`,
   ];
 
   appendPriorChildAnswers(lines, priorAttempts);
@@ -130,6 +135,7 @@ export function buildComprehensionTrustedContext(
     `Question: ${challenge.question}`,
     `Story passage: ${challenge.passage}`,
     `Expected understanding: ${challenge.expectedUnderstanding}`,
+    `Core idea (kid language to name on a hit): ${challenge.coreIdea}`,
   ];
 
   appendPriorChildAnswers(lines, priorAttempts);

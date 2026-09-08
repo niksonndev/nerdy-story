@@ -156,6 +156,60 @@ function capitalizeWord(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+const MAX_HIT_PHRASE_CHARS = 40;
+const MAX_HIT_PHRASE_CONTENT_WORDS = 6;
+
+function isContentWord(word: string): boolean {
+  const token = word.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return (
+    token.length > 0 &&
+    !STOPWORDS.has(token) &&
+    !MEANINGLESS_TOKENS.has(token)
+  );
+}
+
+/**
+ * Short slice of the child's original wording for local hit-reason echo.
+ * Skips leading filler, keeps their phrases, caps length.
+ */
+export function extractChildPhrase(childAnswer: string): string {
+  const trimmed = childAnswer.trim().replace(/\s+/g, " ");
+  if (trimmed.length === 0) return CHILD_IDEA_FALLBACK;
+
+  const words = trimmed.split(" ");
+  const kept: string[] = [];
+  let contentCount = 0;
+  for (const word of words) {
+    const content = isContentWord(word);
+    if (kept.length === 0 && !content) continue;
+    kept.push(word);
+    if (content) contentCount += 1;
+    if (contentCount >= MAX_HIT_PHRASE_CONTENT_WORDS) break;
+  }
+
+  if (kept.length === 0) return CHILD_IDEA_FALLBACK;
+
+  let phrase = kept.join(" ");
+  if (phrase.length > MAX_HIT_PHRASE_CHARS) {
+    phrase = phrase.slice(0, MAX_HIT_PHRASE_CHARS).replace(/\s+\S*$/, "").trim();
+  }
+  phrase = phrase.replace(/[.,!?;:]+$/, "");
+  return phrase.length > 0 ? phrase : CHILD_IDEA_FALLBACK;
+}
+
+export type LocalHitReasonOptions =
+  | { kind: "vocabulary"; word: string; coreIdea: string; childAnswer: string }
+  | { kind: "comprehension"; coreIdea: string; childAnswer: string };
+
+/** Build MVP hit-reason copy: echo their words, then name the idea. */
+export function buildLocalHitReason(options: LocalHitReasonOptions): string {
+  const phrase = extractChildPhrase(options.childAnswer);
+  if (options.kind === "vocabulary") {
+    return `Yes — you said ${phrase}. ${capitalizeWord(options.word)} is about ${options.coreIdea}.`;
+  }
+  return `Yes — you said ${phrase}. This part is about ${options.coreIdea}.`;
+}
+
 /** Pick a kid-facing phrase from the child's answer for local miss-reason copy. */
 export function extractChildIdea(childAnswer: string, coreIdea: string): string {
   const answerTokens = normalizeTokens(childAnswer);

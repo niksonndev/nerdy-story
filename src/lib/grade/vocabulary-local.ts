@@ -1,5 +1,6 @@
 import type { VocabularyGradeRequest, GradeResult } from "@/lib/grade/shared";
 import {
+  buildLocalHitReason,
   gradeLocally,
   isLocallyCorrectAnswer,
   requireKnown,
@@ -28,7 +29,12 @@ export function gradeVocabularyLocally(
       word.acceptKeywords,
       word.targetDefinition,
     ),
-    correctReason: `Yes — ${word.word} is about ${word.coreIdea}.`,
+    correctReason: buildLocalHitReason({
+      kind: "vocabulary",
+      word: word.word,
+      coreIdea: word.coreIdea,
+      childAnswer,
+    }),
     miss: {
       kind: "vocabulary",
       word: word.word,
