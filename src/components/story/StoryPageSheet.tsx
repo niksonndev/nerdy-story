@@ -45,8 +45,8 @@ export function StoryPageSheet({
       )}
       {...(!interactive ? { inert: true } : {})}
     >
-      {/* Whole sheet scrolls when content overflows; no stretch/pin gap under text */}
-      <div className="flex flex-col">
+      {/* sm+: fill the sheet so nav pins to the card bottom; overflow still scrolls as one unit */}
+      <div className="flex flex-col sm:min-h-full">
         <SceneImage
           src={page.image}
           alt={page.imageAlt ?? page.title}
@@ -74,7 +74,7 @@ export function StoryPageSheet({
           className={cn(
             "flex min-w-0 flex-col px-5 pt-6",
             isDecision ? "pb-8" : "pb-0",
-            "sm:px-10 sm:pb-8 sm:pt-8",
+            "sm:flex-1 sm:px-10 sm:pb-8 sm:pt-8",
           )}
         >
           <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
@@ -112,6 +112,7 @@ export function StoryPageSheet({
               "relative z-10 mt-4 flex w-full shrink-0",
               !isDecision &&
                 "max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-4",
+              "sm:mt-auto sm:pt-4",
             )}
           />
         </div>

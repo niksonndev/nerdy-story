@@ -59,9 +59,10 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
 - Same stacked book-card layout as desktop: centered card, max-width
   ~600–700px (`max-w-175`), banner image on top, text below
 - Modal: centered card, no longer full-screen, ~70–80% width, rounded corners
-- Reading: outline **Previous Page** + auto-width **Next Page** or **A story question** in the card
-  bottom row. Decision: **← Back** floats top-left over the illustration
-  (text card stays free for story + choices)
+- Reading: outline **Previous Page** + auto-width **Next Page** or **A story question** pinned
+  to the book-card bottom row when content is short; the whole sheet scrolls as one unit
+  when it overflows (image + text + controls). Decision: **← Back** floats top-left over
+  the illustration (text card stays free for story + choices)
 
 ### Desktop (1024px+)
 - **Cover:** side-by-side book spread inside a wider card (~1200px / `max-w-300`),
@@ -73,8 +74,8 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
   wide viewport
 - Image container per "Image container rule" above (7/3 page banner or contained cover)
 - Modal: centered card, fixed max-width (~480px), page dims/blurs behind it
-- Reading / decision Previous placement same as tablet (bottom-row outline
-  Previous; decision **← Back** floating on the illustration)
+- Reading / decision Previous placement same as tablet (nav pinned to the book-card
+  bottom row when content is short; decision **← Back** floating on the illustration)
 - Hover states become relevant (button hover, word-hint hover) — mobile/tablet
   don't need hover, only tap feedback
 
