@@ -129,6 +129,7 @@ export function assertHardRules(
       camouflage: evalCase.wordId === "camouflage",
       nocturnal: evalCase.wordId === "nocturnal",
       slothTiming: evalCase.challengeId === "guide-choice-outcome",
+      tracksSplit: evalCase.challengeId === "tracks-choice-outcome",
       allowedText: leakAllowedText(evalCase),
     })
     if (leak) {

@@ -4,6 +4,7 @@ import {
   childAnswerSchema,
   priorAttemptsSchema,
 } from "@/lib/grade/child-input";
+import { hintLeakMessage } from "@/lib/grade/hint-leak";
 import {
   createLiveGrader,
   createProductionGrader,
@@ -37,6 +38,13 @@ export const gradeVocabularyLive = createLiveGrader({
   outputDescription:
     "Whether the child's explanation matches the mystery word's meaning.",
   tags: ["feature:vocabulary-grade"],
+  leakingHint: (word, request, hint) =>
+    hintLeakMessage(hint, [word.targetDefinition], {
+      camouflage: word.id === "camouflage",
+      nocturnal: word.id === "nocturnal",
+      allowedText: request.childAnswer,
+    }),
+  storyHints: (word) => word.hints,
 });
 
 /**

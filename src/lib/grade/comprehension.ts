@@ -5,6 +5,7 @@ import {
   priorAttemptsSchema,
 } from "@/lib/grade/child-input";
 import { gradeComprehensionLocally } from "@/lib/grade/comprehension-local";
+import { hintLeakMessage } from "@/lib/grade/hint-leak";
 import {
   createLiveGrader,
   createProductionGrader,
@@ -38,6 +39,13 @@ export const gradeComprehensionLive = createLiveGrader({
   outputDescription:
     "Whether the child's answer matches the expected story understanding.",
   tags: ["feature:comprehension-grade"],
+  leakingHint: (challenge, request, hint) =>
+    hintLeakMessage(hint, [challenge.answerReveal], {
+      slothTiming: challenge.id === "guide-choice-outcome",
+      tracksSplit: challenge.id === "tracks-choice-outcome",
+      allowedText: `${request.childAnswer} ${challenge.question}`,
+    }),
+  storyHints: (challenge) => challenge.hints,
 });
 
 /**

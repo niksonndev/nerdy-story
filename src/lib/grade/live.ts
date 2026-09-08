@@ -1,5 +1,6 @@
 import { generateText, Output } from "ai";
 
+import { hintForAttempt } from "@/lib/grade/local-helpers";
 import {
   buildChildAnswerMessage,
   gradeResultSchema,
@@ -89,7 +90,22 @@ type LiveGraderConfig<TRequest, TEntity> = {
   outputName: string;
   outputDescription: string;
   tags: readonly string[];
+  leakingHint: (
+    entity: TEntity,
+    request: TRequest,
+    hint: string,
+  ) => string | null;
+  storyHints: (entity: TEntity) => readonly string[];
 };
+
+function withoutLeakingHint(
+  result: GradeResult,
+  leak: string | null,
+  storyHint: string | null,
+): GradeResult {
+  if (result.correct || !result.hint || !leak || !storyHint) return result;
+  return { ...result, hint: storyHint };
+}
 
 /**
  * Lookup + live generateText grader. Production wraps this with
@@ -105,7 +121,7 @@ export function createLiveGrader<
   ): Promise<GradeResult> {
     const entity = config.lookup(request);
     if (!entity) throw new GradeError(config.unknownError);
-    return runLiveGrade({
+    const result = await runLiveGrade({
       system: config.system,
       trustedContext: config.trustedContext(entity, request),
       childAnswer: request.childAnswer,
@@ -114,6 +130,15 @@ export function createLiveGrader<
       tags: config.tags,
       liveOptions: options,
     });
+    if (result.correct || !result.hint) return result;
+    return withoutLeakingHint(
+      result,
+      config.leakingHint(entity, request, result.hint),
+      hintForAttempt(
+        [...config.storyHints(entity)],
+        request.priorAttempts?.length ?? 0,
+      ),
+    );
   };
 }
 

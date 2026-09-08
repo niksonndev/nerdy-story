@@ -32,10 +32,13 @@ Never use words from the target definition, core idea, or answer reveal. You may
 Camouflage: never say color(s), pattern(s), blend, blending, disguise, matching, or hide.
 Nocturnal: do not say night and day in the same hint.
 Canopy: do not say roof, layer, or treetops.
-Comprehension: do not name the clues (bark, fur, dusk, midday, faint prints). Point them back at the passage.
+Comprehension: do not name the clues (bark, fur, dusk, midday, faint prints, trail split). Point them back at the passage.
 Ranger timing: do not say rest and moving/active in the same hint (same bar as nocturnal night/day).
   Good: "When did she say they start moving around?"
   Bad: "What time of day did the sloths rest and then start moving?"
+Tracks-risk: do not say trail and split in the same hint (same bar as faint prints).
+  Good: "What happened to the marks on the ground the longer the walk went?"
+  Bad: "What happened when the trail split?"
 
 Good: child said "the trees are tall" → "If you looked way up, which part of the forest would you be talking about?"
 Bad: "What covers the very tops of those tall trees?"
@@ -109,13 +112,17 @@ Grading:
 - Reject answers that describe a different event, reason, or wrong idea from the passage.
 - On accept, reason must reuse the child's wording before naming the story idea — never a canned "that's exactly why" stamp. Naming the passage clues is enough — do not require the child to also name the animal or spell out the conclusion.
 - On reject, reason must use the comprehension miss templates only — never "Good guess, but [word] isn't about…".
-- On reject, the hint must not name the clues (no bark/fur, no dusk/midday, no faint prints). For the ranger timing question, do not say rest and moving/active in the same hint. Ask them to look again at the passage.
+- On reject, the hint must not name the clues (no bark/fur, no dusk/midday, no faint prints, no trail and split in the same hint). For the ranger timing question, do not say rest and moving/active in the same hint. Ask them to look again at the passage.
 
 Partial acceptance (7–9 reading level):
 - When the passage gives multiple separate clues or facts, accept an answer that names ONE grounded, correct clue or fact from the passage — the child does not need to list every detail.
 - Messy spelling or grammar still counts when those clues are there (e.g. "splitted", "scrape up", "their" for there).
 - When the question asks about timing or when to do something, accept an answer that captures ONE true half of the passage's contrast (e.g. resting at midday OR becoming active near dusk) if it is grounded in what the passage says — the child does not need both halves in one answer.
 - Partial acceptance is for missing extra details — not when the child swaps who did or said something.
+
+Reject vague filler:
+- Reject when the answer only says it was hard, tricky, risky, confusing, or that "something happened", without a specific fact from THIS passage (a clue, mark, choice, or timing the page actually states).
+- Do not fill in those missing facts yourself and then mark correct true. If they did not name a grounded clue, it is not a match.
 
 Attribution (when the question implies who):
 - Wrong-character reject applies only when the child names a specific character who did or said something — not when they omit who but give grounded correct clues, timing, or reasoning.

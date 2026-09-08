@@ -270,6 +270,8 @@ describe("gradeComprehension", () => {
     );
     expect(call.system).toMatch(/reuse the child's wording/i);
     expect(call.system).toMatch(/copies or nearly copies a whole sentence/i);
+    expect(call.system).toMatch(/Reject vague filler/i);
+    expect(call.system).toMatch(/Do not fill in those missing facts/i);
     expect(call.messages[0]?.content).toMatch(/Copied or near-copied sentences/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
       /Story comprehension/i,
@@ -361,6 +363,26 @@ describe("gradeComprehension", () => {
       reason: "This part is about branch clues, not exactly about snacks.",
       hint: "Look again at what was on the branch.",
     });
+  });
+
+  it("replaces a leaking live hint with the story hint", async () => {
+    generateText.mockResolvedValue({
+      output: {
+        correct: false,
+        reason: "Hmm, let's think about what the story actually says.",
+        hint: "Can you look back at the passage to see what happened when the trail split?",
+      },
+    });
+
+    const result = await gradeComprehension({
+      challengeId: "tracks-choice-outcome",
+      childAnswer: "xyzzy xyzzy xyzzy",
+    });
+
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(
+      comprehensionChallenges["tracks-choice-outcome"].hints[0],
+    );
   });
 
   it("falls back to local grading when NoObjectGeneratedError is thrown", async () => {

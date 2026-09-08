@@ -265,6 +265,7 @@ describe("gradeVocabulary", () => {
     expect(call.system).not.toContain("the top of the trees where leaves meet");
     expect(gradeResultSchema.shape.hint.description).toMatch(/Null when correct is true/i);
     expect(gradeResultSchema.shape.hint.description).toMatch(/never say color/i);
+    expect(gradeResultSchema.shape.hint.description).toMatch(/trail and split/i);
     expect(call.system).toMatch(/reuse the child's wording/i);
     expect(gradeResultSchema.shape.reason.description).toMatch(
       /Vocabulary \(mystery word\)/i,
@@ -360,6 +361,24 @@ describe("gradeVocabulary", () => {
       reason: "That sounds like something else.",
       hint: "Think about a safe, covered spot.",
     });
+  });
+
+  it("replaces a leaking live hint with the story hint", async () => {
+    generateText.mockResolvedValue({
+      output: {
+        correct: false,
+        reason: "Good guess, but canopy isn't about fruit.",
+        hint: "It's the roof-like layer of trees.",
+      },
+    });
+
+    const result = await gradeVocabulary({
+      wordId: "canopy",
+      childAnswer: "a kind of tasty fruit",
+    });
+
+    expect(result.correct).toBe(false);
+    expect(result.hint).toBe(mysteryWords.canopy.hints[0]);
   });
 
   it("falls back to local grading when generateText rejects", async () => {

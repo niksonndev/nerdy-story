@@ -119,6 +119,20 @@ describe("hintLeakMessage", () => {
     ).toMatch(/overlapping tokens/i);
   });
 
+  it("flags a tracks hint that names trail and split together", () => {
+    const challenge = comprehensionChallenges["tracks-choice-outcome"];
+    expect(
+      hintLeakMessage(
+        "Can you look back at the passage to see what happened when the trail split?",
+        [challenge.answerReveal],
+        {
+          tracksSplit: true,
+          allowedText: challenge.question,
+        },
+      ),
+    ).toMatch(/trail-split/i);
+  });
+
   it("flags a ranger-timing hint that names rest and moving together", () => {
     const challenge = comprehensionChallenges["guide-choice-outcome"];
     expect(

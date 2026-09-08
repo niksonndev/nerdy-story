@@ -47,6 +47,8 @@ const NOCTURNAL_DAY = /\bdays?\b/i;
 const NOCTURNAL_NIGHT = /\bnight/i;
 const SLOTH_TIMING_REST = /\brest(?:s|ing|ed)?\b/i;
 const SLOTH_TIMING_ACTIVE = /\bmov(?:e|es|ing|ed)\b|\bactive\b/i;
+const TRACKS_TRAIL = /\btrails?\b/i;
+const TRACKS_SPLIT = /\bsplit(?:s|ting|ted)?\b/i;
 
 function distinctiveTokens(text: string): Set<string> {
   return new Set(
@@ -61,6 +63,8 @@ export type HintLeakOptions = {
   nocturnal?: boolean;
   /** Ranger timing contrast: rest and moving/active together hands over the answer. */
   slothTiming?: boolean;
+  /** Tracks-risk: trail and split together names the plot beat. */
+  tracksSplit?: boolean;
   /** Child answer (and comprehension question): nodding is not leaking. */
   allowedText?: string;
 };
@@ -96,6 +100,13 @@ export function hintLeakMessage(
     SLOTH_TIMING_ACTIVE.test(hint)
   ) {
     return `Hint names the rest/moving timing contrast: "${hint}"`;
+  }
+  if (
+    options?.tracksSplit &&
+    TRACKS_TRAIL.test(hint) &&
+    TRACKS_SPLIT.test(hint)
+  ) {
+    return `Hint names the trail-split clue: "${hint}"`;
   }
 
   const allowed = options?.allowedText

@@ -95,6 +95,24 @@ describe("assertHardRules hint leak", () => {
     ).not.toThrow()
   })
 
+  it("flags a tracks hint that names trail and split", () => {
+    const miss: GradeEvalCase = {
+      id: "comp-tracks-vague",
+      category: "gaming-vague",
+      challengeId: "tracks-choice-outcome",
+      childAnswer: "because something happened on the trail",
+      expectedCorrect: false,
+      expectedReasonTag: "ungrounded",
+    }
+    expect(() =>
+      assertHardRules(miss, {
+        correct: false,
+        reason: "Hmm, let's think about what the story actually says.",
+        hint: "Can you look back at the passage to see what happened when the trail split?",
+      }),
+    ).toThrow(/trail-split/i)
+  })
+
   it("allows a tracks hint that asks about the prints without naming faint/split", () => {
     const miss: GradeEvalCase = {
       id: "comp-tracks-boundary-walking-fast",
