@@ -6,12 +6,29 @@ import { defineConfig } from "vitest/config"
 // `bun run eval` works after `vercel env pull` without manual sourcing.
 const env = loadEnv("", path.resolve(__dirname, ".."), "")
 
+type EvalSuite = "dev" | "heldout"
+
+function resolveEvalSuite(): EvalSuite {
+  const raw = process.env.EVAL_SUITE
+  if (!raw || raw === "dev") return "dev"
+  if (raw === "heldout") return "heldout"
+  throw new Error(
+    `Invalid EVAL_SUITE="${raw}" — expected one of: dev, heldout.`,
+  )
+}
+
+const evalSuite = resolveEvalSuite()
+
 // Live-model evals: node environment, long per-case timeout, and a capped
 // concurrency so parallel Gateway calls don't trip provider rate limits.
+// Held-out stays out of `bun run eval` so prompt tuning cannot see it.
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["evals/**/*.eval.test.ts"],
+    include:
+      evalSuite === "heldout"
+        ? ["evals/held-out/**/*.eval.test.ts"]
+        : ["evals/*.eval.test.ts"],
     // Real shell env wins; .env.local fills in the AI Gateway credentials.
     env,
     testTimeout: 60_000,

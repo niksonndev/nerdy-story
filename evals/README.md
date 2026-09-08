@@ -47,10 +47,11 @@ vercel env pull
 Then run:
 
 ```bash
-RUN_LIVE_EVALS=1 bun run eval            # primary model only (default)
+RUN_LIVE_EVALS=1 bun run eval            # primary, development set only
 RUN_LIVE_EVALS=1 bun run eval:primary    # openai/gpt-oss-120b
 RUN_LIVE_EVALS=1 bun run eval:fallback   # google/gemini-3.1-flash-lite
 RUN_LIVE_EVALS=1 bun run eval:all-models # both, with a divergence report
+RUN_LIVE_EVALS=1 bun run eval:heldout   # frozen unseen set (both models)
 ```
 
 Without `RUN_LIVE_EVALS=1` the suite is skipped (so it never makes live calls by
@@ -67,7 +68,8 @@ Selects which grader model(s) run. Sourced from `GRADE_PRIMARY_MODEL` /
 
 ### Cost and runtime
 
-Each case makes one grader call. A full run is ~125 cases per domain.
+Each development case makes one grader call. A full development run is ~125 cases
+per domain.
 
 | `EVAL_MODELS` | grader calls | approx time (concurrency 4) |
 | ------------- | ------------ | --------------------------- |
@@ -77,6 +79,25 @@ Each case makes one grader call. A full run is ~125 cases per domain.
 
 Use `primary` for day-to-day prompt tuning; run `all` before shipping prompt
 changes to catch calibration that helps one model but hurts the other.
+
+## Held-out set
+
+A separate frozen suite lives in [`evals/held-out/`](held-out/). It is
+**not** imported by the development coverage check and is **not** part of
+`bun run eval`. Never copy those answers into `src/lib/grade/prompts.ts`. On a
+miss, re-adjudicate the label, fix the system if needed, then add a **new**
+case rather than editing the same one until it passes. Details:
+[held-out/README.md](held-out/README.md).
+
+```bash
+RUN_LIVE_EVALS=1 bun run eval:heldout            # both models (the judge artifact)
+RUN_LIVE_EVALS=1 bun run eval:heldout:primary
+RUN_LIVE_EVALS=1 bun run eval:heldout:fallback
+```
+
+~18 cases per domain. With `EVAL_MODELS=all` that is 72 live calls. JSON lands
+at `evals/results/<run-id>-heldout-<domain>.json` (includes `latencyMs`,
+`liveFailed`, and `usedLocalFallback: false`).
 
 ## Reading the results
 
@@ -95,7 +116,8 @@ or rejects.
 
 The same data is written to `evals/results/<run-id>-<domain>.json` (gitignored)
 so you can diff runs while tuning prompts in `src/lib/grade/prompts.ts`. Outcomes
-for boundary/gaming cases include `"manualReview": true`.
+include `latencyMs` and `liveFailed`. Boundary/gaming cases include
+`"manualReview": true`. Held-out reports use the `-heldout-` filename prefix.
 
 ## Adding a case
 
@@ -115,3 +137,6 @@ dataset drifts below the rigor thresholds — so you will hear about a thin
 category immediately, even without `RUN_LIVE_EVALS`.
 
 If a case is flaky, fix the grader prompt rather than weakening the assertion.
+
+Held-out cases live in `evals/held-out/cases/` and must stay novel versus this
+development set. See [held-out/README.md](held-out/README.md).

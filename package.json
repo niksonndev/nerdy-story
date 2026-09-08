@@ -13,7 +13,11 @@
     "eval:watch": "vitest --config evals/vitest.config.ts",
     "eval:primary": "EVAL_MODELS=primary vitest run --config evals/vitest.config.ts",
     "eval:fallback": "EVAL_MODELS=fallback vitest run --config evals/vitest.config.ts",
-    "eval:all-models": "EVAL_MODELS=all vitest run --config evals/vitest.config.ts"
+    "eval:all-models": "EVAL_MODELS=all vitest run --config evals/vitest.config.ts",
+    "eval:heldout": "EVAL_SUITE=heldout EVAL_MODELS=all vitest run --config evals/vitest.config.ts",
+    "eval:heldout:primary": "EVAL_SUITE=heldout EVAL_MODELS=primary vitest run --config evals/vitest.config.ts",
+    "eval:heldout:fallback": "EVAL_SUITE=heldout EVAL_MODELS=fallback vitest run --config evals/vitest.config.ts",
+    "eval:heldout:all-models": "EVAL_SUITE=heldout EVAL_MODELS=all vitest run --config evals/vitest.config.ts"
   },
   "dependencies": {
     "ai": "^7.0.79",
