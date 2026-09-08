@@ -10,8 +10,8 @@ The story reader advances by **page id**, not array order. Each page in [`src/li
 
 Optional interactions on a page:
 
-- **Vocabulary:** mystery word segments; Next Page / branch stay gated until every mystery word on the page is resolved
-- **Comprehension:** `comprehensionId`; Next Page stays enabled, but the first press opens the challenge overlay instead of turning the page
+- **Vocabulary:** mystery word segments; hide **Next Page** / branch until every mystery word on the page is resolved (the highlighted word is the next-action cue — do not silently disable a grey Next Page)
+- **Comprehension:** `comprehensionId`; footer primary reads **A story question** until resolved; the first press opens the challenge overlay instead of turning the page
 
 State lives in [`StoryReader`](../src/components/story/StoryReader.tsx) (`pageId` → `storyPagesById`). Page turns (Next Page, Previous Page, and branch picks) use [`react-pageflip`](../src/components/story/StoryFlipBook.tsx) on a **session spine** of sheets: optional previous (visit history), current page, and an optional **peek** next page. Peek exists only when a linear forward turn is allowed (`peekNextPageIdFor` in [`page-helpers.ts`](../src/lib/story/page-helpers.ts)) — no peek while vocab-gated, comprehension unresolved, on a branch page, or on a last page. Turns are **button-driven only** (no corner-drag / click-to-flip). Cover entrance and EndingBeat stay outside the flip book.
 
@@ -34,11 +34,13 @@ flowchart TD
   vocab[VocabularyChallenge overlay]
   comp[ComprehensionChallenge overlay]
   nextBtn[Next Page]
+  questionBtn[A story question]
   branch[BranchChoice]
   endChrome[EndingBeat page]
   read -->|mystery tap| vocab
   vocab -->|resolved| read
-  read -->|Next Page and unresolved comprehension| comp
+  read -->|A story question and unresolved comprehension| questionBtn
+  questionBtn --> comp
   comp -->|Keep going or Got it| read
   read -->|has nextPageId and canAdvance and comprehension resolved or absent| nextBtn
   read -->|has choice and canAdvance| branch
@@ -87,13 +89,13 @@ flowchart TD
 
 ## Comprehension challenge client flow (`StoryReader`)
 
-Trigger: **Next Page** on a page with unresolved `comprehensionId` (never auto-open on page enter).
+Trigger: **A story question** on a page with unresolved `comprehensionId` (never auto-open on page enter).
 
 Server path: live AI grade via `POST /api/grade-comprehension` (`openai/gpt-oss-120b`, Gateway failover to `google/gemini-3.1-flash-lite`) → on live failure, **local keyword** `GradeResult` (still HTTP 200).
 
 ```mermaid
 flowchart TD
-  nextClick[Next Page]
+  nextClick[A story question]
   open[Open overlay]
   check[Check]
   wait[Waiting]
@@ -116,7 +118,7 @@ flowchart TD
 - **Correct (HTTP 200):** short why (`reason`); **no** words-learned bump; “Keep going” closes overlay and advances to `nextPageId`.
 - **Wrong (HTTP 200):** same soft miss chrome as vocab; attempt burned; at `MAX_ATTEMPTS` → answer reveal.
 - **HTTP / transport failure:** burn attempt; fixed reason + story `hints` tier; at limit → answer reveal.
-- Closing with X before resolve does not advance; Next Page can reopen the challenge.
+- Closing with X before resolve does not advance; **A story question** can reopen the challenge.
 
 ## Mia and the Hidden Sloth (7-page graph)
 

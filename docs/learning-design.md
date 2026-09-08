@@ -22,7 +22,7 @@ Mystery words sit in running text (canopy, cautious, camouflage / nocturnal). Ta
 
 Two open questions per playthrough: one shared before the branch, one path-specific. Each challenge stores its own passage, question, expected understanding, hints, and answer reveal — the grader is not scraping the page.
 
-**Trigger:** **Next Page** opens the overlay. It does not pop on page enter. The child finishes reading first.
+**Trigger:** **A story question** opens the overlay. It does not pop on page enter. The child finishes reading first.
 
 **What we accept.** One grounded clue from the passage can be enough. Wrong character, wrong cause, a different scene, or something the story never said are rejects — with kid-facing copy that never says “incorrect.”
 
@@ -44,7 +44,7 @@ Shared progress is kept; path-specific vocab/comprehension resets if they re-pic
 
 Hints and reasons must not dump the definition. Soft progression is a pedagogy choice: struggling readers still finish the book.
 
-Chrome copy stays at 7–9: **Check**, **Next Page**, **Try another idea** — not Submit / Incorrect / Your score.
+Chrome copy stays at 7–9: **Check**, **Next Page**, **A story question**, **Try another idea** — not Submit / Incorrect / Your score.
 
 ## Why the story is pre-written
 

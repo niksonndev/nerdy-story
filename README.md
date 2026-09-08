@@ -29,7 +29,7 @@ Five challenges per playthrough: **3 vocabulary + 2 comprehension**.
 
 1. Cover → **Start Reading** into a page-turn storybook.
 2. Tap a highlighted mystery word → overlay → type an explanation → live grade (reason + hint on a miss).
-3. **Next Page** on a comprehension page opens a story question (never auto-opens). After resolve, the page turns.
+3. **A story question** on a comprehension page opens the overlay (never auto-opens). After resolve, the page turns.
 4. At the fork, both paths are narratively valid. Vocab #3 and the second comprehension item are path-specific; the child still sees exactly 3 + 2.
 5. Ending beat: book-coloring → live **words learned** (correct vocab only) → chapter-2 unlock (stub — the demo shows the unlock, not a second chapter).
 
@@ -68,7 +68,7 @@ OIDC tokens expire ~12 hours — `vercel env pull` again if live auth fails loca
 
 1. Start *Mia and the Hidden Sloth*.
 2. On page 2, tap **canopy** — explain it in kid words (“the leafy roof”). Watch words-learned tick.
-3. On page 3, press **Next Page** — that’s the first comprehension overlay (clues on the branch). Miss once to see the hint; or answer well and keep going.
+3. On page 3, press **A story question** — that’s the first comprehension overlay (clues on the branch). Miss once to see the hint; or answer well and keep going.
 4. At **Two Paths**, pick either option (not a quiz).
 5. Finish the ending vocab word → coloring beat → words learned → “chapter unlocked.”
 6. Optional: discover the other ending to show the reread loop.

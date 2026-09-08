@@ -47,7 +47,7 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
 - Full-screen single column, edge-to-edge
 - Image container per "Image container rule" above, full-bleed width
 - Text below image, comfortable reading width, generous padding
-- Reading progression: split bottom bar under the story text (ghost ← + **Next Page**);
+- Reading progression: split bottom bar under the story text (ghost ← + **Next Page** or **A story question**);
   controls sit directly under the copy (`mt-6`); when the flip sheet overflows, image +
   text + controls scroll together. Decision pages: no footer Previous; ← chevron floats
   top-left over the illustration
@@ -59,7 +59,7 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
 - Same stacked book-card layout as desktop: centered card, max-width
   ~600–700px (`max-w-175`), banner image on top, text below
 - Modal: centered card, no longer full-screen, ~70–80% width, rounded corners
-- Reading: outline **Previous Page** + auto-width **Next Page** in the card
+- Reading: outline **Previous Page** + auto-width **Next Page** or **A story question** in the card
   bottom row. Decision: **← Back** floats top-left over the illustration
   (text card stays free for story + choices)
 

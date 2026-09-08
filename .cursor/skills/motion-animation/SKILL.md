@@ -32,6 +32,7 @@ Gate Next Page / Previous while a flip is in progress so controls cannot double-
 
 - Page / scene change on **Next Page** / Previous — react-pageflip curl per contract above (instant when reduced motion)
 - CTA press feedback
+- Unresolved mystery word: one-shot scale attention when the sheet becomes current (skip when reduced motion). No looping pulse.
 - Words-learned increment (soft success pulse / count bump)
 - Sequenced ending beat: book-coloring → count-up → chapter unlock (short-circuit coloring + count-up when reduced motion)
 - Vocab challenge / feedback overlay: brief enter; focus the input — no celebration until an accepted answer

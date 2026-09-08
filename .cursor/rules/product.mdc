@@ -39,7 +39,7 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 
 - Pre-written open-ended story questions (not multiple choice); **2 per playthrough** — one shared before the branch, one path-specific on 6A or 6B
 - Each challenge stores an explicit **passage**, **question**, **expectedUnderstanding**, **acceptKeywords** (local fallback), client **hints** (2 tiers), and **answerReveal**
-- **Trigger:** **Next Page** opens the overlay (never auto-open on page enter). Vocab pages still gate Next Page until mystery words are resolved; comprehension does **not** disable Next Page
+- **Trigger:** Footer primary **A story question** opens the overlay (never auto-open on page enter). Vocab pages hide **Next Page** until mystery words are resolved; comprehension does **not** disable the footer primary.
 - Graded by a **live API call** to **gpt-oss-120b** via **Vercel AI Gateway** (failover to `google/gemini-3.1-flash-lite`) at `POST /api/grade-comprehension`; returns the same structured shape as vocabulary (`correct`, `reason`, `hint`)
 - Grading calibrated for 7–9: accept simplified / partial-but-correct story understanding; reject unrelated ideas
 - **Local keyword fallback:** if the live `generateText` call fails after Gateway failover, the server still returns a normal grade from a simple keyword/synonym matcher against `expectedUnderstanding` (and per-challenge `acceptKeywords`) — not an HTTP error, not a second AI call
@@ -49,8 +49,8 @@ This is the shipped product. Enforce these decisions. Do not invent product, sco
 ## Feedback & progress
 
 - After grading: on a **correct** answer, show a short kid-friendly **why** (grade `reason`); on a **miss** with retries left, show chrome + soft **about / not exactly about** reason + answer-aware **hint**
-- **Vocabulary:** Story progression (**Next Page**) stays gated until the challenge is **resolved** — either an accepted explanation, or meaning reveal after the retry limit — then the overlay closes and Next Page becomes available on the same story page
-- **Comprehension:** Next Page opens the challenge; after resolve, overlay CTA advances the page (exception to “stay on same page”)
+- **Vocabulary:** Hide **Next Page** / branch until the challenge is **resolved** — either an accepted explanation, or meaning reveal after the retry limit — then the overlay closes and Next Page becomes available on the same story page. Do not silently disable a grey Next Page.
+- **Comprehension:** Footer primary **A story question** opens the challenge; after resolve, overlay CTA advances the page (exception to “stay on same page”)
 - **Words learned** = count of **vocabulary** challenge words answered correctly in the **current session** (session-scoped; this product has no accounts or persisted progress); comprehension corrects do not count
 - Words-learned count increments **live on screen** as a direct result of correct vocab answers only, not on meaning/answer reveal, and not revealed only at the end
 - **Ending beat:** book-coloring animation + words-learned count, then a chapter-unlock reveal — the close of the chapter, not a second story

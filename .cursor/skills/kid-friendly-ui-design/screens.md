@@ -6,7 +6,7 @@ Visual composition only — how each screen should look. Flow, gating, and chrom
 
 **Look:** A single painted storybook page. Illustration + story text + quiet chrome share one composition.
 
-**Huge:** Story text (Lexend, ~18–22px, generous line-height), scene illustration, the primary control when it is on screen.
+**Huge:** Story text (Lexend, ~18–22px, generous line-height), scene illustration, the primary control when it is on screen (unresolved mystery word, **A story question**, or **Next Page** / branch).
 
 **Quiet:** Words-learned treasure count (teal/gold accent, not a card).
 

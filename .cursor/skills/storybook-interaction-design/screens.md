@@ -9,9 +9,10 @@ StoryPage (read; mystery word highlighted)
     rejected (retries left) → stay in overlay; “Try another idea!” + about/not-exactly reason + answer-aware hint (AI or local); try again
     grade HTTP failed (retries left) → burn attempt; “Try another idea!” + fixed reason + story hint; try again
     retry limit (wrong or HTTP fail) → MeaningReveal → overlay closes → same StoryPage; Next Page unlocked
-StoryPage → NextPage
-  → if unresolved comprehension on this page → ComprehensionChallenge overlay (does not turn page yet)
-  → else → next story page
+StoryPage → A story question (footer primary while comprehension pending)
+  → ComprehensionChallenge overlay (does not turn page yet)
+StoryPage → NextPage (after vocab resolved, and comprehension absent or already resolved)
+  → next story page
 StoryPage → PreviousPage → prior page in visit history (no vocab gate; blocked while overlay open)
 ComprehensionChallenge → GradingWait → WhyFeedback
   accepted → success why; Keep going → close + auto-advance to next page (no words-learned bump)
@@ -24,23 +25,23 @@ StoryPage → ClosingBeat
 
 ## Story page
 
-**Job:** Read this page. Primary action is **Next Page** when progression is allowed. Secondary action is **Previous Page** when visit history exists.
+**Job:** Read this page. One visible next-action cue: the highlighted mystery word, **A story question**, or **Next Page** / branch. Secondary action is **Previous Page** when visit history exists.
 
-**Mystery words:** Visually highlighted in the story text. Encountering one opens the vocab challenge overlay; the story page remains underneath.
+**Mystery words:** Visually highlighted in the story text (wavy underline, magic chip). Encountering one opens the vocab challenge overlay; the story page remains underneath. While unresolved, hide **Next Page** / branch — do not grey them out.
 
-**After a vocab challenge:** Overlay closes; child is back on this same page. Next Page is available once that page’s mystery words are resolved. Previous Page does not require vocab resolution.
+**After a vocab challenge:** Overlay closes; child is back on this same page. Next Page / branch is available once that page’s mystery words are resolved. Previous Page does not require vocab resolution.
 
-**Comprehension:** Not opened on page enter. First **Next Page** press opens the comprehension overlay when the page has an unresolved `comprehensionId`. After resolve, Keep going / Got it advances the story.
+**Comprehension:** Not opened on page enter. Footer primary reads **A story question** while `comprehensionId` is unresolved; that press opens the overlay (does not turn the page). After resolve, Keep going / Got it advances the story. On a later visit with the challenge already resolved, the label is **Next Page**.
 
-**Previous placement (reading pages):** Mobile — split bottom bar pinned to the bottom of the viewport: ghost ← (~25%) + primary **Next Page** (~75%). sm+ — outline **Previous Page** + **Next Page** in the bottom row. Decision pages: see Branch choice (Back floats on the illustration, not in the text card).
+**Previous placement (reading pages):** Mobile — split bottom bar pinned to the bottom of the viewport: ghost ← (~25%) + primary **Next Page** or **A story question** (~75%); when the forward slot is hidden (vocab unresolved), Previous sits alone like a last page. sm+ — outline **Previous Page** + the footer primary in the bottom row. Decision pages: see Branch choice (Back floats on the illustration, not in the text card).
 
-**Copy:** Story text is pre-written. Progression chrome is **Next Page** / **Previous Page** — not “Continue”, “Next”, or “Skip”. **← Back** is allowed only as quiet decision-page chrome (not a primary CTA).
+**Copy:** Story text is pre-written. Progression chrome is **Next Page** / **A story question** / **Previous Page** — not “Continue”, “Next”, or “Skip”. **← Back** is allowed only as quiet decision-page chrome (not a primary CTA).
 
 **Do not:** Multiple competing primary CTAs. Do not auto-open comprehension on page load. Do not auto-advance from vocab overlays. Do not show Previous Page on the first page or while a challenge overlay is open.
 
 ## Vocab challenge
 
-**Job:** Explain the mystery word in an overlay/modal over the story page. Next Page stays gated until the challenge is resolved.
+**Job:** Explain the mystery word in an overlay/modal over the story page. Next Page / branch stay hidden until the challenge is resolved.
 
 **Primary:** Check (≥56px). Prompt: “Explain what you understand by [word]”.
 
@@ -56,7 +57,7 @@ StoryPage → ClosingBeat
 
 ## Comprehension challenge
 
-**Job:** Answer a pre-written story question in an overlay over the story page. Opened by **Next Page**, not by tapping story text.
+**Job:** Answer a pre-written story question in an overlay over the story page. Opened by **A story question** (footer primary), not by tapping story text.
 
 **Primary:** Check (≥56px). Prompt is the story question (learning objective).
 
@@ -108,7 +109,7 @@ StoryPage → ClosingBeat
 
 **Job:** Pick a story fork — “what if I’d chosen differently?” Both paths equally valid. Not a comprehension test.
 
-**Primary:** Two equal-weight choice controls (≥56px height, generous width). Short prompt above (“What do you do?” / story-appropriate). Do **not** put Previous in the footer above the choices.
+**Primary:** Two equal-weight choice controls (≥56px height, generous width), shown only after any mystery word on the page is resolved. Short prompt above (“What do you do?” / story-appropriate). Do **not** put Previous in the footer above the choices. Do **not** grey out the choices while vocab is unresolved — hide them so the mystery word is the cue.
 
 **Back chrome (when history exists):** Subtle control floating top-left over the illustration (mobile ← chevron; sm+ **← Back**). Keeps the text card free for story + choices. Secondary only; must not compete with the branch CTAs.
 
