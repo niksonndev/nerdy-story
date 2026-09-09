@@ -1,5 +1,5 @@
 import { priorAttemptSchema } from "@/lib/grade/child-input";
-import type { z } from "zod";
+import { z } from "zod";
 
 /** Primary + Gateway failover — educational prompt is independent of these IDs. */
 export const GRADE_PRIMARY_MODEL = "openai/gpt-oss-120b";
@@ -27,11 +27,14 @@ export type ComprehensionGradeRequest = {
   priorAttempts?: GradeAttempt[];
 };
 
-export type GradeResult = {
-  correct: boolean;
-  reason: string;
-  hint: string | null;
-};
+/** Wire GradeResult shape (client + API). Live-model field copy lives in prompts.ts. */
+export const gradeResultSchema = z.object({
+  correct: z.boolean(),
+  reason: z.string(),
+  hint: z.string().nullable(),
+});
+
+export type GradeResult = z.infer<typeof gradeResultSchema>;
 
 /**
  * Overrides for the live grade call. Production omits this and uses the
