@@ -2,6 +2,10 @@ import { generateText, Output } from "ai";
 
 import { hintForAttempt } from "@/lib/grade/local-helpers";
 import {
+  logGradeLiveFailure,
+  type GradeLiveFailureContext,
+} from "@/lib/grade/log";
+import {
   buildChildAnswerMessage,
   gradeResultSchema,
 } from "@/lib/grade/prompts";
@@ -73,12 +77,15 @@ export async function runLiveGrade(
 export async function gradeWithLocalFallback(
   live: () => Promise<GradeResult>,
   local: () => GradeResult,
+  failureContext: GradeLiveFailureContext,
 ): Promise<GradeResult> {
   try {
     return await live();
   } catch (error) {
     if (error instanceof GradeError) throw error;
-    return local();
+    const result = local();
+    logGradeLiveFailure(failureContext, error, result.correct);
+    return result;
   }
 }
 
@@ -145,10 +152,12 @@ export function createLiveGrader<
 export function createProductionGrader<TRequest>(
   live: (request: TRequest) => Promise<GradeResult>,
   local: (request: TRequest) => GradeResult,
+  context: (request: TRequest) => GradeLiveFailureContext,
 ) {
   return (request: TRequest) =>
     gradeWithLocalFallback(
       () => live(request),
       () => local(request),
+      context(request),
     );
 }

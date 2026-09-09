@@ -56,4 +56,8 @@ export const gradeComprehensionLive = createLiveGrader({
 export const gradeComprehension = createProductionGrader(
   gradeComprehensionLive,
   gradeComprehensionLocally,
+  (request) => ({
+    feature: "comprehension-grade",
+    entityId: request.challengeId,
+  }),
 );

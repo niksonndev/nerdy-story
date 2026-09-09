@@ -55,4 +55,8 @@ export const gradeVocabularyLive = createLiveGrader({
 export const gradeVocabulary = createProductionGrader(
   gradeVocabularyLive,
   gradeVocabularyLocally,
+  (request) => ({
+    feature: "vocabulary-grade",
+    entityId: request.wordId,
+  }),
 );

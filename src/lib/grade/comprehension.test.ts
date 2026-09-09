@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { aiTestDoubles } from "@/test/ai-module";
 
@@ -189,8 +189,15 @@ describe("gradeComprehensionLocally", () => {
 });
 
 describe("gradeComprehension", () => {
+  const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
   beforeEach(() => {
     generateText.mockReset();
+    consoleError.mockClear();
+  });
+
+  afterAll(() => {
+    consoleError.mockRestore();
   });
 
   it("throws GradeError for an unknown challenge without calling the model", async () => {
@@ -201,6 +208,7 @@ describe("gradeComprehension", () => {
       }),
     ).rejects.toThrow(GradeError);
     expect(generateText).not.toHaveBeenCalled();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it("maps a correct model result and configures Gateway failover", async () => {
@@ -398,6 +406,16 @@ describe("gradeComprehension", () => {
 
     expect(result.correct).toBe(false);
     expect(result.hint).toBe(comprehensionChallenges["track-clues"].hints[0]);
+    expect(JSON.parse(String(consoleError.mock.calls[0]?.[0]))).toEqual({
+      msg: "grade.live_failed",
+      feature: "comprehension-grade",
+      entityId: "track-clues",
+      errorName: "AI_NoObjectGeneratedError",
+      errorMessage: "no object",
+      fallback: "local",
+      localCorrect: false,
+    });
+    expect(String(consoleError.mock.calls[0]?.[0])).not.toContain("bananas");
   });
 
   it("falls back to local grading when NoOutputGeneratedError is thrown", async () => {
@@ -413,5 +431,15 @@ describe("gradeComprehension", () => {
 
     expect(result.correct).toBe(true);
     expect(result.hint).toBeNull();
+    expect(JSON.parse(String(consoleError.mock.calls[0]?.[0]))).toMatchObject({
+      msg: "grade.live_failed",
+      feature: "comprehension-grade",
+      entityId: "track-clues",
+      errorName: "AI_NoOutputGeneratedError",
+      localCorrect: true,
+    });
+    expect(String(consoleError.mock.calls[0]?.[0])).not.toContain(
+      "scraped bark",
+    );
   });
 });
