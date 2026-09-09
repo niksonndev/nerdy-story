@@ -64,28 +64,40 @@ describe("createGradePostHandler", () => {
   });
 
   it("maps GradeError and unknown throws to error payloads", async () => {
-    const unknownId = createGradePostHandler({
-      schema: okSchema,
-      grade: async () => {
-        throw new GradeError("Unknown challenge.");
-      },
-    });
-    const unknownResponse = await unknownId(jsonRequest({ id: "x" }));
-    expect(unknownResponse.status).toBe(400);
-    expect(await unknownResponse.json()).toEqual({
-      error: "Invalid request body.",
-    });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const unavailable = createGradePostHandler({
-      schema: okSchema,
-      grade: async () => {
-        throw new Error("boom");
-      },
-    });
-    const unavailableResponse = await unavailable(jsonRequest({ id: "x" }));
-    expect(unavailableResponse.status).toBe(503);
-    expect(await unavailableResponse.json()).toEqual({
-      error: "Grading is temporarily unavailable.",
-    });
+    try {
+      const unknownId = createGradePostHandler({
+        schema: okSchema,
+        grade: async () => {
+          throw new GradeError("Unknown challenge.");
+        },
+      });
+      const unknownResponse = await unknownId(jsonRequest({ id: "x" }));
+      expect(unknownResponse.status).toBe(400);
+      expect(await unknownResponse.json()).toEqual({
+        error: "Invalid request body.",
+      });
+      expect(consoleError).not.toHaveBeenCalled();
+
+      const unavailable = createGradePostHandler({
+        schema: okSchema,
+        grade: async () => {
+          throw new Error("boom");
+        },
+      });
+      const unavailableResponse = await unavailable(jsonRequest({ id: "x" }));
+      expect(unavailableResponse.status).toBe(503);
+      expect(await unavailableResponse.json()).toEqual({
+        error: "Grading is temporarily unavailable.",
+      });
+      expect(JSON.parse(String(consoleError.mock.calls[0]?.[0]))).toEqual({
+        msg: "grade.unavailable",
+        errorName: "Error",
+        errorMessage: "boom",
+      });
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 });

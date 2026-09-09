@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { logGradeUnavailable } from "@/lib/grade/log";
 import { isGradeError, type GradeResult } from "@/lib/grade/shared";
 
 type ParseResult<T> =
@@ -47,6 +48,7 @@ export function createGradePostHandler<T>(options: {
           { status: 400 },
         );
       }
+      logGradeUnavailable(error);
       return NextResponse.json(
         { error: "Grading is temporarily unavailable." },
         { status: 503 },
