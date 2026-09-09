@@ -51,18 +51,7 @@ Grading is tested two ways: Vitest with a mocked model (plus the local fallback)
 
 ## Try it (about two minutes)
 
-Requires [Bun](https://bun.sh) and a [Vercel](https://vercel.com)-linked project (OIDC for AI Gateway).
-
-```bash
-vercel link          # once
-vercel env pull
-bun install
-bun run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-OIDC tokens expire ~12 hours — `vercel env pull` again if live auth fails locally. The local matcher still grades, so the loop is never blocked. On Vercel, OIDC is automatic.
+Open [https://nerdy-story.vercel.app/](https://nerdy-story.vercel.app/).
 
 **Walkthrough for reviewers**
 
@@ -72,6 +61,19 @@ OIDC tokens expire ~12 hours — `vercel env pull` again if live auth fails loca
 4. At **Two Paths**, pick either option (not a quiz).
 5. Finish the ending vocab word → coloring beat → **Story complete!** + words learned + **Discover Another Ending** (the unchosen fork).
 6. Optional: take that path to show the reread loop; finishing both endings offers **Read the chapter again**.
+
+### Local development
+
+Requires [Bun](https://bun.sh) and a [Vercel](https://vercel.com)-linked project (OIDC for AI Gateway).
+
+```bash
+vercel link          # once
+vercel env pull
+bun install
+bun run dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000). OIDC tokens expire ~12 hours — `vercel env pull` again if live auth fails locally. The local matcher still grades, so the loop is never blocked. On Vercel, OIDC is automatic.
 
 | Command | What it does |
 | --- | --- |
