@@ -81,6 +81,7 @@ Then open [http://localhost:3000](http://localhost:3000). OIDC tokens expire ~12
 | `bun run build` | Production build |
 | `bun run start` | Serve the production build |
 | `bun run test` | Vitest (use this, not `bun test`) |
+| `bun run typecheck` | Generate Next.js types, then `tsc --noEmit` |
 | `bun run eval` | Live grader evals — needs `RUN_LIVE_EVALS=1` |
 | `bun run lint` | ESLint |
 
