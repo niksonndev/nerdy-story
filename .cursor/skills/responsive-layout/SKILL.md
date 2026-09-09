@@ -51,14 +51,17 @@ breakpoint. Frame classes live in `StoryPageView` and `StoryCoverView`.
   controls sit directly under the copy (`mt-6`); when the flip sheet overflows, image +
   text + controls scroll together. Decision pages: no footer Previous; ← chevron floats
   top-left over the illustration
-- Mystery-word modal: full-screen takeover (not a floating card)
+- Mystery-word modal: floating centered card (same overlay family as tablet —
+  not a full-screen takeover). When the on-screen keyboard is open, pin the
+  overlay frame to the visual viewport so the card stays centered in the
+  remaining visible area (above the keys), not behind the keyboard
 - Touch targets: ≥56px tall for primary CTAs; secondary back ≥44px
   (per storybook-interaction-design)
 
 ### Tablet (640–1023px)
 - Same stacked book-card layout as desktop: centered card, max-width
   ~600–700px (`max-w-175`), banner image on top, text below
-- Modal: centered card, no longer full-screen, ~70–80% width, rounded corners
+- Modal: centered floating card, ~70–80% width, rounded corners
 - Reading: outline **Previous Page** + auto-width **Next Page** or **A story question** pinned
   to the book-card bottom row when content is short; the whole sheet scrolls as one unit
   when it overflows (image + text + controls). Decision: **← Back** floats top-left over
