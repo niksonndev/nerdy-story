@@ -33,6 +33,15 @@ Comprehension reasons are typed: wrong event, wrong character, wrong cause, ungr
 
 Not a second AI call. Phrase `acceptKeywords` plus token overlap against **core idea ∪ keywords** for vocabulary (not definition filler — `"the trees are tall"` is not canopy). Comprehension still overlaps `expectedUnderstanding`, but rejects a long consecutive n-gram copied from **this page’s** `passage`. Hits echo a short slice of the child's wording, then name the core idea. Misses use “[Word] is about [core idea], not exactly about [child’s idea]”. Story hints on a miss are wondering questions, same bar as live. Used when Gateway/provider/parse fails so the loop still teaches.
 
+## Production logs
+
+Live failures still return HTTP 200 from the local matcher, so 5xx monitoring will miss them. The server writes one JSON line via `console.error` (Vercel Runtime Logs):
+
+- `grade.live_failed` — live `generateText` failed after Gateway failover; local fallback ran. Fields: `feature`, `entityId`, `errorName`, `errorMessage` (truncated), `fallback: "local"`, `localCorrect`.
+- `grade.unavailable` — unexpected throw escaped the grader; HTTP 503. Fields: `errorName`, `errorMessage` (truncated).
+
+Filter Observability → Logs for `grade.live_failed` or `grade.unavailable`. Child answers, prior attempts, reasons, and hints are never logged.
+
 ## Evals
 
 Unit tests mock the model and cover fallback. Live evals (`evals/`) call the real Gateway.
