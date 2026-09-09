@@ -84,6 +84,13 @@ describe("VocabularyChallengeOverlay", () => {
     expect(onChange).toHaveBeenCalled();
   });
 
+  it("uses a floating centered card, not a full-screen takeover", () => {
+    renderVocabulary();
+    const dialog = screen.getByRole("dialog", { name: /Word challenge/i });
+    expect(dialog).toHaveClass("max-w-md", "rounded-3xl");
+    expect(dialog).not.toHaveClass("h-full", "rounded-none");
+  });
+
   it("closes on Escape", async () => {
     const user = userEvent.setup();
     const { onClose } = renderVocabulary();

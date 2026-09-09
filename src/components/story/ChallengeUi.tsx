@@ -10,6 +10,7 @@ import {
   useDialogA11y,
 } from "@/lib/a11y/use-dialog-a11y";
 import { CHILD_ANSWER_MAX_LENGTH } from "@/lib/grade/child-input";
+import { useVisualViewportFrame } from "@/lib/layout/use-visual-viewport-frame";
 import { type ChallengePhase } from "@/lib/story/reader-state";
 
 type ChallengeDialogProps = {
@@ -19,8 +20,6 @@ type ChallengeDialogProps = {
   "aria-labelledby"?: string;
   "aria-describedby"?: string;
   initialFocusRef?: RefObject<HTMLElement | null>;
-  /** Bottom-sheet on mobile, centered card from sm+. Default is centered. */
-  placement?: "center" | "bottom";
   children: ReactNode;
 };
 
@@ -31,12 +30,9 @@ export function ChallengeDialog({
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
   initialFocusRef,
-  placement = "center",
   children,
 }: ChallengeDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
-  const fromBottom = placement === "bottom";
 
   useDialogA11y({
     open,
@@ -45,70 +41,92 @@ export function ChallengeDialog({
     initialFocusRef,
   });
 
+  return (
+    <AnimatePresence>
+      {open ? (
+        <ChallengeDialogLayer
+          dialogRef={dialogRef}
+          onClose={onClose}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
+          aria-describedby={ariaDescribedBy}
+        >
+          {children}
+        </ChallengeDialogLayer>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+function ChallengeDialogLayer({
+  dialogRef,
+  onClose,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
+  "aria-describedby": ariaDescribedBy,
+  children,
+}: {
+  dialogRef: RefObject<HTMLDivElement | null>;
+  onClose: () => void;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
+  children: ReactNode;
+}) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  useVisualViewportFrame(overlayRef);
+
   const spring = reduceMotion
     ? { duration: 0.01 }
     : { type: "spring" as const, stiffness: 320, damping: 26 };
 
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className={
-            fromBottom
-              ? "fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
-              : "fixed inset-0 z-50 flex items-center justify-center p-4"
-          }
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
-        >
-          <div
-            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-            onClick={onClose}
-            aria-hidden
-          />
+    <motion.div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
+    >
+      <div
+        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden
+      />
 
-          <motion.div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={ariaLabel}
-            aria-labelledby={ariaLabelledBy}
-            aria-describedby={ariaDescribedBy}
-            initial={
-              reduceMotion
-                ? { opacity: 0 }
-                : fromBottom
-                  ? { opacity: 0, y: 24, scale: 0.96 }
-                  : { opacity: 0, scale: 0.92, y: 16 }
-            }
-            animate={
-              reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }
-            }
-            exit={
-              reduceMotion
-                ? { opacity: 0 }
-                : fromBottom
-                  ? { opacity: 0, y: 16, scale: 0.98 }
-                  : { opacity: 0, scale: 0.95, y: 8 }
-            }
-            transition={spring}
-            className="relative z-10 w-full max-w-md rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
-          >
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className={dialogCloseButtonClassName}
-            >
-              <X className="size-6" aria-hidden />
-            </button>
-            {children}
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+      <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        initial={
+          reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 16 }
+        }
+        animate={
+          reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }
+        }
+        exit={
+          reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 8 }
+        }
+        transition={spring}
+        className="relative z-10 max-h-full w-full max-w-md overflow-y-auto overscroll-contain rounded-3xl bg-card p-6 pt-14 shadow-2xl sm:p-8 sm:pt-14"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className={dialogCloseButtonClassName}
+        >
+          <X className="size-6" aria-hidden />
+        </button>
+        {children}
+      </motion.div>
+    </motion.div>
   );
 }
 
