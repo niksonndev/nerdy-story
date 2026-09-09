@@ -62,6 +62,36 @@ describe("grade client", () => {
     ).rejects.toThrow("Grade request failed");
   });
 
+  it("throws on a 200 with a body that is not a GradeResult", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(jsonResponse({ error: "garbage" }))),
+    );
+
+    await expect(
+      requestVocabularyGrade("canopy", "the top of the trees", []),
+    ).rejects.toThrow("Grade request failed");
+  });
+
+  it("throws on a 200 with invalid JSON", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          Promise.resolve(
+            new Response("not-json", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
+          ),
+      ),
+    );
+
+    await expect(
+      requestComprehensionGrade("track-clues", "green fur", []),
+    ).rejects.toThrow("Grade request failed");
+  });
+
   it("aborts a hung fetch after the client timeout", async () => {
     vi.useFakeTimers();
     const fetchMock = vi.fn(hungFetch);

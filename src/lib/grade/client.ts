@@ -1,4 +1,8 @@
-import type { GradeAttempt, GradeResult } from "@/lib/grade/shared";
+import {
+  gradeResultSchema,
+  type GradeAttempt,
+  type GradeResult,
+} from "@/lib/grade/shared";
 
 /** Bound the in-browser grade fetch so a hung Gateway call cannot spin forever. */
 export const GRADE_CLIENT_TIMEOUT_MS = 8_000;
@@ -19,7 +23,17 @@ async function postGrade(url: string, body: unknown): Promise<GradeResult> {
     if (!response.ok) {
       throw new Error("Grade request failed");
     }
-    return (await response.json()) as GradeResult;
+    let raw: unknown;
+    try {
+      raw = await response.json();
+    } catch {
+      throw new Error("Grade request failed");
+    }
+    const parsed = gradeResultSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error("Grade request failed");
+    }
+    return parsed.data;
   } finally {
     clearTimeout(timeoutId);
   }
