@@ -11,7 +11,6 @@ import { STORY_META, storySceneImages } from "@/lib/story/story-data";
 import { cn } from "@/lib/utils";
 
 export const COVER_DOLLY_MS = 700;
-const CHROME_FADE_MS = 400;
 const DOLLY_SCALE = 2.6;
 
 type StoryCoverViewProps = {
@@ -28,7 +27,6 @@ export function StoryCoverView({
   const completedRef = useRef(false);
   const reduceMotion = useReducedMotion();
   const dollyMs = reduceMotion ? 0 : COVER_DOLLY_MS;
-  const chromeFadeMs = reduceMotion ? 0 : CHROME_FADE_MS;
 
   const handleDollyComplete = useEffectEvent(() => {
     if (!isTransitioning || completedRef.current) return;
@@ -65,42 +63,16 @@ export function StoryCoverView({
           {storySceneImages.map((src) => (
             <SceneImagePreload key={src} src={src} />
           ))}
-          <motion.div
+          <div
             data-cover-art-overlay
             className={cn(
-              "overflow-hidden",
-              isTransitioning
-                ? "fixed inset-0 z-40 flex items-center justify-center"
-                : cn(
-                    "relative w-full shrink-0 self-start bg-magic/10",
-                    "aspect-4/5 max-sm:max-h-[40vh]",
-                    "sm:aspect-3/1 sm:h-auto sm:w-full",
-                    "lg:aspect-4/5 lg:w-[58%] lg:max-h-[85dvh] lg:max-w-none lg:self-auto",
-                  ),
+              "relative w-full shrink-0 self-start overflow-hidden bg-magic/10",
+              "aspect-4/5 max-sm:max-h-[40vh]",
+              "sm:aspect-3/1 sm:h-auto sm:w-full",
+              "lg:aspect-4/5 lg:w-[58%] lg:max-h-[85dvh] lg:max-w-none lg:self-auto",
             )}
-            style={isTransitioning ? { perspective: 1200 } : undefined}
           >
-            <motion.div
-              className={cn(
-                "relative",
-                isTransitioning
-                  ? "h-[55vh] w-[85vw] max-w-md sm:h-[60vh] sm:w-[50vw]"
-                  : "h-full w-full",
-              )}
-              initial={false}
-              animate={
-                isTransitioning
-                  ? {
-                      scale: reduceMotion ? 1 : DOLLY_SCALE,
-                      z: reduceMotion ? 0 : 120,
-                    }
-                  : { scale: 1, z: 0 }
-              }
-              transition={{
-                duration: dollyMs / 1000,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-            >
+            <div className="relative h-full w-full">
               <Image
                 src={STORY_META.coverImage}
                 alt={STORY_META.coverImageAlt}
@@ -109,19 +81,16 @@ export function StoryCoverView({
                 sizes="(min-width: 1024px) 700px, (min-width: 640px) 900px, 100vw"
                 priority
               />
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
-          <motion.div
+          <div
             className={cn(
               "flex min-w-0 flex-col px-5 pt-6",
               "min-h-0 max-sm:flex-1 max-sm:pb-0",
               "sm:flex-none sm:px-10 sm:pb-8 sm:pt-8",
               "lg:flex-1 lg:self-stretch lg:justify-between lg:px-8 lg:py-10",
             )}
-            initial={false}
-            animate={{ opacity: isTransitioning ? 0 : 1 }}
-            transition={{ duration: chromeFadeMs / 1000, ease: "easeOut" }}
           >
             <div className="flex flex-col max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto">
               <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
@@ -194,7 +163,7 @@ export function StoryCoverView({
                 Start Reading {"\u{1F4D6}"}
               </Button>
             </div>
-          </motion.div>
+          </div>
         </div>
     </StorybookShell>
   );
@@ -212,28 +181,42 @@ export function StoryCoverEntrance({
   onEntranceComplete,
 }: StoryCoverEntranceProps) {
   const reduceMotion = useReducedMotion();
-  const fadeMs = reduceMotion ? 0 : COVER_DOLLY_MS;
+  const dollyMs = reduceMotion ? 0 : COVER_DOLLY_MS;
 
   return (
-    <motion.div
-      data-cover-entrance
+    <div
       className={cn(
         "flex flex-1 flex-col",
-        isTransitioning && "pointer-events-none absolute inset-0 z-20",
+        isTransitioning &&
+          "pointer-events-none absolute inset-0 z-20 overflow-hidden",
       )}
-      initial={false}
-      animate={{ opacity: isTransitioning ? 0 : 1 }}
-      transition={{
-        duration: fadeMs / 1000,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+      style={isTransitioning ? { perspective: 1200 } : undefined}
     >
-      <StoryCoverView
-        isTransitioning={isTransitioning}
-        onStartReading={onStartReading}
-        onTransitionComplete={onEntranceComplete}
-      />
-    </motion.div>
+      <motion.div
+        data-cover-entrance
+        className="flex flex-1 flex-col"
+        initial={false}
+        animate={
+          isTransitioning
+            ? {
+                opacity: 0,
+                scale: reduceMotion ? 1 : DOLLY_SCALE,
+                z: reduceMotion ? 0 : 120,
+              }
+            : { opacity: 1, scale: 1, z: 0 }
+        }
+        transition={{
+          duration: dollyMs / 1000,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+      >
+        <StoryCoverView
+          isTransitioning={isTransitioning}
+          onStartReading={onStartReading}
+          onTransitionComplete={onEntranceComplete}
+        />
+      </motion.div>
+    </div>
   );
 }
 

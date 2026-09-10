@@ -85,19 +85,19 @@ describe("StoryCoverView", () => {
     expect(screen.queryByText(/unlock their secrets/i)).not.toBeInTheDocument();
   });
 
-  it("does not keep a full-bleed magic fill on the overlay during the dolly", () => {
+  it("keeps cover art in the card layout during the dolly", () => {
     const { container } = render(
       <StoryCoverView onStartReading={() => {}} isTransitioning />,
     );
 
     const overlay = container.querySelector("[data-cover-art-overlay]");
-    expect(overlay).toHaveClass("fixed", "inset-0");
-    expect(overlay).not.toHaveClass("bg-magic/10");
+    expect(overlay).toHaveClass("relative", "bg-magic/10");
+    expect(overlay).not.toHaveClass("fixed", "inset-0");
   });
 });
 
 describe("StoryCoverEntrance", () => {
-  it("fades the whole cover layer during the dolly so the card fill cannot linger", () => {
+  it("dollies the whole cover layer so the card cannot linger over page 1", () => {
     const { container } = render(
       <StoryCoverEntrance
         isTransitioning
@@ -107,6 +107,9 @@ describe("StoryCoverEntrance", () => {
     );
 
     const layer = container.querySelector("[data-cover-entrance]");
-    expect(layer).toHaveStyle({ opacity: "0" });
+    expect(layer).toHaveStyle({
+      opacity: "0",
+      transform: "translateZ(120px) scale(2.6)",
+    });
   });
 });
