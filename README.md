@@ -4,6 +4,16 @@ An interactive storybook for ages **7–9** (2nd–3rd grade). Kids read a rainf
 
 Built for Nerdy **Prompt 03 — English Reading Game**: literacy through narrative, not a worksheet with a plot on top.
 
+## Demo
+
+Desktop — cover → mystery word → explain:
+
+![Desktop demo](docs/assets/demo-desktop.gif)
+
+Mobile — same loop on a phone:
+
+![Mobile demo](docs/assets/demo-mobile.gif)
+
 ## The learning problem
 
 Most “reading games” for this age do one of two things:
